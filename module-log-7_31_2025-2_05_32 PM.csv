@@ -1,0 +1,8545 @@
+system,** Log cleared **
+system,"** Starting Connection from ""C:\Users\Administrator\AppData\Roaming\companion\modules\tmsystems-nam-0.1.0\main.js"" **"
+system,** Connection started **
+console,"Starting up module class: ModuleInstance
+"
+console,"Module-host accepted registration
+"
+system,Status: connecting - null
+debug,Updating action definitions (1 actions)
+debug,Updating feedback definitions (1 feedbacks)
+debug,Updating variable definitions (3 variables)
+console,"Device name: OcaModelDescription {
+  Manufacturer: 'T&M Media',
+  Name: 'NAM',
+  Version: '3'
+}
+"
+console,"Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'SaveConfig'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 100
+"
+console,"  Setting: false
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'LoadConfig'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 100
+  Setting: false
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'FactoryReset'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Setting: false
+Type: OcaStringSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'FILES'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 100
+  String: '[]'
+"
+console,"  MaxLen: 65535
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'GENERAL'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4101,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4102,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4103,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x07',
+      ClassVersion: 1
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4104,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4105,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4106,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4107,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4108,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  [length]: 8
+]
+"
+console,"Type: OcaInt32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'UPTIME'
+  Reading: 3101171
+"
+console,"Type: OcaStringActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'PASSWORD'
+  Setting: ''
+  MaxLen: 64
+"
+console,"Type: OcaVoltageSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x07'
+"
+console,"  ClassVersion: 1
+  Role: 'PSV'
+  Reading: 48.349998474121094
+Type: OcaTemperatureSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'TEMP0'
+  Reading: 39
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'UDPSEL'
+  Setting: false
+Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'UDPLVL'
+  Setting: false
+Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'UDPTIMEOUT'
+  Setting: 60
+Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'HELPPOINT'
+  Setting: false
+Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'MIC'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4110,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4111,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4112,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4113,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4114,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4115,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4116,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4117,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4118,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4119,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4120,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4121,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4125,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  [length]: 13
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'PH'
+  Setting: false
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'GAIN'
+  Gain: 0
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'REFDBFS'
+  Gain: -20
+Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'EQEN'
+  Setting: false
+Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ0'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4109
+  Frequency: 50
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'BQ1'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4109
+  Frequency: 125
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'BQ2'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4109
+"
+console,"  Frequency: 500
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'BQ3'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4109
+  Frequency: 1000
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'BQ4'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4109
+"
+console,"  Frequency: 3000
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ5'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4109
+  Frequency: 5000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'BQ6'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4109
+  Frequency: 16000
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'DYN'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4109
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4122,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4123,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4124,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  [length]: 3
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'EN'
+  Setting: false
+"
+console,"Type: OcaFloat32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Role: 'DRIVE'
+  Setting: 0
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'LIMIT'
+  Gain: -2
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'GATE'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4109
+  Members: [
+  OcaObjectIdentification {
+    ONo: 4126,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4127,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4128,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4129,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'EN'
+  Setting: false
+Type: OcaFloat32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Role: 'DECAY'
+  Setting: 80
+Type: OcaGain
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'GATETH'
+  Gain: -60
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'GATEDH'
+  Gain: -20
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'SDCARD'
+"
+console,"  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4131,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4132,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4133,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4134,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'FILE'
+  Setting: ''
+  MaxLen: 64
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'PLAY'
+  Position: 1
+  PositionNames: [ 'ON', 'OFF', 'LOOP', [length]: 3 ]
+  PositionEnableds: [ true, true, true, [length]: 3 ]
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOL'
+  Gain: 0
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'INSTALLED'
+  Reading: false
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'AMP'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4136,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4146,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4153,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4194,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4235,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4276,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  [length]: 6
+]
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'GENERAL'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4135
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4137,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4138,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4139,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4140,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4141,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4142,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4143,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4144,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4145,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  [length]: 9
+]
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'MODE'
+  Position: 0
+"
+console,"  PositionNames: [
+  '4x12W_4Ohm',
+  '4x12W_8Ohm',
+  '2x24W_4Ohm',
+  '4x75W_4Ohm',
+  '4x75W_8Ohm',
+  '4x50W_16Ohm',
+  '2x150W_4Ohm',
+  '2x100W_8Ohm',
+  '4x25V_LINE_75W',
+  '2x25V_LINE_75W_1xLOOP',
+  '2x75W_4Ohm_1xLOOP',
+  '2x50W_8Ohm_1xLOOP',
+  '2xLOOP',
+  '1xPHASED_LOOP',
+  '1xHP_LOOP',
+  [length]: 15
+]
+"
+console,"  PositionEnableds: [
+  true,  true,
+  true,  false,
+  false, false,
+  false, false,
+  false, false,
+  false, false,
+  false, false,
+  false, [length]: 15
+]
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'GENVOL'
+  Gain: -20
+Type: OcaSwitch
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'GENSRC'
+  Position: 0
+"
+console,"  PositionNames: [ 'White', 'Pink', '1Khz sine', '400hz sine', [length]: 4 ]
+  PositionEnableds: [ true, true, true, true, [length]: 4 ]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDSINGLESHOT'
+  Setting: false
+"
+console,"Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'SPKDRF'
+  Setting: 60
+Type: OcaSwitch
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'SPKDMODE'
+  Position: 0
+  PositionNames: [ '20kHz', '10Hz', [length]: 2 ]
+"
+console,"  PositionEnableds: [ true, true, [length]: 2 ]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'LOOPF'
+  Setting: false
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'APCEN'
+  Setting: false
+Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ASHUT1'
+  Setting: false
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+  ClassVersion: 2
+  Lockable: false
+"
+console,"  Role: 'ANS'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4135
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4147,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4148,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4149,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4150,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4151,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4152,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  [length]: 6
+]
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'RGAIN'
+  Gain: 20
+"
+console,"Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'RATIO'
+  Setting: 1
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'GMAX'
+  Gain: 10
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'GMIN'
+  Gain: -10
+Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'SRC'
+  Position: 8
+  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     [length]: 11
+]
+"
+console,"  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 11
+]
+Type: OcaGain
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'AGC'
+  Gain: 0
+Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH0'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4135
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4154,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4155,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4156,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4157,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4158,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4159,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4160,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4161,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4162,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4163,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4164,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4165,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4166,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4167,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x07',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4168,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4169,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4170,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4171,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4172,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4173,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4174,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4175,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4176,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4177,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4178,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4179,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4180,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4181,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4182,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4183,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4184,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4185,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4186,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4187,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4191,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4192,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4193,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\n',
+      ClassVersion: 2
+    }
+  },
+  [length]: 37
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ANSEN'
+  Setting: false
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDS'
+  Reading: false
+Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDEN'
+  Setting: true
+"
+console,"Type: OcaFloat32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDR'
+  Reading: 92
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDMA'
+  Gain: -30
+"
+console,"Type: OcaFloat32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDTHMIN'
+  Setting: 3
+Type: OcaFloat32Actuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDTHMAX'
+  Setting: 50
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERRCLK'
+  Reading: false
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'ERRTWI'
+  Reading: false
+Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'ERROC'
+  Reading: false
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'VOL'
+  Gain: 0
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'TRIM'
+  Gain: 0
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'CLIP'
+  Gain: 0
+Type: OcaDelay
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x07'
+"
+console,"  ClassVersion: 2
+  Role: 'DLY'
+  DelayTime: 0
+"
+console,"Type: OcaInt32Actuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'UDLY'
+  Setting: 0
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'SRC'
+  Position: 0
+"
+console,"  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+"
+console,"  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXM'
+  Position: 0
+"
+console,"  PositionNames: [ 'ROUTE', 'DIM', 'MIX', [length]: 3 ]
+  PositionEnableds: [ true, true, true, [length]: 3 ]
+"
+console,"Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXT'
+  Setting: 2
+Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXS'
+  Position: 0
+"
+console,"  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+"
+console,"  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXEN'
+  Setting: false
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXTH'
+  Gain: -50
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXDIM'
+  Gain: -20
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXMIX'
+  Gain: 0
+"
+console,"Type: OcaMute
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'LINEMUTE'
+  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXST'
+  Reading: false
+Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+  Role: 'EQEN'
+"
+console,"  Setting: false
+Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+  Lockable: false
+"
+console,"  Role: 'BQ0'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4153
+  Frequency: 50
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'BQ1'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4153
+"
+console,"  Frequency: 125
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ2'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4153
+  Frequency: 500
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'BQ3'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4153
+  Frequency: 1000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ4'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4153
+"
+console,"  Frequency: 3000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ5'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4153
+  Frequency: 5000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ6'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4153
+  Frequency: 16000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'DYN'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4153
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4188,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4189,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4190,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  [length]: 3
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'EN'
+  Setting: false
+"
+console,"Type: OcaFloat32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'DRIVE'
+  Setting: 0
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'LIMIT'
+  Gain: -2
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERRDCE'
+  Reading: false
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERROTE'
+  Reading: false
+"
+console,"Type: OcaFloat32Sensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'LOOPC'
+  Reading: 0
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH1'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4135
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4195,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4196,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4197,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4198,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4199,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4200,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4201,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4202,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4203,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4204,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4205,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4206,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4207,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4208,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x07',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4209,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4210,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4211,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4212,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4213,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4214,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4215,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4216,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4217,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4218,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4219,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4220,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4221,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4222,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4223,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4224,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4225,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4226,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4227,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4228,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4232,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4233,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4234,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\n',
+      ClassVersion: 2
+    }
+  },
+  [length]: 37
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ANSEN'
+  Setting: false
+"
+console,"Type: OcaBooleanSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDS'
+  Reading: false
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDEN'
+  Setting: true
+"
+console,"Type: OcaFloat32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDR'
+  Reading: 95.69999694824219
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDMA'
+  Gain: -30
+"
+console,"Type: OcaFloat32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDTHMIN'
+  Setting: 3
+"
+console,"Type: OcaFloat32Actuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDTHMAX'
+  Setting: 50
+Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERRCLK'
+  Reading: false
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERRTWI'
+  Reading: false
+Type: OcaBooleanSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERROC'
+  Reading: false
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOL'
+  Gain: 0
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'TRIM'
+  Gain: 0
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'CLIP'
+  Gain: 0
+"
+console,"Type: OcaDelay
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x07'
+"
+console,"  ClassVersion: 2
+  Role: 'DLY'
+  DelayTime: 0
+Type: OcaInt32Actuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'UDLY'
+  Setting: 0
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'SRC'
+  Position: 1
+"
+console,"  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaSwitch
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXM'
+  Position: 0
+  PositionNames: [ 'ROUTE', 'DIM', 'MIX', [length]: 3 ]
+  PositionEnableds: [ true, true, true, [length]: 3 ]
+"
+console,"Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXT'
+  Setting: 2
+Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXS'
+  Position: 1
+  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXEN'
+  Setting: false
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXTH'
+  Gain: -50
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+  Role: 'VOXDIM'
+"
+console,"  Gain: -20
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXMIX'
+  Gain: 0
+Type: OcaMute
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'LINEMUTE'
+"
+console,"  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXST'
+  Reading: false
+"
+console,"Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'EQEN'
+  Setting: false
+"
+console,"Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ0'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4194
+  Frequency: 50
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ1'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4194
+  Frequency: 125
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ2'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4194
+  Frequency: 500
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ3'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4194
+  Frequency: 1000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ4'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4194
+"
+console,"  Frequency: 3000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ5'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4194
+  Frequency: 5000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'BQ6'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4194
+  Frequency: 16000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'DYN'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4194
+  Members: [
+  OcaObjectIdentification {
+    ONo: 4229,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4230,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4231,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  [length]: 3
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'EN'
+  Setting: false
+"
+console,"Type: OcaFloat32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Role: 'DRIVE'
+  Setting: 0
+Type: OcaGain
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'LIMIT'
+  Gain: -2
+"
+console,"Type: OcaBooleanSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+  Role: 'ERRDCE'
+"
+console,"  Reading: false
+Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERROTE'
+  Reading: false
+Type: OcaFloat32Sensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'LOOPC'
+  Reading: 0
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH2'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4135
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4236,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4237,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4238,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4239,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4240,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4241,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4242,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4243,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4244,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4245,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4246,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4247,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4248,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4249,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x07',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4250,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4251,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4252,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4253,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4254,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4255,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4256,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4257,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4258,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4259,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4260,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4261,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4262,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4263,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4264,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4265,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4266,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4267,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4268,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4269,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4273,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4274,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4275,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\n',
+      ClassVersion: 2
+    }
+  },
+  [length]: 37
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ANSEN'
+  Setting: false
+Type: OcaBooleanSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDS'
+  Reading: false
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDEN'
+  Setting: true
+Type: OcaFloat32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDR'
+  Reading: 92.5999984741211
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDMA'
+  Gain: -30
+Type: OcaFloat32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDTHMIN'
+  Setting: 3
+Type: OcaFloat32Actuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDTHMAX'
+  Setting: 50
+Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERRCLK'
+  Reading: false
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERRTWI'
+  Reading: false
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'ERROC'
+  Reading: false
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOL'
+  Gain: 0
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'TRIM'
+  Gain: 0
+Type: OcaGain
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'CLIP'
+  Gain: 0
+"
+console,"Type: OcaDelay
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x07'
+"
+console,"  ClassVersion: 2
+  Role: 'DLY'
+  DelayTime: 0
+"
+console,"Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'UDLY'
+  Setting: 0
+Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'SRC'
+  Position: 2
+"
+console,"  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXM'
+  Position: 0
+  PositionNames: [ 'ROUTE', 'DIM', 'MIX', [length]: 3 ]
+"
+console,"  PositionEnableds: [ true, true, true, [length]: 3 ]
+"
+console,"Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXT'
+  Setting: 2
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXS'
+  Position: 2
+  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+"
+console,"  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+  Role: 'VOXEN'
+"
+console,"  Setting: false
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+  Role: 'VOXTH'
+"
+console,"  Gain: -50
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+  Role: 'VOXDIM'
+"
+console,"  Gain: -20
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+  Role: 'VOXMIX'
+"
+console,"  Gain: 0
+"
+console,"Type: OcaMute
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+  ClassVersion: 2
+"
+console,"  Role: 'LINEMUTE'
+  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaBooleanSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+  Role: 'VOXST'
+"
+console,"  Reading: false
+Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'EQEN'
+  Setting: false
+Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'BQ0'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4235
+  Frequency: 50
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ1'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4235
+  Frequency: 125
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ2'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4235
+  Frequency: 500
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ3'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4235
+  Frequency: 1000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ4'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4235
+  Frequency: 3000
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+  Lockable: false
+"
+console,"  Role: 'BQ5'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4235
+  Frequency: 5000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+  Lockable: false
+"
+console,"  Role: 'BQ6'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4235
+  Frequency: 16000
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'DYN'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4235
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4270,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4271,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4272,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  [length]: 3
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'EN'
+  Setting: false
+Type: OcaFloat32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Role: 'DRIVE'
+  Setting: 0
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'LIMIT'
+  Gain: -2
+Type: OcaBooleanSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'ERRDCE'
+  Reading: false
+Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERROTE'
+  Reading: false
+"
+console,"Type: OcaFloat32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\n'
+  ClassVersion: 2
+"
+console,"  Role: 'LOOPC'
+  Reading: 0
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'CH3'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4135
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4277,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4278,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4279,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4280,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4281,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4282,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4283,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4284,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4285,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4286,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4287,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4288,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4289,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4290,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x07',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4291,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4292,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4293,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4294,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4295,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4296,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4297,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4298,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4299,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4300,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4301,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4302,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4303,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4304,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4305,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4306,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4307,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4308,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4309,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4310,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4314,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4315,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4316,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\n',
+      ClassVersion: 2
+    }
+  },
+  [length]: 37
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ANSEN'
+  Setting: false
+Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'SPKDS'
+  Reading: false
+Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDEN'
+  Setting: true
+Type: OcaFloat32Sensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\n'
+  ClassVersion: 2
+"
+console,"  Role: 'SPKDR'
+  Reading: 98.80000305175781
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDMA'
+  Gain: -30
+"
+console,"Type: OcaFloat32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDTHMIN'
+  Setting: 3
+Type: OcaFloat32Actuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'SPKDTHMAX'
+  Setting: 50
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERRCLK'
+  Reading: false
+Type: OcaBooleanSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERRTWI'
+  Reading: false
+Type: OcaBooleanSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERROC'
+  Reading: false
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOL'
+  Gain: 0
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'TRIM'
+  Gain: 0
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'CLIP'
+  Gain: 0
+Type: OcaDelay
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x07'
+  ClassVersion: 2
+  Role: 'DLY'
+"
+console,"  DelayTime: 0
+Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'UDLY'
+  Setting: 0
+Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'SRC'
+  Position: 3
+  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+"
+console,"  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXM'
+"
+console,"  Position: 0
+"
+console,"  PositionNames: [ 'ROUTE', 'DIM', 'MIX', [length]: 3 ]
+"
+console,"  PositionEnableds: [ true, true, true, [length]: 3 ]
+"
+console,"Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXT'
+  Setting: 2
+Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+  ClassVersion: 2
+  Role: 'VOXS'
+"
+console,"  Position: 3
+  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+"
+console,"  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXEN'
+  Setting: false
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXTH'
+  Gain: -50
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXDIM'
+  Gain: -20
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXMIX'
+  Gain: 0
+Type: OcaMute
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'LINEMUTE'
+"
+console,"  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXST'
+  Reading: false
+Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'EQEN'
+  Setting: false
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'BQ0'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4276
+  Frequency: 50
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ1'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4276
+  Frequency: 125
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ2'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4276
+"
+console,"  Frequency: 500
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ3'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4276
+  Frequency: 1000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ4'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4276
+  Frequency: 3000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ5'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4276
+  Frequency: 5000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ6'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4276
+  Frequency: 16000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'DYN'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4276
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4311,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4312,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4313,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  [length]: 3
+]
+"
+console,"Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'EN'
+  Setting: false
+"
+console,"Type: OcaFloat32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'DRIVE'
+  Setting: 0
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'LIMIT'
+  Gain: -2
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERRDCE'
+  Reading: false
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'ERROTE'
+  Reading: false
+"
+console,"Type: OcaFloat32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'LOOPC'
+  Reading: 0
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'GPIO'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4318,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4319,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4329,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  [length]: 3
+]
+"
+console,"Type: OcaInt32Actuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'GPIUPDATE'
+  Setting: 50000
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH0'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4317
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4320,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4321,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4322,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4323,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4324,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4325,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4326,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4327,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4328,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  [length]: 9
+]
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'GPI'
+  Reading: false
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'GPO'
+  Setting: false
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+"
+console,"  Role: 'GPION'
+  Setting: ''
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'GPIOFF'
+"
+console,"  Setting: ''
+  MaxLen: 64
+Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'GPOT'
+  Position: 0
+  PositionNames: [
+  'UDP',
+  'Net1 Link Fail',
+  'Net2 Link Fail',
+  'Net1 or Net2 Link Fail',
+  'Vox',
+  'AES Sync Fail',
+  'Dante CH1 Mute',
+  'Dante CH2 Mute',
+  'Dante CH3 Mute',
+  'Dante CH4 Mute',
+  'Dante CH5 Mute',
+  'Dante CH6 Mute',
+  'Dante CH7 Mure',
+  'Dante CH8 Mute',
+  'SYSTEM FAULT',
+  'SYSTEM OK',
+  [length]: 16
+]
+  PositionEnableds: [
+  true,         true,
+  true,         true,
+  true,         true,
+  true,         true,
+  true,         true,
+  true,         true,
+  true,         true,
+  true,         true,
+  [length]: 16
+]
+"
+console,"Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+  ClassVersion: 2
+  Role: 'VOXT'
+"
+console,"  Setting: 2
+Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+  ClassVersion: 2
+  Role: 'VOXS'
+"
+console,"  Position: 0
+  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+"
+console,"  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+  Role: 'VOXTH'
+"
+console,"  Gain: -50
+Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'VOXST'
+  Reading: false
+Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH1'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4317
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4330,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4331,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4332,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4333,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4334,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4335,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4336,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4337,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4338,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  [length]: 9
+]
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'GPI'
+  Reading: false
+Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+  Role: 'GPO'
+"
+console,"  Setting: false
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'GPION'
+"
+console,"  Setting: ''
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'GPIOFF'
+"
+console,"  Setting: ''
+  MaxLen: 64
+Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+  ClassVersion: 2
+  Role: 'GPOT'
+"
+console,"  Position: 0
+  PositionNames: [
+  'UDP',
+  'Net1 Link Fail',
+  'Net2 Link Fail',
+  'Net1 or Net2 Link Fail',
+  'Vox',
+  'AES Sync Fail',
+  'Dante CH1 Mute',
+  'Dante CH2 Mute',
+  'Dante CH3 Mute',
+  'Dante CH4 Mute',
+  'Dante CH5 Mute',
+  'Dante CH6 Mute',
+  'Dante CH7 Mure',
+  'Dante CH8 Mute',
+  'SYSTEM FAULT',
+  'SYSTEM OK',
+  [length]: 16
+]
+"
+console,"  PositionEnableds: [
+  true,         true,
+  true,         true,
+  true,         true,
+  true,         true,
+  true,         true,
+  true,         true,
+  true,         true,
+  true,         true,
+  [length]: 16
+]
+"
+console,"Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXT'
+  Setting: 2
+Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXS'
+  Position: 1
+  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+"
+console,"  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXTH'
+  Gain: -50
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXST'
+  Reading: false
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'SUBSCR'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4340,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4345,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4350,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4355,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4360,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4365,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4370,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4375,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  [length]: 8
+]
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH0'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4339
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4341,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4342,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4343,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4344,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'DEVICE'
+"
+console,"  Setting: ''
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CHANNEL'
+  Setting: ''
+  MaxLen: 64
+Type: OcaMute
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'MUTE'
+"
+console,"  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'STATUS'
+  String: 'NONE'
+  MaxLen: 64
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH1'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4339
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4346,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4347,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4348,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4349,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DEVICE'
+  Setting: ''
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CHANNEL'
+  Setting: ''
+  MaxLen: 64
+"
+console,"Type: OcaMute
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'MUTE'
+  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'STATUS'
+  String: 'NONE'
+  MaxLen: 64
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH2'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4339
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4351,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4352,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4353,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4354,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DEVICE'
+  Setting: ''
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CHANNEL'
+"
+console,"  Setting: ''
+  MaxLen: 64
+"
+console,"Type: OcaMute
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+  ClassVersion: 2
+"
+console,"  Role: 'MUTE'
+  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'STATUS'
+  String: 'NONE'
+  MaxLen: 64
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH3'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4339
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4356,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4357,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4358,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4359,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DEVICE'
+  Setting: ''
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CHANNEL'
+  Setting: ''
+  MaxLen: 64
+Type: OcaMute
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'MUTE'
+  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'STATUS'
+  String: 'NONE'
+  MaxLen: 64
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH4'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4339
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4361,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4362,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4363,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4364,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaStringActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DEVICE'
+  Setting: ''
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+"
+console,"  Role: 'CHANNEL'
+  Setting: ''
+  MaxLen: 64
+Type: OcaMute
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'MUTE'
+  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+  ClassVersion: 2
+  Role: 'STATUS'
+"
+console,"  String: 'NONE'
+  MaxLen: 64
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'CH5'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4339
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4366,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4367,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4368,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4369,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DEVICE'
+  Setting: ''
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'CHANNEL'
+"
+console,"  Setting: ''
+  MaxLen: 64
+Type: OcaMute
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'MUTE'
+  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+  ClassVersion: 2
+  Role: 'STATUS'
+"
+console,"  String: 'NONE'
+  MaxLen: 64
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'CH6'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4339
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4371,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4372,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4373,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4374,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+"
+console,"  Role: 'DEVICE'
+  Setting: 'Engineering-Adrian'
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'CHANNEL'
+"
+console,"  Setting: '01'
+  MaxLen: 64
+Type: OcaMute
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'MUTE'
+  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'STATUS'
+  String: 'UNRESOLVED'
+  MaxLen: 64
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH7'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4339
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4376,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4377,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4378,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4379,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaStringActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DEVICE'
+"
+console,"  Setting: 'Engineering-Adrian'
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CHANNEL'
+  Setting: '02'
+  MaxLen: 64
+"
+console,"Type: OcaMute
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'MUTE'
+  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'STATUS'
+  String: 'UNRESOLVED'
+  MaxLen: 64
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CHNAMES'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4381,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4390,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  [length]: 2
+]
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'OUTS'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4380
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4382,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4383,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4384,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4385,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4386,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4387,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4388,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4389,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 8
+]
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH0'
+  Setting: ''
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'CH1'
+"
+console,"  Setting: ''
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH2'
+  Setting: ''
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH3'
+  Setting: ''
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH4'
+  Setting: ''
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'CH5'
+"
+console,"  Setting: ''
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'CH6'
+"
+console,"  Setting: ''
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH7'
+  Setting: ''
+  MaxLen: 64
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'INS'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4380
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4391,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4392,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4393,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4394,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4395,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4396,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4397,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4398,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 8
+]
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH0'
+  Setting: 'CH1'
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH1'
+  Setting: 'CH2'
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH2'
+  Setting: 'CH3'
+  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH3'
+  Setting: 'CH4'
+  MaxLen: 64
+Type: OcaStringActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH4'
+  Setting: 'CH5'
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH5'
+  Setting: 'CH6'
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH6'
+  Setting: 'CH7'
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'CH7'
+  Setting: 'CH8'
+  MaxLen: 64
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CHLEVELS'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4400,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4401,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4402,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4403,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4404,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4405,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4406,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4407,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4408,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4409,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4410,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4411,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4412,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4413,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4414,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4415,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x02',
+      ClassVersion: 2
+    }
+  },
+  [length]: 16
+]
+"
+console,"Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'INS0'
+  Reading: -126
+Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'INS1'
+  Reading: -126
+Type: OcaLevelSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'INS2'
+  Reading: -126
+Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'INS3'
+  Reading: -126
+Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'INS4'
+  Reading: -126
+"
+console,"Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'INS5'
+"
+console,"  Reading: -126
+"
+console,"Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'INS6'
+  Reading: -126
+Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'INS7'
+  Reading: -126
+Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'OUTS0'
+  Reading: -100
+Type: OcaLevelSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'OUTS1'
+  Reading: -100
+Type: OcaLevelSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'OUTS2'
+  Reading: -100
+Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+  ClassVersion: 2
+  Role: 'OUTS3'
+"
+console,"  Reading: -100
+Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'OUTS4'
+  Reading: -99.5
+Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+  ClassVersion: 2
+  Role: 'OUTS5'
+"
+console,"  Reading: -100
+Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+  ClassVersion: 2
+"
+console,"  Role: 'OUTS6'
+  Reading: -100
+Type: OcaLevelSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'OUTS7'
+  Reading: -100
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'AES'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4417,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4418,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4442,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  [length]: 3
+]
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'LOCK'
+  Reading: false
+Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH0'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4416
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4419,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4420,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4421,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4422,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x07',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4423,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4424,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4425,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4426,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4427,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4428,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4429,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4430,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4431,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4432,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4433,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4434,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4435,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4436,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4437,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4438,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  [length]: 20
+]
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOL'
+  Gain: 0
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'SRC'
+  Position: 6
+"
+console,"  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+"
+console,"  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXM'
+  Position: 0
+  PositionNames: [ 'ROUTE', 'DIM', 'MIX', [length]: 3 ]
+"
+console,"  PositionEnableds: [ true, true, true, [length]: 3 ]
+"
+console,"Type: OcaDelay
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x07'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXT'
+  DelayTime: 0.0020000000949949026
+"
+console,"Type: OcaSwitch
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXS'
+  Position: 0
+"
+console,"  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXEN'
+  Setting: false
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXTH'
+"
+console,"  Gain: -50
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+  Role: 'VOXDIM'
+"
+console,"  Gain: -20
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+  ClassVersion: 2
+  Role: 'VOXMIX'
+"
+console,"  Gain: 0
+Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+  Role: 'VOXST'
+"
+console,"  Reading: false
+Type: OcaMute
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+  ClassVersion: 2
+  Role: 'LINEMUTE'
+"
+console,"  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+  Role: 'EQEN'
+"
+console,"  Setting: false
+Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+  Lockable: false
+"
+console,"  Role: 'BQ0'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4418
+  Frequency: 50
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+  Lockable: false
+"
+console,"  Role: 'BQ1'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4418
+  Frequency: 125
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+  Lockable: false
+"
+console,"  Role: 'BQ2'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4418
+  Frequency: 500
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+  Lockable: false
+"
+console,"  Role: 'BQ3'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4418
+  Frequency: 1000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+  ClassVersion: 2
+  Lockable: false
+"
+console,"  Role: 'BQ4'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4418
+  Frequency: 3000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ5'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4418
+"
+console,"  Frequency: 5000
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ6'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4418
+  Frequency: 16000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'DYN'
+"
+console,"  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4418
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4439,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4440,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4441,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  [length]: 3
+]
+"
+console,"Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'EN'
+  Setting: false
+Type: OcaFloat32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'DRIVE'
+  Setting: 0
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'LIMIT'
+  Gain: -2
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CH1'
+"
+console,"  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4416
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4443,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4444,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4445,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4446,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x07',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4447,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4448,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4449,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4450,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4451,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4452,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4453,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x02',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4454,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4455,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4456,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4457,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4458,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4459,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4460,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4461,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4462,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  [length]: 20
+]
+"
+console,"Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOL'
+  Gain: 0
+Type: OcaSwitch
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'SRC'
+  Position: 7
+"
+console,"  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXM'
+  Position: 0
+"
+console,"  PositionNames: [ 'ROUTE', 'DIM', 'MIX', [length]: 3 ]
+"
+console,"  PositionEnableds: [ true, true, true, [length]: 3 ]
+"
+console,"Type: OcaDelay
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x07'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXT'
+  DelayTime: 0.0020000000949949026
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXS'
+  Position: 0
+"
+console,"  PositionNames: [
+  'Dante CH1', 'Dante CH2',
+  'Dante CH3', 'Dante CH4',
+  'Dante CH5', 'Dante CH6',
+  'Dante CH7', 'Dante CH8',
+  'MIC',       'AUX 1',
+  'AUX 2',     'Generator',
+  'SD Card',   [length]: 13
+]
+"
+console,"  PositionEnableds: [
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, true,
+  true, [length]: 13
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXEN'
+  Setting: false
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXTH'
+  Gain: -50
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXDIM'
+  Gain: -20
+Type: OcaGain
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXMIX'
+  Gain: 0
+Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'VOXST'
+  Reading: false
+Type: OcaMute
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x02'
+"
+console,"  ClassVersion: 2
+  Role: 'LINEMUTE'
+"
+console,"  State: OcaMuteState { value: 2, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'EQEN'
+  Setting: false
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ0'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4442
+  Frequency: 50
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ1'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4442
+  Frequency: 125
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ2'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4442
+  Frequency: 500
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+"
+console,"  WidthParameter: 1
+  InbandGain: 0
+Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ3'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4442
+"
+console,"  Frequency: 1000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ4'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4442
+  Frequency: 3000
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ5'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4442
+"
+console,"  Frequency: 5000
+  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+"
+console,"  InbandGain: 0
+Type: OcaFilterParametric
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BQ6'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4442
+  Frequency: 16000
+"
+console,"  Shape: OcaParametricEQShape { value: 1, [isEnum]: [Getter], [name]: [Getter] }
+  WidthParameter: 1
+  InbandGain: 0
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'DYN'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4442
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4463,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4464,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4465,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x05',
+      ClassVersion: 2
+    }
+  },
+  [length]: 3
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'EN'
+  Setting: false
+Type: OcaFloat32Actuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'DRIVE'
+  Setting: 0
+Type: OcaGain
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x05'
+"
+console,"  ClassVersion: 2
+  Role: 'LIMIT'
+  Gain: -2
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'SYS'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4467,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4468,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4469,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4470,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4471,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4472,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4473,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4474,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4475,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4476,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4477,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4478,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4479,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4480,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4481,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4482,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4483,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4484,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4485,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\n',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4486,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4487,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4488,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4489,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4491,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4493,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4494,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4497,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4498,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4514,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  OcaObjectIdentification {
+    ONo: 4530,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4531,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4532,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4533,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4534,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4535,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 35
+]
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'NAME'
+  Setting: 'NAM-262de4'
+  MaxLen: 64
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'NSVER'
+  String: '04.03.061'
+  MaxLen: 64
+Type: OcaStringSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'NFVER'
+  String: '04.03.64'
+  MaxLen: 64
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+  ClassVersion: 2
+  Role: 'NHWVER'
+  String: '01.00.00'
+"
+console,"  MaxLen: 64
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'BLDVER'
+  String: 'c752fe5'
+  MaxLen: 64
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'HARDWARE'
+  String: 'LP Plus'
+  MaxLen: 64
+Type: OcaStringSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DSVER'
+  String: '4.02.009.004'
+  MaxLen: 64
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DFVER'
+  String: '4.02.002.003'
+  MaxLen: 64
+Type: OcaStringSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DMODELID'
+  String: '52'
+  MaxLen: 64
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+  Role: 'PREFMCLK'
+  Setting: false
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'AES67MODE'
+  Setting: false
+"
+console,"Type: OcaInt32Actuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'AES67PREFIX'
+  Setting: 0
+Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'UDR'
+  Setting: false
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'TXLATENCY'
+  Position: 2
+  PositionNames: [ '250', '500', '1000', '2000', '5000', [length]: 5 ]
+  PositionEnableds: [ true, true, true, true, true, [length]: 5 ]
+Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'RXLATENCY'
+  Position: 2
+  PositionNames: [ '250', '500', '1000', '2000', '5000', [length]: 5 ]
+  PositionEnableds: [ true, true, true, true, true, [length]: 5 ]
+"
+console,"Type: OcaSwitch
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'FLOWS'
+  Position: 1
+  PositionNames: [ '2', '4', '8', [length]: 3 ]
+"
+console,"  PositionEnableds: [ true, true, true, [length]: 3 ]
+"
+console,"Type: OcaFloat32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'CPULOAD1'
+  Reading: 0.5199999809265137
+"
+console,"Type: OcaFloat32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'CPULOAD5'
+  Reading: 0.5
+"
+console,"Type: OcaFloat32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\n'
+"
+console,"  ClassVersion: 2
+  Role: 'CPULOAD15'
+  Reading: 0.4699999988079071
+"
+console,"Type: OcaInt32Sensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'PROCS'
+  Reading: 41
+"
+console,"Type: OcaInt32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'MEMTOTAL'
+  Reading: 235952
+"
+console,"Type: OcaInt32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x04'
+  ClassVersion: 2
+"
+console,"  Role: 'MEMFREE'
+  Reading: 164000
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'IF0'
+"
+console,"  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4466
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4490,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 1
+]
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'MODE'
+"
+console,"  String: 'MASTER'
+"
+console,"  MaxLen: 64
+"
+console,"Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+"
+console,"  Role: 'IF1'
+"
+console,"  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 4466
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4492,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 1
+]
+"
+console,"Type: OcaStringSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'MODE'
+  String: ''
+  MaxLen: 64
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'RDNT'
+  Setting: true
+Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CURRENT'
+  Enabled: true
+"
+console,"  Ports: [ [length]: 0 ]
+  Owner: 4466
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4495,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4496,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  [length]: 2
+]
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'RDNT'
+  Reading: true
+Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'AES67MODE'
+  Reading: false
+Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'SLVNLY'
+  Setting: false
+Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+  ClassVersion: 2
+"
+console,"  Lockable: false
+  Role: 'BKNIPCFG0'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4466
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4499,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4500,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4501,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4502,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4503,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4504,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4505,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4506,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4507,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  [length]: 9
+]
+"
+console,"Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+  ClassVersion: 2
+"
+console,"  Role: 'DHCP'
+  Setting: true
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'IP'
+  Setting: '192.168.101.108'
+  MaxLen: 64
+"
+console,"Type: OcaInt32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x04'
+  ClassVersion: 2
+  Role: 'TXKBPS'
+  Reading: 42
+"
+console,"Type: OcaInt32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x04'
+  ClassVersion: 2
+  Role: 'RXKBPS'
+  Reading: 2698
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'SNMASK'
+  Setting: '255.255.255.0'
+"
+console,"  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'DNS'
+  Setting: '192.168.10.1'
+  MaxLen: 64
+"
+console,"Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'GW'
+  Setting: '192.168.101.1'
+  MaxLen: 64
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'MAC'
+  String: '00:1D:C1:2C:87:D6'
+  MaxLen: 64
+Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'CURRENT'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4498
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4508,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4509,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4510,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4511,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4512,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4513,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 6
+]
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'DHCP'
+  Reading: true
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'IP'
+  String: '172.20.146.239'
+  MaxLen: 64
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'SNMASK'
+  String: '255.255.255.0'
+  MaxLen: 64
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DNS'
+  String: '172.20.150.31'
+  MaxLen: 64
+Type: OcaStringSensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'GW'
+  String: '0.0.0.0'
+  MaxLen: 64
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DOMAIN'
+  String: 'parliament.vic.gov.au'
+  MaxLen: 64
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'BKNIPCFG1'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4466
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4515,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4516,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4517,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4518,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x04',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4519,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4520,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4521,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4522,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4523,
+    ClassIdentification: OcaClassIdentification { ClassID: '\x01\x01\x03', ClassVersion: 2 }
+  },
+  [length]: 9
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'DHCP'
+  Setting: true
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'IP'
+  Setting: ''
+  MaxLen: 64
+Type: OcaInt32Sensor
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'TXKBPS'
+  Reading: 42
+Type: OcaInt32Sensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'RXKBPS'
+  Reading: 2698
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'SNMASK'
+  Setting: ''
+"
+console,"  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'DNS'
+  Setting: ''
+"
+console,"  MaxLen: 64
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+  Role: 'GW'
+  Setting: ''
+"
+console,"  MaxLen: 64
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+  ClassVersion: 2
+  Role: 'MAC'
+  String: '00:1D:C1:2C:87:D7'
+"
+console,"  MaxLen: 64
+Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+  ClassVersion: 2
+  Lockable: false
+  Role: 'CURRENT'
+"
+console,"  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 4514
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4524,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4525,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4526,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4527,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4528,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4529,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x02\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 6
+]
+"
+console,"Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+  ClassVersion: 2
+  Role: 'DHCP'
+  Reading: true
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+  ClassVersion: 2
+  Role: 'IP'
+  String: '172.31.120.184'
+"
+console,"  MaxLen: 64
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'SNMASK'
+  String: '255.255.0.0'
+  MaxLen: 64
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'DNS'
+  String: '0.0.0.0'
+  MaxLen: 64
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'GW'
+  String: '0.0.0.0'
+  MaxLen: 64
+Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+  ClassVersion: 2
+"
+console,"  Role: 'DOMAIN'
+  String: ''
+  MaxLen: 64
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'P0LINK'
+  String: '1000'
+  MaxLen: 64
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'P1LINK'
+  String: '100'
+  MaxLen: 64
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'P2LINK'
+  String: '0'
+  MaxLen: 64
+"
+console,"Type: OcaStringSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'P3LINK'
+  String: '0'
+  MaxLen: 64
+Type: OcaInt32Actuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x04'
+"
+console,"  ClassVersion: 2
+  Role: 'LOGLEVEL'
+  Setting: 1
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'PW'
+  Setting: ''
+  MaxLen: 64
+Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'FIR0'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4537,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4538,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4539,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4540,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'FIRENABLE'
+  Setting: false
+Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'FIRRELOAD'
+  Setting: true
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+  ClassVersion: 2
+"
+console,"  Role: 'NAME'
+  Setting: ''
+  MaxLen: 64
+Type: OcaFilterFIR
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'C'
+  Length: 1000
+"
+console,"  Coefficients: [
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+  ... 900 more items,
+  [length]: 1000
+]
+"
+console,"  SampleRate: 48000
+Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'FIR1'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+"
+console,"  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4542,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4543,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4544,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4545,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'FIRENABLE'
+  Setting: false
+Type: OcaBooleanActuator
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'FIRRELOAD'
+  Setting: true
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'NAME'
+  Setting: ''
+  MaxLen: 64
+Type: OcaFilterFIR
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'C'
+  Length: 1000
+"
+console,"  Coefficients: [
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+  ... 900 more items,
+  [length]: 1000
+]
+"
+console,"  SampleRate: 48000
+Type: OcaBlock
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'FIR2'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4547,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4548,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4549,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4550,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'FIRENABLE'
+  Setting: false
+Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'FIRRELOAD'
+  Setting: true
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'NAME'
+  Setting: ''
+  MaxLen: 64
+Type: OcaFilterFIR
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'C'
+  Length: 1000
+"
+console,"  Coefficients: [
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+  ... 900 more items,
+  [length]: 1000
+]
+  SampleRate: 48000
+"
+console,"Type: OcaBlock
+Properties:
+"
+console,"  ClassID: '\x01\x01\x03'
+"
+console,"  ClassVersion: 2
+  Lockable: false
+  Role: 'FIR3'
+  Enabled: true
+  Ports: [ [length]: 0 ]
+  Owner: 100
+"
+console,"  Members: [
+  OcaObjectIdentification {
+    ONo: 4552,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4553,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\x01',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4554,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  OcaObjectIdentification {
+    ONo: 4555,
+    ClassIdentification: OcaClassIdentification {
+      ClassID: '\x01\x01\x01\f',
+      ClassVersion: 2
+    }
+  },
+  [length]: 4
+]
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'FIRENABLE'
+  Setting: false
+Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'FIRRELOAD'
+  Setting: true
+Type: OcaStringActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'NAME'
+  Setting: ''
+  MaxLen: 64
+"
+console,"Type: OcaFilterFIR
+"
+console,"Properties:
+"
+console,"  ClassID: '\x01\x01\x01\f'
+"
+console,"  ClassVersion: 2
+  Role: 'C'
+  Length: 1000
+"
+console,"  Coefficients: [
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+                   0, 0, 0, 0,
+  ... 900 more items,
+  [length]: 1000
+]
+  SampleRate: 48000
+"
+console,"Type: OcaBooleanActuator
+Properties:
+"
+console,"  ClassID: '\x01\x01\x01\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'REBOOT'
+  Setting: false
+Type: OcaBooleanSensor
+Properties:
+"
+console,"  ClassID: '\x01\x01\x02\x01\x01'
+"
+console,"  ClassVersion: 2
+  Role: 'NEEDSREBOOT'
+  Reading: false
+"

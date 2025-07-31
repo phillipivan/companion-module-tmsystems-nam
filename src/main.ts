@@ -25,18 +25,23 @@ export class ModuleInstance extends InstanceBase<ModuleConfig> {
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks
 		this.updateVariableDefinitions() // export variable definitions
+		this.configUpdated(config).catch(() => {})
 	}
 	// When module gets deleted
 	async destroy(): Promise<void> {
 		this.log('debug', 'destroy')
+		if (this.client) this.client.removeAllEventListeners()
+		if (this.connection) this.connection.close()
 	}
 
 	async configUpdated(config: ModuleConfig): Promise<void> {
 		this.config = config
+		process.title = this.label
+		this.connect(config).catch(() => {})
 	}
 
 	async connect(config: ModuleConfig): Promise<void> {
-		if (this.client) this.client.close()
+		if (this.client) this.client.removeAllEventListeners()
 		if (this.connection) this.connection.close()
 		if (config.host === undefined || config.host === '') {
 			this.updateStatus(InstanceStatus.BadConfig, `No host`)
@@ -53,6 +58,7 @@ export class ModuleInstance extends InstanceBase<ModuleConfig> {
 		this.client.on('close', (error: unknown) => {
 			console.log(error)
 		})
+
 		this.client.set_keepalive_interval(1)
 		console.log('Device name:', await this.client.DeviceManager.GetModelDescription())
 		const tree = await this.client.get_device_tree()
@@ -64,8 +70,11 @@ export class ModuleInstance extends InstanceBase<ModuleConfig> {
 					// children
 					await rec(obj)
 				} else {
+					// @ts-expect-error node type may not have a value property
 					console.log('Type: %s', obj.constructor.ClassName)
+					this.log('info', JSON.stringify(obj))
 					console.log('Properties:')
+					// @ts-expect-error node type may not have a value property
 					const properties = obj.GetPropertySync()
 
 					// fetch the values of all properties from the device.
