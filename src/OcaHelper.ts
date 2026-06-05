@@ -97,8 +97,8 @@ import {
 	OcaUint8Sensor,
 	OcaVoltageSensor,
 	OcaWorker,
-} from 'aes70/src/controller/ControlClasses'
-import { ObjectBase } from 'aes70/src/controller/object_base'
+} from 'aes70/src/controller/ControlClasses.js'
+import { ObjectBase } from 'aes70/src/controller/object_base.js'
 import EventEmitter from 'events'
 
 export interface DetermineOcaClassEvents {
