@@ -1,8 +1,8 @@
 {
-	"id": "tmsystems-nam",
-	"name": "tmsystems-nam",
-	"shortname": "TM Systems NAM",
-	"description": "Network Amplifier Module",
+	"id": "generic-aes70",
+	"name": "AES 70",
+	"shortname": "AES 70",
+	"description": "Open Control Architecture: AES 70",
 	"version": "0.0.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/phillipivan/companion-module-tmsystems-nam.git",
@@ -20,7 +20,7 @@
 		"entrypoint": "../dist/main.js"
 	},
 	"legacyIds": [],
-	"manufacturer": "TM Systems",
-	"products": ["NAM"],
-	"keywords": ["Dante", "Auracast"]
+	"manufacturer": "generic",
+	"products": ["AES 70"],
+	"keywords": ["OCA"]
 }

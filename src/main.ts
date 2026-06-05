@@ -1,4 +1,4 @@
-import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField } from '@companion-module/base'
+import { InstanceBase, InstanceStatus, SomeCompanionConfigField } from '@companion-module/base'
 import { GetConfigFields, type ModuleConfig } from './config.js'
 import { UpdateVariableDefinitions } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
@@ -7,8 +7,11 @@ import { UpdateFeedbacks } from './feedbacks.js'
 //import { TCPConnection } from 'aes70/src/controller/tcp_connection.js'
 //import { DeviceTree, RemoteDevice } from 'aes70/src/controller/remote_device.js'
 import { TCPConnection, RemoteDevice, DeviceTree } from 'aes70'
+import { OcaModuleTypes } from './types.js'
 
-export class ModuleInstance extends InstanceBase<ModuleConfig> {
+export { UpgradeScripts }
+
+export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	config!: ModuleConfig // Setup in init()
 	client!: RemoteDevice
 	connection!: TCPConnection
@@ -110,5 +113,3 @@ export class ModuleInstance extends InstanceBase<ModuleConfig> {
 		UpdateVariableDefinitions(this)
 	}
 }
-
-runEntrypoint(ModuleInstance, UpgradeScripts)

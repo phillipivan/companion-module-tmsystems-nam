@@ -9,7 +9,7 @@ import {
 	OcaBitstringActuator,
 	OcaBitstringSensor,
 	OcaBlock,
-	OcaBlockFactory,
+	OcaBlockFactoryAgent,
 	OcaBooleanActuator,
 	OcaBooleanSensor,
 	OcaCodingManager,
@@ -23,7 +23,6 @@ import {
 	OcaDynamics,
 	OcaDynamicsCurve,
 	OcaDynamicsDetector,
-	OcaEventHandler,
 	OcaFilterArbitraryCurve,
 	OcaFilterClassical,
 	OcaFilterFIR,
@@ -51,7 +50,6 @@ import {
 	OcaInt8Actuator,
 	OcaInt8Sensor,
 	OcaLevelSensor,
-	OcaLibrary,
 	OcaLibraryManager,
 	OcaManager,
 	OcaMatrix,
@@ -170,15 +168,13 @@ export interface DetermineOcaClassEvents {
 	OcaBitstringSensor: [obj: OcaBitstringSensor]
 	OcaUint64Sensor: [obj: OcaUint64Sensor]
 	OcaBlock: [obj: OcaBlock]
-	OcaBlockFactory: [obj: OcaBlockFactory]
+	OcaBlockFactory: [obj: OcaBlockFactoryAgent]
 	OcaMatrix: [obj: OcaMatrix]
 	OcaAgent: [OcaAgent: OcaAgent]
 	OcaGrouper: [obj: OcaGrouper]
 	OcaRamper: [obj: OcaRamper]
 	OcaNumericObserver: [obj: OcaNumericObserver]
-	OcaLibrary: [obj: OcaLibrary]
 	OcaPowerSupply: [obj: OcaPowerSupply]
-	OcaEventHandler: [obj: OcaEventHandler]
 	OcaNumericObserverList: [obj: OcaNumericObserverList]
 	OcaMediaClock3: [obj: OcaMediaClock3]
 	OcaTimeSource: [obj: OcaTimeSource]
@@ -294,16 +290,14 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents> {
 					}
 
 					if (obj instanceof OcaBlock) this.emit('OcaBlock', obj)
-					if (obj instanceof OcaBlockFactory) this.emit('OcaBlockFactory', obj)
+					if (obj instanceof OcaBlockFactoryAgent) this.emit('OcaBlockFactory', obj)
 					if (obj instanceof OcaMatrix) this.emit('OcaMatrix', obj)
 					return
 				} else if (obj instanceof OcaAgent) this.emit('OcaAgent', obj)
 				else if (obj instanceof OcaGrouper) this.emit('OcaGrouper', obj)
 				else if (obj instanceof OcaRamper) this.emit('OcaRamper', obj)
 				else if (obj instanceof OcaNumericObserver) this.emit('OcaNumericObserver', obj)
-				else if (obj instanceof OcaLibrary) this.emit('OcaLibrary', obj)
 				else if (obj instanceof OcaPowerSupply) this.emit('OcaPowerSupply', obj)
-				else if (obj instanceof OcaEventHandler) this.emit('OcaEventHandler', obj)
 				else if (obj instanceof OcaNumericObserverList) this.emit('OcaNumericObserverList', obj)
 				else if (obj instanceof OcaMediaClock3) this.emit('OcaMediaClock3', obj)
 				else if (obj instanceof OcaTimeSource) this.emit('OcaTimeSource', obj)
@@ -378,8 +372,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents> {
 		return obj instanceof OcaBlock && obj.ClassName == 'OcaBlock'
 	}
 
-	static isOcaBlockFactory(obj: unknown): obj is OcaBlockFactory {
-		return obj instanceof OcaBlockFactory && obj.ClassName == 'OcaBlockFactory'
+	static isOcaBlockFactory(obj: unknown): obj is OcaBlockFactoryAgent {
+		return obj instanceof OcaBlockFactoryAgent && obj.ClassName == 'OcaBlockFactory'
 	}
 
 	static isOcaBooleanActuator(obj: unknown): obj is OcaBooleanActuator {
@@ -434,12 +428,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents> {
 		return obj instanceof OcaDynamicsDetector && obj.ClassName == 'OcaDynamicsDetector'
 	}
 
-	static isOcaEventHandler(obj: unknown): obj is OcaEventHandler {
-		return obj instanceof OcaEventHandler && obj.ClassName == 'OcaEventHandler'
-	}
-
-	static isOcaFilterArbitraryCurve(obj: unknown): obj is OcaEventHandler {
-		return obj instanceof OcaEventHandler && obj.ClassName == 'OcaFilterArbitraryCurve'
+	static isOcaFilterArbitraryCurve(obj: unknown): obj is OcaFilterArbitraryCurve {
+		return obj instanceof OcaFilterArbitraryCurve && obj.ClassName == 'OcaFilterArbitraryCurve'
 	}
 
 	static isOcaFilterClassical(obj: unknown): obj is OcaFilterClassical {
@@ -544,10 +534,6 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents> {
 
 	static isOcaLevelSensor(obj: unknown): obj is OcaLevelSensor {
 		return obj instanceof OcaLevelSensor && obj.ClassName == 'OcaLevelSensor'
-	}
-
-	static isOcaLibrary(obj: unknown): obj is OcaLibrary {
-		return obj instanceof OcaLibrary && obj.ClassName == 'OcaLibrary'
 	}
 
 	static isOcaLibraryManager(obj: unknown): obj is OcaLibraryManager {

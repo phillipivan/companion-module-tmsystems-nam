@@ -1,22 +1,11 @@
-import type { ModuleInstance } from './main.js'
+import { type CompanionActionDefinitions, createModuleLogger } from '@companion-module/base'
+import type ModuleInstance from './main.js'
+
+export type ActionSchema = Record<string, never>
 
 export function UpdateActions(self: ModuleInstance): void {
-	self.setActionDefinitions({
-		sample_action: {
-			name: 'My First Action',
-			options: [
-				{
-					id: 'num',
-					type: 'number',
-					label: 'Test',
-					default: 5,
-					min: 0,
-					max: 100,
-				},
-			],
-			callback: async (event) => {
-				console.log('Hello world!', event.options.num)
-			},
-		},
-	})
+	const actionDefinitions: Partial<CompanionActionDefinitions<ActionSchema>> = {}
+	const logger = createModuleLogger('Oca_Actions')
+	logger.debug('Updating actions')
+	self.setActionDefinitions(actionDefinitions)
 }
