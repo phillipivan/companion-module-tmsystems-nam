@@ -13,6 +13,7 @@ const customConfig = [
 			//'@typescript-eslint/no-unsafe-enum-comparison': 'off',
 			// misconfiguration of ts or something?
 			'n/no-missing-import': 'off',
+			'@typescript-eslint/no-empty-object-type': 'off',
 			// 'm/no-unpublished-import': 'off',
 			//'@typescript-eslint/no-unused-expressions': 'off',
 			//'@typescript-eslint/no-floating-promises': 'off',
