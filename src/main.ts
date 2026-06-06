@@ -8,6 +8,7 @@ import { UpdateFeedbacks } from './feedbacks.js'
 //import { DeviceTree, RemoteDevice } from 'aes70/src/controller/remote_device.js'
 import { TCPConnection, RemoteDevice, DeviceTree } from 'aes70'
 import { OcaModuleTypes } from './types.js'
+import { handleBonjourHost } from './utils.js'
 
 export { UpgradeScripts }
 
@@ -21,7 +22,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	}
 
 	async init(config: ModuleConfig): Promise<void> {
-		this.config = config
+		this.config = handleBonjourHost(config)
 
 		this.updateStatus(InstanceStatus.Connecting)
 
@@ -38,8 +39,8 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	}
 
 	async configUpdated(config: ModuleConfig): Promise<void> {
-		this.config = config
-		process.title = this.label
+		this.config = handleBonjourHost(config)
+
 		this.connect(config).catch(() => {})
 	}
 

@@ -1,4 +1,5 @@
 {
+	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
 	"id": "generic-aes70",
 	"name": "AES 70",
 	"shortname": "AES 70",
@@ -22,5 +23,19 @@
 	"legacyIds": [],
 	"manufacturer": "generic",
 	"products": ["AES 70"],
-	"keywords": ["OCA"]
+	"keywords": ["OCA"],
+	"bonjourQueries": {
+		"bonjourHost": [
+			{
+				"type": "oca",
+				"protocol": "tcp",
+				"addressFamily": "ipv4"
+			},
+			{
+				"type": "oca",
+				"protocol": "udp",
+				"addressFamily": "ipv4"
+			}
+		]
+	}
 }
