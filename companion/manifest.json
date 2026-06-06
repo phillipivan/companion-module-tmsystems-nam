@@ -1,6 +1,7 @@
 {
 	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
 	"id": "generic-aes70",
+	"type": "connection",
 	"name": "AES 70",
 	"shortname": "AES 70",
 	"description": "Open Control Architecture: AES 70",
@@ -23,7 +24,7 @@
 	"legacyIds": [],
 	"manufacturer": "generic",
 	"products": ["AES 70"],
-	"keywords": ["OCA"],
+	"keywords": ["OCA", "Open Control Architecture"],
 	"bonjourQueries": {
 		"bonjourHost": [
 			{
