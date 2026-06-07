@@ -218,6 +218,21 @@ export interface DetermineOcaClassEvents {
 }
 
 // ---------------------------------------------------------------------------
+// Internal event map (lifecycle / error events on OcaHelper itself)
+// ---------------------------------------------------------------------------
+
+interface OcaHelperInternalEvents {
+	/** Fired after loadRoleMap() completes successfully. */
+	'map:loaded': [roleMap: Map<string, ObjectBase>]
+	/**
+	 * Fired when loadRoleMap() is called again and some previously-registered
+	 * action/feedback IDs belonged to role paths that no longer exist in the
+	 * new map.  Those IDs have been dropped.
+	 */
+	'ids:orphaned': [rolePaths: string[]]
+}
+
+// ---------------------------------------------------------------------------
 // Registry types
 // ---------------------------------------------------------------------------
 
@@ -1449,19 +1464,4 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		const names = Object.values(OCA_CLASS_NAMES) as string[]
 		return names.includes(name)
 	}
-}
-
-// ---------------------------------------------------------------------------
-// Internal event map (lifecycle / error events on OcaHelper itself)
-// ---------------------------------------------------------------------------
-
-interface OcaHelperInternalEvents {
-	/** Fired after loadRoleMap() completes successfully. */
-	'map:loaded': [roleMap: Map<string, ObjectBase>]
-	/**
-	 * Fired when loadRoleMap() is called again and some previously-registered
-	 * action/feedback IDs belonged to role paths that no longer exist in the
-	 * new map.  Those IDs have been dropped.
-	 */
-	'ids:orphaned': [rolePaths: string[]]
 }
