@@ -1145,301 +1145,301 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	// -------------------------------------------------------------------------
 
 	static isObjectBase(obj: unknown): obj is ObjectBase {
-		return obj instanceof ObjectBase && obj.ClassName === 'ObjectBase'
+		return obj instanceof ObjectBase && obj.ClassName === OCA_CLASS_NAMES.ObjectBase
 	}
 	static isOcaRoot(obj: unknown): obj is OcaRoot {
-		return obj instanceof OcaRoot && obj.ClassName === 'OcaRoot'
+		return obj instanceof OcaRoot && obj.ClassName === OCA_CLASS_NAMES.OcaRoot
 	}
 	static isOcaWorker(obj: unknown): obj is OcaWorker {
-		return obj instanceof OcaWorker && obj.ClassName === 'OcaWorker'
+		return obj instanceof OcaWorker && obj.ClassName === OCA_CLASS_NAMES.OcaWorker
 	}
 	static isOcaActuator(obj: unknown): obj is OcaActuator {
-		return obj instanceof OcaActuator && obj.ClassName === 'OcaActuator'
+		return obj instanceof OcaActuator && obj.ClassName === OCA_CLASS_NAMES.OcaActuator
 	}
 	static isOcaMute(obj: unknown): obj is OcaMute {
-		return obj instanceof OcaMute && obj.ClassName === 'OcaMute'
+		return obj instanceof OcaMute && obj.ClassName === OCA_CLASS_NAMES.OcaMute
 	}
 	static isOcaPolarity(obj: unknown): obj is OcaPolarity {
-		return obj instanceof OcaPolarity && obj.ClassName === 'OcaPolarity'
+		return obj instanceof OcaPolarity && obj.ClassName === OCA_CLASS_NAMES.OcaPolarity
 	}
 	static isOcaSwitch(obj: unknown): obj is OcaSwitch {
-		return obj instanceof OcaSwitch && obj.ClassName === 'OcaSwitch'
+		return obj instanceof OcaSwitch && obj.ClassName === OCA_CLASS_NAMES.OcaSwitch
 	}
 	static isOcaGain(obj: unknown): obj is OcaGain {
-		return obj instanceof OcaGain && obj.ClassName === 'OcaGain'
+		return obj instanceof OcaGain && obj.ClassName === OCA_CLASS_NAMES.OcaGain
 	}
 	static isOcaPanBalance(obj: unknown): obj is OcaPanBalance {
-		return obj instanceof OcaPanBalance && obj.ClassName === 'OcaPanBalance'
+		return obj instanceof OcaPanBalance && obj.ClassName === OCA_CLASS_NAMES.OcaPanBalance
 	}
 	static isOcaDelay(obj: unknown): obj is OcaDelay {
-		return obj instanceof OcaDelay && obj.ClassName === 'OcaDelay'
+		return obj instanceof OcaDelay && obj.ClassName === OCA_CLASS_NAMES.OcaDelay
 	}
 	static isOcaDelayExtended(obj: unknown): obj is OcaDelayExtended {
-		return obj instanceof OcaDelayExtended && obj.ClassName === 'OcaDelayExtended'
+		return obj instanceof OcaDelayExtended && obj.ClassName === OCA_CLASS_NAMES.OcaDelayExtended
 	}
 	static isOcaFrequencyActuator(obj: unknown): obj is OcaFrequencyActuator {
-		return obj instanceof OcaFrequencyActuator && obj.ClassName === 'OcaFrequencyActuator'
+		return obj instanceof OcaFrequencyActuator && obj.ClassName === OCA_CLASS_NAMES.OcaFrequencyActuator
 	}
 	static isOcaFilterClassical(obj: unknown): obj is OcaFilterClassical {
-		return obj instanceof OcaFilterClassical && obj.ClassName === 'OcaFilterClassical'
+		return obj instanceof OcaFilterClassical && obj.ClassName === OCA_CLASS_NAMES.OcaFilterClassical
 	}
 	static isOcaFilterParametric(obj: unknown): obj is OcaFilterParametric {
-		return obj instanceof OcaFilterParametric && obj.ClassName === 'OcaFilterParametric'
+		return obj instanceof OcaFilterParametric && obj.ClassName === OCA_CLASS_NAMES.OcaFilterParametric
 	}
 	static isOcaFilterPolynomial(obj: unknown): obj is OcaFilterPolynomial {
-		return obj instanceof OcaFilterPolynomial && obj.ClassName === 'OcaFilterPolynomial'
+		return obj instanceof OcaFilterPolynomial && obj.ClassName === OCA_CLASS_NAMES.OcaFilterPolynomial
 	}
 	static isOcaFilterFIR(obj: unknown): obj is OcaFilterFIR {
-		return obj instanceof OcaFilterFIR && obj.ClassName === 'OcaFilterFIR'
+		return obj instanceof OcaFilterFIR && obj.ClassName === OCA_CLASS_NAMES.OcaFilterFIR
 	}
 	static isOcaFilterArbitraryCurve(obj: unknown): obj is OcaFilterArbitraryCurve {
-		return obj instanceof OcaFilterArbitraryCurve && obj.ClassName === 'OcaFilterArbitraryCurve'
+		return obj instanceof OcaFilterArbitraryCurve && obj.ClassName === OCA_CLASS_NAMES.OcaFilterArbitraryCurve
 	}
 	static isOcaDynamics(obj: unknown): obj is OcaDynamics {
-		return obj instanceof OcaDynamics && obj.ClassName === 'OcaDynamics'
+		return obj instanceof OcaDynamics && obj.ClassName === OCA_CLASS_NAMES.OcaDynamics
 	}
 	static isOcaDynamicsDetector(obj: unknown): obj is OcaDynamicsDetector {
-		return obj instanceof OcaDynamicsDetector && obj.ClassName === 'OcaDynamicsDetector'
+		return obj instanceof OcaDynamicsDetector && obj.ClassName === OCA_CLASS_NAMES.OcaDynamicsDetector
 	}
 	static isOcaDynamicsCurve(obj: unknown): obj is OcaDynamicsCurve {
-		return obj instanceof OcaDynamicsCurve && obj.ClassName === 'OcaDynamicsCurve'
+		return obj instanceof OcaDynamicsCurve && obj.ClassName === OCA_CLASS_NAMES.OcaDynamicsCurve
 	}
 	static isOcaSignalGenerator(obj: unknown): obj is OcaSignalGenerator {
-		return obj instanceof OcaSignalGenerator && obj.ClassName === 'OcaSignalGenerator'
+		return obj instanceof OcaSignalGenerator && obj.ClassName === OCA_CLASS_NAMES.OcaSignalGenerator
 	}
 	static isOcaSignalInput(obj: unknown): obj is OcaSignalInput {
-		return obj instanceof OcaSignalInput && obj.ClassName === 'OcaSignalInput'
+		return obj instanceof OcaSignalInput && obj.ClassName === OCA_CLASS_NAMES.OcaSignalInput
 	}
 	static isOcaSignalOutput(obj: unknown): obj is OcaSignalOutput {
-		return obj instanceof OcaSignalOutput && obj.ClassName === 'OcaSignalOutput'
+		return obj instanceof OcaSignalOutput && obj.ClassName === OCA_CLASS_NAMES.OcaSignalOutput
 	}
 	static isOcaTemperatureActuator(obj: unknown): obj is OcaTemperatureActuator {
-		return obj instanceof OcaTemperatureActuator && obj.ClassName === 'OcaTemperatureActuator'
+		return obj instanceof OcaTemperatureActuator && obj.ClassName === OCA_CLASS_NAMES.OcaTemperatureActuator
 	}
 	static isOcaIdentificationActuator(obj: unknown): obj is OcaIdentificationActuator {
-		return obj instanceof OcaIdentificationActuator && obj.ClassName === 'OcaIdentificationActuator'
+		return obj instanceof OcaIdentificationActuator && obj.ClassName === OCA_CLASS_NAMES.OcaIdentificationActuator
 	}
 	static isOcaSummingPoint(obj: unknown): obj is OcaSummingPoint {
-		return obj instanceof OcaSummingPoint && obj.ClassName === 'OcaSummingPoint'
+		return obj instanceof OcaSummingPoint && obj.ClassName === OCA_CLASS_NAMES.OcaSummingPoint
 	}
 	static isOcaBasicActuator(obj: unknown): obj is OcaBasicActuator {
-		return obj instanceof OcaBasicActuator && obj.ClassName === 'OcaBasicActuator'
+		return obj instanceof OcaBasicActuator && obj.ClassName === OCA_CLASS_NAMES.OcaBasicActuator
 	}
 	static isOcaBooleanActuator(obj: unknown): obj is OcaBooleanActuator {
-		return obj instanceof OcaBooleanActuator && obj.ClassName === 'OcaBooleanActuator'
+		return obj instanceof OcaBooleanActuator && obj.ClassName === OCA_CLASS_NAMES.OcaBooleanActuator
 	}
 	static isOcaInt8Actuator(obj: unknown): obj is OcaInt8Actuator {
-		return obj instanceof OcaInt8Actuator && obj.ClassName === 'OcaInt8Actuator'
+		return obj instanceof OcaInt8Actuator && obj.ClassName === OCA_CLASS_NAMES.OcaInt8Actuator
 	}
 	static isOcaInt16Actuator(obj: unknown): obj is OcaInt16Actuator {
-		return obj instanceof OcaInt16Actuator && obj.ClassName === 'OcaInt16Actuator'
+		return obj instanceof OcaInt16Actuator && obj.ClassName === OCA_CLASS_NAMES.OcaInt16Actuator
 	}
 	static isOcaInt32Actuator(obj: unknown): obj is OcaInt32Actuator {
-		return obj instanceof OcaInt32Actuator && obj.ClassName === 'OcaInt32Actuator'
+		return obj instanceof OcaInt32Actuator && obj.ClassName === OCA_CLASS_NAMES.OcaInt32Actuator
 	}
 	static isOcaInt64Actuator(obj: unknown): obj is OcaInt64Actuator {
-		return obj instanceof OcaInt64Actuator && obj.ClassName === 'OcaInt64Actuator'
+		return obj instanceof OcaInt64Actuator && obj.ClassName === OCA_CLASS_NAMES.OcaInt64Actuator
 	}
 	static isOcaUint8Actuator(obj: unknown): obj is OcaUint8Actuator {
-		return obj instanceof OcaUint8Actuator && obj.ClassName === 'OcaUint8Actuator'
+		return obj instanceof OcaUint8Actuator && obj.ClassName === OCA_CLASS_NAMES.OcaUint8Actuator
 	}
 	static isOcaUint16Actuator(obj: unknown): obj is OcaUint16Actuator {
-		return obj instanceof OcaUint16Actuator && obj.ClassName === 'OcaUint16Actuator'
+		return obj instanceof OcaUint16Actuator && obj.ClassName === OCA_CLASS_NAMES.OcaUint16Actuator
 	}
 	static isOcaUint32Actuator(obj: unknown): obj is OcaUint32Actuator {
-		return obj instanceof OcaUint32Actuator && obj.ClassName === 'OcaUint32Actuator'
+		return obj instanceof OcaUint32Actuator && obj.ClassName === OCA_CLASS_NAMES.OcaUint32Actuator
 	}
 	static isOcaUint64Actuator(obj: unknown): obj is OcaUint64Actuator {
-		return obj instanceof OcaUint64Actuator && obj.ClassName === 'OcaUint64Actuator'
+		return obj instanceof OcaUint64Actuator && obj.ClassName === OCA_CLASS_NAMES.OcaUint64Actuator
 	}
 	static isOcaFloat32Actuator(obj: unknown): obj is OcaFloat32Actuator {
-		return obj instanceof OcaFloat32Actuator && obj.ClassName === 'OcaFloat32Actuator'
+		return obj instanceof OcaFloat32Actuator && obj.ClassName === OCA_CLASS_NAMES.OcaFloat32Actuator
 	}
 	static isOcaFloat64Actuator(obj: unknown): obj is OcaFloat64Actuator {
-		return obj instanceof OcaFloat64Actuator && obj.ClassName === 'OcaFloat64Actuator'
+		return obj instanceof OcaFloat64Actuator && obj.ClassName === OCA_CLASS_NAMES.OcaFloat64Actuator
 	}
 	static isOcaStringActuator(obj: unknown): obj is OcaStringActuator {
-		return obj instanceof OcaStringActuator && obj.ClassName === 'OcaStringActuator'
+		return obj instanceof OcaStringActuator && obj.ClassName === OCA_CLASS_NAMES.OcaStringActuator
 	}
 	static isOcaBitstringActuator(obj: unknown): obj is OcaBitstringActuator {
-		return obj instanceof OcaBitstringActuator && obj.ClassName === 'OcaBitstringActuator'
+		return obj instanceof OcaBitstringActuator && obj.ClassName === OCA_CLASS_NAMES.OcaBitstringActuator
 	}
 	static isOcaSensor(obj: unknown): obj is OcaSensor {
-		return obj instanceof OcaSensor && obj.ClassName === 'OcaSensor'
+		return obj instanceof OcaSensor && obj.ClassName === OCA_CLASS_NAMES.OcaSensor
 	}
 	static isOcaLevelSensor(obj: unknown): obj is OcaLevelSensor {
-		return obj instanceof OcaLevelSensor && obj.ClassName === 'OcaLevelSensor'
+		return obj instanceof OcaLevelSensor && obj.ClassName === OCA_CLASS_NAMES.OcaLevelSensor
 	}
 	static isOcaAudioLevelSensor(obj: unknown): obj is OcaAudioLevelSensor {
-		return obj instanceof OcaAudioLevelSensor && obj.ClassName === 'OcaAudioLevelSensor'
+		return obj instanceof OcaAudioLevelSensor && obj.ClassName === OCA_CLASS_NAMES.OcaAudioLevelSensor
 	}
 	static isOcaTimeIntervalSensor(obj: unknown): obj is OcaTimeIntervalSensor {
-		return obj instanceof OcaTimeIntervalSensor && obj.ClassName === 'OcaTimeIntervalSensor'
+		return obj instanceof OcaTimeIntervalSensor && obj.ClassName === OCA_CLASS_NAMES.OcaTimeIntervalSensor
 	}
 	static isOcaFrequencySensor(obj: unknown): obj is OcaFrequencySensor {
-		return obj instanceof OcaFrequencySensor && obj.ClassName === 'OcaFrequencySensor'
+		return obj instanceof OcaFrequencySensor && obj.ClassName === OCA_CLASS_NAMES.OcaFrequencySensor
 	}
 	static isOcaTemperatureSensor(obj: unknown): obj is OcaTemperatureSensor {
-		return obj instanceof OcaTemperatureSensor && obj.ClassName === 'OcaTemperatureSensor'
+		return obj instanceof OcaTemperatureSensor && obj.ClassName === OCA_CLASS_NAMES.OcaTemperatureSensor
 	}
 	static isOcaIdentificationSensor(obj: unknown): obj is OcaIdentificationSensor {
-		return obj instanceof OcaIdentificationSensor && obj.ClassName === 'OcaIdentificationSensor'
+		return obj instanceof OcaIdentificationSensor && obj.ClassName === OCA_CLASS_NAMES.OcaIdentificationSensor
 	}
 	static isOcaVoltageSensor(obj: unknown): obj is OcaVoltageSensor {
-		return obj instanceof OcaVoltageSensor && obj.ClassName === 'OcaVoltageSensor'
+		return obj instanceof OcaVoltageSensor && obj.ClassName === OCA_CLASS_NAMES.OcaVoltageSensor
 	}
 	static isOcaCurrentSensor(obj: unknown): obj is OcaCurrentSensor {
-		return obj instanceof OcaCurrentSensor && obj.ClassName === 'OcaCurrentSensor'
+		return obj instanceof OcaCurrentSensor && obj.ClassName === OCA_CLASS_NAMES.OcaCurrentSensor
 	}
 	static isOcaImpedanceSensor(obj: unknown): obj is OcaImpedanceSensor {
-		return obj instanceof OcaImpedanceSensor && obj.ClassName === 'OcaImpedanceSensor'
+		return obj instanceof OcaImpedanceSensor && obj.ClassName === OCA_CLASS_NAMES.OcaImpedanceSensor
 	}
 	static isOcaGainSensor(obj: unknown): obj is OcaGainSensor {
-		return obj instanceof OcaGainSensor && obj.ClassName === 'OcaGainSensor'
+		return obj instanceof OcaGainSensor && obj.ClassName === OCA_CLASS_NAMES.OcaGainSensor
 	}
 	static isOcaBasicSensor(obj: unknown): obj is OcaBasicSensor {
-		return obj instanceof OcaBasicSensor && obj.ClassName === 'OcaBasicSensor'
+		return obj instanceof OcaBasicSensor && obj.ClassName === OCA_CLASS_NAMES.OcaBasicSensor
 	}
 	static isOcaBooleanSensor(obj: unknown): obj is OcaBooleanSensor {
-		return obj instanceof OcaBooleanSensor && obj.ClassName === 'OcaBooleanSensor'
+		return obj instanceof OcaBooleanSensor && obj.ClassName === OCA_CLASS_NAMES.OcaBooleanSensor
 	}
 	static isOcaInt8Sensor(obj: unknown): obj is OcaInt8Sensor {
-		return obj instanceof OcaInt8Sensor && obj.ClassName === 'OcaInt8Sensor'
+		return obj instanceof OcaInt8Sensor && obj.ClassName === OCA_CLASS_NAMES.OcaInt8Sensor
 	}
 	static isOcaInt16Sensor(obj: unknown): obj is OcaInt16Sensor {
-		return obj instanceof OcaInt16Sensor && obj.ClassName === 'OcaInt16Sensor'
+		return obj instanceof OcaInt16Sensor && obj.ClassName === OCA_CLASS_NAMES.OcaInt16Sensor
 	}
 	static isOcaInt32Sensor(obj: unknown): obj is OcaInt32Sensor {
-		return obj instanceof OcaInt32Sensor && obj.ClassName === 'OcaInt32Sensor'
+		return obj instanceof OcaInt32Sensor && obj.ClassName === OCA_CLASS_NAMES.OcaInt32Sensor
 	}
 	static isOcaInt64Sensor(obj: unknown): obj is OcaInt64Sensor {
-		return obj instanceof OcaInt64Sensor && obj.ClassName === 'OcaInt64Sensor'
+		return obj instanceof OcaInt64Sensor && obj.ClassName === OCA_CLASS_NAMES.OcaInt64Sensor
 	}
 	static isOcaUint8Sensor(obj: unknown): obj is OcaUint8Sensor {
-		return obj instanceof OcaUint8Sensor && obj.ClassName === 'OcaUint8Sensor'
+		return obj instanceof OcaUint8Sensor && obj.ClassName === OCA_CLASS_NAMES.OcaUint8Sensor
 	}
 	static isOcaUint16Sensor(obj: unknown): obj is OcaUint16Sensor {
-		return obj instanceof OcaUint16Sensor && obj.ClassName === 'OcaUint16Sensor'
+		return obj instanceof OcaUint16Sensor && obj.ClassName === OCA_CLASS_NAMES.OcaUint16Sensor
 	}
 	static isOcaUint32Sensor(obj: unknown): obj is OcaUint32Sensor {
-		return obj instanceof OcaUint32Sensor && obj.ClassName === 'OcaUint32Sensor'
+		return obj instanceof OcaUint32Sensor && obj.ClassName === OCA_CLASS_NAMES.OcaUint32Sensor
 	}
 	static isOcaUint64Sensor(obj: unknown): obj is OcaUint64Sensor {
-		return obj instanceof OcaUint64Sensor && obj.ClassName === 'OcaUint64Sensor'
+		return obj instanceof OcaUint64Sensor && obj.ClassName === OCA_CLASS_NAMES.OcaUint64Sensor
 	}
 	static isOcaFloat32Sensor(obj: unknown): obj is OcaFloat32Sensor {
-		return obj instanceof OcaFloat32Sensor && obj.ClassName === 'OcaFloat32Sensor'
+		return obj instanceof OcaFloat32Sensor && obj.ClassName === OCA_CLASS_NAMES.OcaFloat32Sensor
 	}
 	static isOcaFloat64Sensor(obj: unknown): obj is OcaFloat64Sensor {
-		return obj instanceof OcaFloat64Sensor && obj.ClassName === 'OcaFloat64Sensor'
+		return obj instanceof OcaFloat64Sensor && obj.ClassName === OCA_CLASS_NAMES.OcaFloat64Sensor
 	}
 	static isOcaStringSensor(obj: unknown): obj is OcaStringSensor {
-		return obj instanceof OcaStringSensor && obj.ClassName === 'OcaStringSensor'
+		return obj instanceof OcaStringSensor && obj.ClassName === OCA_CLASS_NAMES.OcaStringSensor
 	}
 	static isOcaBitstringSensor(obj: unknown): obj is OcaBitstringSensor {
-		return obj instanceof OcaBitstringSensor && obj.ClassName === 'OcaBitstringSensor'
+		return obj instanceof OcaBitstringSensor && obj.ClassName === OCA_CLASS_NAMES.OcaBitstringSensor
 	}
 	static isOcaBlock(obj: unknown): obj is OcaBlock {
-		return obj instanceof OcaBlock && obj.ClassName === 'OcaBlock'
+		return obj instanceof OcaBlock && obj.ClassName === OCA_CLASS_NAMES.OcaBlock
 	}
 	static isOcaBlockFactory(obj: unknown): obj is OcaBlockFactoryAgent {
-		return obj instanceof OcaBlockFactoryAgent && obj.ClassName === 'OcaBlockFactory'
+		return obj instanceof OcaBlockFactoryAgent && obj.ClassName === OCA_CLASS_NAMES.OcaBlockFactory
 	}
 	static isOcaMatrix(obj: unknown): obj is OcaMatrix {
-		return obj instanceof OcaMatrix && obj.ClassName === 'OcaMatrix'
+		return obj instanceof OcaMatrix && obj.ClassName === OCA_CLASS_NAMES.OcaMatrix
 	}
 	static isOcaAgent(obj: unknown): obj is OcaAgent {
-		return obj instanceof OcaAgent && obj.ClassName === 'OcaAgent'
+		return obj instanceof OcaAgent && obj.ClassName === OCA_CLASS_NAMES.OcaAgent
 	}
 	static isOcaGrouper(obj: unknown): obj is OcaGrouper {
-		return obj instanceof OcaGrouper && obj.ClassName === 'OcaGrouper'
+		return obj instanceof OcaGrouper && obj.ClassName === OCA_CLASS_NAMES.OcaGrouper
 	}
 	static isOcaRamper(obj: unknown): obj is OcaRamper {
-		return obj instanceof OcaRamper && obj.ClassName === 'OcaRamper'
+		return obj instanceof OcaRamper && obj.ClassName === OCA_CLASS_NAMES.OcaRamper
 	}
 	static isOcaNumericObserver(obj: unknown): obj is OcaNumericObserver {
-		return obj instanceof OcaNumericObserver && obj.ClassName === 'OcaNumericObserver'
+		return obj instanceof OcaNumericObserver && obj.ClassName === OCA_CLASS_NAMES.OcaNumericObserver
 	}
 	static isOcaNumericObserverList(obj: unknown): obj is OcaNumericObserverList {
-		return obj instanceof OcaNumericObserverList && obj.ClassName === 'OcaNumericObserverList'
+		return obj instanceof OcaNumericObserverList && obj.ClassName === OCA_CLASS_NAMES.OcaNumericObserverList
 	}
 	static isOcaPowerSupply(obj: unknown): obj is OcaPowerSupply {
-		return obj instanceof OcaPowerSupply && obj.ClassName === 'OcaPowerSupply'
+		return obj instanceof OcaPowerSupply && obj.ClassName === OCA_CLASS_NAMES.OcaPowerSupply
 	}
 	static isOcaMediaClock3(obj: unknown): obj is OcaMediaClock3 {
-		return obj instanceof OcaMediaClock3 && obj.ClassName === 'OcaMediaClock3'
+		return obj instanceof OcaMediaClock3 && obj.ClassName === OCA_CLASS_NAMES.OcaMediaClock3
 	}
 	static isOcaTimeSource(obj: unknown): obj is OcaTimeSource {
-		return obj instanceof OcaTimeSource && obj.ClassName === 'OcaTimeSource'
+		return obj instanceof OcaTimeSource && obj.ClassName === OCA_CLASS_NAMES.OcaTimeSource
 	}
 	static isOcaPhysicalPosition(obj: unknown): obj is OcaPhysicalPosition {
-		return obj instanceof OcaPhysicalPosition && obj.ClassName === 'OcaPhysicalPosition'
+		return obj instanceof OcaPhysicalPosition && obj.ClassName === OCA_CLASS_NAMES.OcaPhysicalPosition
 	}
 	static isOcaApplicationNetwork(obj: unknown): obj is OcaApplicationNetwork {
-		return obj instanceof OcaApplicationNetwork && obj.ClassName === 'OcaApplicationNetwork'
+		return obj instanceof OcaApplicationNetwork && obj.ClassName === OCA_CLASS_NAMES.OcaApplicationNetwork
 	}
 	static isOcaControlNetwork(obj: unknown): obj is OcaControlNetwork {
-		return obj instanceof OcaControlNetwork && obj.ClassName === 'OcaControlNetwork'
+		return obj instanceof OcaControlNetwork && obj.ClassName === OCA_CLASS_NAMES.OcaControlNetwork
 	}
 	static isOcaMediaTransportNetwork(obj: unknown): obj is OcaMediaTransportNetwork {
-		return obj instanceof OcaMediaTransportNetwork && obj.ClassName === 'OcaMediaTransportNetwork'
+		return obj instanceof OcaMediaTransportNetwork && obj.ClassName === OCA_CLASS_NAMES.OcaMediaTransportNetwork
 	}
 	static isOcaManager(obj: unknown): obj is OcaManager {
-		return obj instanceof OcaManager && obj.ClassName === 'OcaManager'
+		return obj instanceof OcaManager && obj.ClassName === OCA_CLASS_NAMES.OcaManager
 	}
 	static isOcaDeviceManager(obj: unknown): obj is OcaDeviceManager {
-		return obj instanceof OcaDeviceManager && obj.ClassName === 'OcaDeviceManager'
+		return obj instanceof OcaDeviceManager && obj.ClassName === OCA_CLASS_NAMES.OcaDeviceManager
 	}
 	static isOcaSecurityManager(obj: unknown): obj is OcaSecurityManager {
-		return obj instanceof OcaSecurityManager && obj.ClassName === 'OcaSecurityManager'
+		return obj instanceof OcaSecurityManager && obj.ClassName === OCA_CLASS_NAMES.OcaSecurityManager
 	}
 	static isOcaFirmwareManager(obj: unknown): obj is OcaFirmwareManager {
-		return obj instanceof OcaFirmwareManager && obj.ClassName === 'OcaFirmwareManager'
+		return obj instanceof OcaFirmwareManager && obj.ClassName === OCA_CLASS_NAMES.OcaFirmwareManager
 	}
 	static isOcaSubscriptionManager(obj: unknown): obj is OcaSubscriptionManager {
-		return obj instanceof OcaSubscriptionManager && obj.ClassName === 'OcaSubscriptionManager'
+		return obj instanceof OcaSubscriptionManager && obj.ClassName === OCA_CLASS_NAMES.OcaSubscriptionManager
 	}
 	static isOcaPowerManager(obj: unknown): obj is OcaPowerManager {
-		return obj instanceof OcaPowerManager && obj.ClassName === 'OcaPowerManager'
+		return obj instanceof OcaPowerManager && obj.ClassName === OCA_CLASS_NAMES.OcaPowerManager
 	}
 	static isOcaNetworkManager(obj: unknown): obj is OcaNetworkManager {
-		return obj instanceof OcaNetworkManager && obj.ClassName === 'OcaNetworkManager'
+		return obj instanceof OcaNetworkManager && obj.ClassName === OCA_CLASS_NAMES.OcaNetworkManager
 	}
 	static isOcaMediaClockManager(obj: unknown): obj is OcaMediaClockManager {
-		return obj instanceof OcaMediaClockManager && obj.ClassName === 'OcaMediaClockManager'
+		return obj instanceof OcaMediaClockManager && obj.ClassName === OCA_CLASS_NAMES.OcaMediaClockManager
 	}
 	static isOcaLibraryManager(obj: unknown): obj is OcaLibraryManager {
-		return obj instanceof OcaLibraryManager && obj.ClassName === 'OcaLibraryManager'
+		return obj instanceof OcaLibraryManager && obj.ClassName === OCA_CLASS_NAMES.OcaLibraryManager
 	}
 	static isOcaAudioProcessingManager(obj: unknown): obj is OcaAudioProcessingManager {
-		return obj instanceof OcaAudioProcessingManager && obj.ClassName === 'OcaAudioProcessingManager'
+		return obj instanceof OcaAudioProcessingManager && obj.ClassName === OCA_CLASS_NAMES.OcaAudioProcessingManager
 	}
 	static isOcaDeviceTimeManager(obj: unknown): obj is OcaDeviceTimeManager {
-		return obj instanceof OcaDeviceTimeManager && obj.ClassName === 'OcaDeviceTimeManager'
+		return obj instanceof OcaDeviceTimeManager && obj.ClassName === OCA_CLASS_NAMES.OcaDeviceTimeManager
 	}
 	static isOcaTaskManager(obj: unknown): obj is OcaTaskManager {
-		return obj instanceof OcaTaskManager && obj.ClassName === 'OcaTaskManager'
+		return obj instanceof OcaTaskManager && obj.ClassName === OCA_CLASS_NAMES.OcaTaskManager
 	}
 	static isOcaCodingManager(obj: unknown): obj is OcaCodingManager {
-		return obj instanceof OcaCodingManager && obj.ClassName === 'OcaCodingManager'
+		return obj instanceof OcaCodingManager && obj.ClassName === OCA_CLASS_NAMES.OcaCodingManager
 	}
 	static isOcaDiagnosticManager(obj: unknown): obj is OcaDiagnosticManager {
-		return obj instanceof OcaDiagnosticManager && obj.ClassName === 'OcaDiagnosticManager'
+		return obj instanceof OcaDiagnosticManager && obj.ClassName === OCA_CLASS_NAMES.OcaDiagnosticManager
 	}
 	static isOcaNetworkSignalChannel(obj: unknown): obj is OcaNetworkSignalChannel {
-		return obj instanceof OcaNetworkSignalChannel && obj.ClassName === 'OcaNetworkSignalChannel'
+		return obj instanceof OcaNetworkSignalChannel && obj.ClassName === OCA_CLASS_NAMES.OcaNetworkSignalChannel
 	}
 	static isOcaNetwork(obj: unknown): obj is OcaNetwork {
-		return obj instanceof OcaNetwork && obj.ClassName === 'OcaNetwork'
+		return obj instanceof OcaNetwork && obj.ClassName === OCA_CLASS_NAMES.OcaNetwork
 	}
 	static isOcaMediaClock(obj: unknown): obj is OcaMediaClock {
-		return obj instanceof OcaMediaClock && obj.ClassName === 'OcaMediaClock'
+		return obj instanceof OcaMediaClock && obj.ClassName === OCA_CLASS_NAMES.OcaMediaClock
 	}
 	static isOcaStreamNetwork(obj: unknown): obj is OcaStreamNetwork {
-		return obj instanceof OcaStreamNetwork && obj.ClassName === 'OcaStreamNetwork'
+		return obj instanceof OcaStreamNetwork && obj.ClassName === OCA_CLASS_NAMES.OcaStreamNetwork
 	}
 	static isOcaStreamConnector(obj: unknown): obj is OcaStreamConnector {
-		return obj instanceof OcaStreamConnector && obj.ClassName === 'OcaStreamConnector'
+		return obj instanceof OcaStreamConnector && obj.ClassName === OCA_CLASS_NAMES.OcaStreamConnector
 	}
 
 	// -------------------------------------------------------------------------
