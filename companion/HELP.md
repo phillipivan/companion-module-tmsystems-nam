@@ -1,3 +1,3 @@
 ## Generic AES70
 
-Write some help for your users here!
+Connect via TCP, UDP or WebSockets

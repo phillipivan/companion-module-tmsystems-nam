@@ -14,48 +14,74 @@ export { UpgradeScripts }
 
 export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	config!: ModuleConfig // Setup in init()
-	client!: RemoteDevice
-	connection!: TCPConnection | UDPConnection | WebSocket
-	ocaHelper = new OcaHelper()
+	private client!: RemoteDevice
+	private connection!: TCPConnection | UDPConnection | WebSocket
+	public ocaHelper = new OcaHelper()
 
 	constructor(internal: unknown) {
 		super(internal)
 	}
 
-	async init(config: ModuleConfig): Promise<void> {
+	public async init(config: ModuleConfig): Promise<void> {
 		this.config = handleBonjourHost(config)
 
 		this.updateStatus(InstanceStatus.Connecting)
 
-		this.updateActions() // export actions
-		this.updateFeedbacks() // export feedbacks
-		this.updateVariableDefinitions() // export variable definitions
+		this.ocaHelper.on('map:loaded', (roleMap) => {
+			this.log('info', `Role map loaded: ${roleMap.size} entries`)
+			this.ocaHelper.getClassNames().forEach((className) => {
+				this.log('info', `Class: ${className} (${this.ocaHelper.getByClass(className).size} objects)`)
+			})
+			this.updateStatus(InstanceStatus.Ok)
+
+			// Set action and feedback defintions now that we know what controlclasses the device has
+			this.updateCompanionBits()
+		})
+
+		this.ocaHelper.on('ids:orphaned', (orphanedIds) => {
+			this.log(
+				'warn',
+				`Orphaned IDs detected: ${orphanedIds.length} Action or Feedback IDs have no associated object\n${orphanedIds.join(', ')}`,
+			)
+		})
+
 		void this.configUpdated(config)
 	}
 	// When module gets deleted
-	async destroy(): Promise<void> {
+	public async destroy(): Promise<void> {
 		this.log('debug', `destroy ${this.id}:${this.label}`)
 		if (this.client) this.client.removeAllEventListeners()
 		if (this.connection) this.connection.close()
 	}
 
-	async configUpdated(config: ModuleConfig): Promise<void> {
+	public async configUpdated(config: ModuleConfig): Promise<void> {
 		this.config = handleBonjourHost(config)
 
 		void this.connect(config)
 	}
 
-	async connect(config: ModuleConfig): Promise<void> {
+	private updateCompanionBits(): void {
+		this.log('debug', 'Updating Companion bits')
+		this.updateActions()
+		this.updateFeedbacks()
+		this.updateVariableDefinitions()
+	}
+
+	private async connect(config: ModuleConfig): Promise<void> {
+		// Clean up existing connection and listeners
 		if (this.client) this.client.removeAllEventListeners()
-		this.ocaHelper.removeAllListeners()
 		if (this.connection) this.connection.close()
+
 		if (config.host === undefined || config.host === '') {
 			this.updateStatus(InstanceStatus.BadConfig, `No host`)
 			return
 		}
+
 		if (config.protocol === 'ws') this.connection = await this.initWebSocketConnection(config)
 		else if (config.protocol === 'udp') this.connection = await this.initUdpConnection(config)
 		else this.connection = await this.initTcpConnection(config)
+		this.updateStatus(InstanceStatus.Connecting, 'Connected to device, loading role map...')
+
 		this.client = new RemoteDevice(this.connection)
 
 		this.client.on('error', (error: unknown) => {
@@ -64,8 +90,8 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				InstanceStatus.ConnectionFailure,
 				`Connection error: ${error instanceof Error ? error.message : String(error)}`,
 			)
-			this.ocaHelper.clearAllIds('*') // clear all action/feedback IDs on connection failure
-			this.client.removeAllEventListeners()
+
+			// TO DO: Implement retry logic with backoff
 		})
 
 		this.client.on('close', (error: unknown) => {
@@ -76,59 +102,44 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			)
 		})
 
-		this.ocaHelper.on('map:loaded', (roleMap) => {
-			this.log('info', `Role map loaded: ${roleMap.size} entries`)
-			this.ocaHelper.getClassNames().forEach((className) => {
-				this.log('info', `Class: ${className} (${this.ocaHelper.getByClass(className).size} objects)`)
-			})
-			this.updateStatus(InstanceStatus.Ok)
-		})
-
-		this.ocaHelper.on('ids:orphaned', (orphanedIds) => {
-			this.log(
-				'warn',
-				`Orphaned IDs detected: ${orphanedIds.length} Action or Feedback IDs have no associated object\n${orphanedIds.join(', ')}`,
-			)
-		})
-
 		this.client.set_keepalive_interval(5)
 		this.log('info', `Connected to Device:\n${JSON.stringify(await this.client.DeviceManager.GetProduct(), null, 2)}`)
 		const rollMap = await this.client.get_role_map()
 		this.ocaHelper.loadRoleMap(rollMap)
 	}
 
-	async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
+	private async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
 		return TCPConnection.connect({
 			host: config.host,
 			port: config.port || 65000,
 		})
 	}
 
-	async initUdpConnection(config: ModuleConfig): Promise<UDPConnection> {
+	private async initUdpConnection(config: ModuleConfig): Promise<UDPConnection> {
 		return UDPConnection.connect({
 			host: config.host,
 			port: config.port || 65000,
 		})
 	}
 
-	async initWebSocketConnection(config: ModuleConfig): Promise<WebSocketConnection> {
+	private async initWebSocketConnection(config: ModuleConfig): Promise<WebSocketConnection> {
 		return WebSocketConnection.connect({ url: `ws://${config.host}:${config.port || 65000}` })
 	}
 
 	// Return config fields for web config
-	getConfigFields(): SomeCompanionConfigField[] {
+	public getConfigFields(): SomeCompanionConfigField[] {
 		return GetConfigFields()
 	}
 
-	updateActions(): void {
+	private updateActions(): void {
 		UpdateActions(this)
 	}
 
-	updateFeedbacks(): void {
+	private updateFeedbacks(): void {
 		UpdateFeedbacks(this)
 	}
 
-	updateVariableDefinitions(): void {
+	private updateVariableDefinitions(): void {
 		UpdateVariableDefinitions(this)
 	}
 }
