@@ -30,11 +30,11 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks
 		this.updateVariableDefinitions() // export variable definitions
-		this.configUpdated(config).catch(() => {})
+		void this.configUpdated(config)
 	}
 	// When module gets deleted
 	async destroy(): Promise<void> {
-		this.log('debug', 'destroy')
+		this.log('debug', `destroy ${this.id}:${this.label}`)
 		if (this.client) this.client.removeAllEventListeners()
 		if (this.connection) this.connection.close()
 	}
@@ -42,11 +42,12 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	async configUpdated(config: ModuleConfig): Promise<void> {
 		this.config = handleBonjourHost(config)
 
-		this.connect(config).catch(() => {})
+		void this.connect(config)
 	}
 
 	async connect(config: ModuleConfig): Promise<void> {
 		if (this.client) this.client.removeAllEventListeners()
+		this.ocaHelper.removeAllListeners()
 		if (this.connection) this.connection.close()
 		if (config.host === undefined || config.host === '') {
 			this.updateStatus(InstanceStatus.BadConfig, `No host`)
@@ -56,24 +57,44 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		else if (config.protocol === 'udp') this.connection = await this.initUdpConnection(config)
 		else this.connection = await this.initTcpConnection(config)
 		this.client = new RemoteDevice(this.connection)
+
 		this.client.on('error', (error: unknown) => {
-			this.log('error', `Connection error: ${error}`)
-			this.updateStatus(InstanceStatus.ConnectionFailure, `Connection error: ${error}`)
+			this.log('error', `Connection error: ${error instanceof Error ? error.message : String(error)}`)
+			this.updateStatus(
+				InstanceStatus.ConnectionFailure,
+				`Connection error: ${error instanceof Error ? error.message : String(error)}`,
+			)
 			this.ocaHelper.clearAllIds('*') // clear all action/feedback IDs on connection failure
 			this.client.removeAllEventListeners()
 		})
+
 		this.client.on('close', (error: unknown) => {
-			this.log('warn', `Connection closed: ${error}`)
+			this.log('warn', `Connection closed: ${error instanceof Error ? error.message : String(error)}`)
+			this.updateStatus(
+				InstanceStatus.Disconnected,
+				`Connection closed: ${error instanceof Error ? error.message : String(error)}`,
+			)
+		})
+
+		this.ocaHelper.on('map:loaded', (roleMap) => {
+			this.log('info', `Role map loaded: ${roleMap.size} entries`)
+			this.ocaHelper.getClassNames().forEach((className) => {
+				this.log('info', `Class: ${className} (${this.ocaHelper.getByClass(className).size} objects)`)
+			})
+			this.updateStatus(InstanceStatus.Ok)
+		})
+
+		this.ocaHelper.on('ids:orphaned', (orphanedIds) => {
+			this.log(
+				'warn',
+				`Orphaned IDs detected: ${orphanedIds.length} Action or Feedback IDs have no associated object\n${orphanedIds.join(', ')}`,
+			)
 		})
 
 		this.client.set_keepalive_interval(5)
-		this.log('info', `Connected to Device:\n${JSON.stringify(await this.client.DeviceManager.GetProduct())}`)
+		this.log('info', `Connected to Device:\n${JSON.stringify(await this.client.DeviceManager.GetProduct(), null, 2)}`)
 		const rollMap = await this.client.get_role_map()
 		this.ocaHelper.loadRoleMap(rollMap)
-		this.ocaHelper.getClassNames().forEach((className) => {
-			this.log('info', `Class: ${className} (${this.ocaHelper.getByClass(className).size} objects)`)
-		})
-		this.updateStatus(InstanceStatus.Ok)
 	}
 
 	async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
