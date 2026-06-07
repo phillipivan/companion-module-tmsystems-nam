@@ -9,6 +9,7 @@ import { UpdateFeedbacks } from './feedbacks.js'
 import { TCPConnection, RemoteDevice, DeviceTree } from 'aes70'
 import { OcaModuleTypes } from './types.js'
 import { handleBonjourHost } from './utils.js'
+import { OcaHelper } from './OcaHelper.js'
 
 export { UpgradeScripts }
 
@@ -16,6 +17,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	config!: ModuleConfig // Setup in init()
 	client!: RemoteDevice
 	connection!: TCPConnection
+	ocaHelper = new OcaHelper()
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -66,6 +68,12 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.client.set_keepalive_interval(1)
 		console.log('Device name:', await this.client.DeviceManager.GetModelDescription())
 		const tree = await this.client.get_device_tree()
+		const rollMap = await this.client.get_role_map()
+		this.ocaHelper.loadRoleMap(rollMap)
+		rollMap.forEach((object, key) => {
+			console.log('Role: %s', key)
+			console.log('Object: %o', object)
+		})
 		const rec = async (a: DeviceTree) => {
 			for (let i = 0; i < a.length; i++) {
 				const obj = a[i]
@@ -78,7 +86,6 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 					console.log('Type: %s', obj.constructor.ClassName)
 					this.log('info', JSON.stringify(obj))
 					console.log('Properties:')
-					// @ts-expect-error node type may not have a value property
 					const properties = obj.GetPropertySync()
 
 					// fetch the values of all properties from the device.

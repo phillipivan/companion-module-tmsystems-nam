@@ -1,3 +1,6 @@
+import {} from 'aes70/src/controller/object_base'
+import {} from 'aes70/src/controller/ControlClasses'
+
 /**
  * Extended type declarations for aes70.js (AES70-2018 / OCA)
  *
@@ -393,6 +396,562 @@ export interface Arguments<T extends unknown[]> {
 }
 
 // ---------------------------------------------------------------------------
+// Property map interfaces — returned by GetPropertySync() on each class.
+// Each interface extends its parent so the full inherited set is available.
+// ---------------------------------------------------------------------------
+
+// Base
+
+export interface OcaRootProperties {
+	[key: string]: unknown
+	ClassID: OcaClassID
+	ClassVersion: number
+	ObjectNumber: number
+	Lockable: boolean
+	Role: string
+}
+
+export interface OcaWorkerProperties extends OcaRootProperties {
+	Enabled: boolean
+	Label: string
+	Owner: number
+	Latency: number
+	Ports: OcaPort[]
+}
+
+// Actuators
+
+export interface OcaActuatorProperties extends OcaWorkerProperties {}
+
+export interface OcaMuteProperties extends OcaActuatorProperties {
+	State: OcaMuteState
+}
+
+export interface OcaPolarityProperties extends OcaActuatorProperties {
+	State: OcaPolarityState
+}
+
+export interface OcaSwitchProperties extends OcaActuatorProperties {
+	Position: number
+	PositionNames: string[]
+	PositionEnableds: boolean[]
+}
+
+export interface OcaGainProperties extends OcaActuatorProperties {
+	Gain: number
+}
+
+export interface OcaPanBalanceProperties extends OcaActuatorProperties {
+	Position: number
+	Midpoint: number
+}
+
+export interface OcaDelayProperties extends OcaActuatorProperties {
+	DelayTime: number
+}
+
+export interface OcaDelayExtendedProperties extends OcaDelayProperties {
+	DelayValue: OcaDelayValue
+}
+
+export interface OcaFrequencyActuatorProperties extends OcaActuatorProperties {
+	Frequency: number
+}
+
+export interface OcaFilterClassicalProperties extends OcaActuatorProperties {
+	Frequency: number
+	Passband: OcaFilterPassband
+	Shape: OcaClassicalFilterShape
+	Order: number
+	Parameter: number
+}
+
+export interface OcaFilterParametricProperties extends OcaActuatorProperties {
+	Frequency: number
+	Shape: OcaParametricEQShape
+	WidthParameter: number
+	InBandGain: number
+	ShapeParameter: number
+}
+
+export interface OcaFilterPolynomialProperties extends OcaActuatorProperties {
+	A: number[]
+	B: number[]
+	SampleRate: number
+}
+
+export interface OcaFilterFIRProperties extends OcaActuatorProperties {
+	Length: number
+	Coefficients: number[]
+	SampleRate: number
+}
+
+export interface OcaFilterArbitraryCurveProperties extends OcaActuatorProperties {
+	TransferFunction: OcaTransferFunction
+	SampleRate: number
+	TFMinLength: number
+	TFMaxLength: number
+}
+
+export interface OcaDynamicsProperties extends OcaActuatorProperties {
+	Function: OcaDynamicsFunction
+	Ratio: number
+	Threshold: number
+	ThresholdPresentationUnits: OcaPresentationUnit
+	DetectorLaw: OcaLevelDetectionLaw
+	AttackTime: number
+	ReleaseTime: number
+	HoldTime: number
+	DynamicGainFloor: number
+	DynamicGainCeiling: number
+	KneeLower: number
+	KneeUpper: number
+	DynamicGain: number
+}
+
+export interface OcaDynamicsDetectorProperties extends OcaActuatorProperties {
+	Law: OcaLevelDetectionLaw
+	AttackTime: number
+	ReleaseTime: number
+	HoldTime: number
+}
+
+export interface OcaDynamicsCurveProperties extends OcaActuatorProperties {
+	NSegments: number
+	Threshold: number[]
+	Slope: number[]
+	KneeParameter: number[]
+	DynamicGainFloor: number
+	DynamicGainCeiling: number
+}
+
+export interface OcaSignalGeneratorProperties extends OcaActuatorProperties {
+	Frequency1: number
+	Frequency2: number
+	Level: number
+	Waveform: OcaWaveformType
+	SweepType: OcaSweepType
+	SweepTime: number
+	SweepRepeat: boolean
+	Generating: boolean
+}
+
+export interface OcaSignalInputProperties extends OcaActuatorProperties {}
+export interface OcaSignalOutputProperties extends OcaActuatorProperties {}
+
+export interface OcaTemperatureActuatorProperties extends OcaActuatorProperties {
+	Temperature: number
+}
+
+export interface OcaIdentificationActuatorProperties extends OcaActuatorProperties {
+	Active: boolean
+}
+
+export interface OcaSummingPointProperties extends OcaActuatorProperties {}
+
+export interface OcaBasicActuatorProperties extends OcaActuatorProperties {}
+
+export interface OcaBooleanActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: boolean
+}
+
+export interface OcaInt8ActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: number
+}
+
+export interface OcaInt16ActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: number
+}
+
+export interface OcaInt32ActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: number
+}
+
+export interface OcaInt64ActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: number
+}
+
+export interface OcaUint8ActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: number
+}
+
+export interface OcaUint16ActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: number
+}
+
+export interface OcaUint32ActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: number
+}
+
+export interface OcaUint64ActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: number
+}
+
+export interface OcaFloat32ActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: number
+}
+
+export interface OcaFloat64ActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: number
+}
+
+export interface OcaStringActuatorProperties extends OcaBasicActuatorProperties {
+	Setting: string
+	MaxLen: number
+}
+
+export interface OcaBitstringActuatorProperties extends OcaBasicActuatorProperties {
+	NrBits: number
+}
+
+// Sensors
+
+export interface OcaSensorProperties extends OcaWorkerProperties {
+	ReadingState: OcaSensorReadingState
+}
+
+export interface OcaLevelSensorProperties extends OcaSensorProperties {
+	Reading: number
+}
+
+export interface OcaAudioLevelSensorProperties extends OcaLevelSensorProperties {
+	Law: OcaLevelMeterLaw
+}
+
+export interface OcaTimeIntervalSensorProperties extends OcaSensorProperties {
+	Reading: number
+}
+
+export interface OcaFrequencySensorProperties extends OcaSensorProperties {
+	Reading: number
+}
+
+export interface OcaTemperatureSensorProperties extends OcaSensorProperties {
+	Reading: number
+}
+
+export interface OcaIdentificationSensorProperties extends OcaSensorProperties {}
+
+export interface OcaVoltageSensorProperties extends OcaSensorProperties {
+	Reading: number
+}
+
+export interface OcaCurrentSensorProperties extends OcaSensorProperties {
+	Reading: number
+}
+
+export interface OcaImpedanceSensorProperties extends OcaSensorProperties {
+	Reading: OcaImpedance
+}
+
+export interface OcaGainSensorProperties extends OcaSensorProperties {
+	Reading: number
+}
+
+export interface OcaBasicSensorProperties extends OcaSensorProperties {}
+
+export interface OcaBooleanSensorProperties extends OcaBasicSensorProperties {
+	Reading: boolean
+}
+
+export interface OcaInt8SensorProperties extends OcaBasicSensorProperties {
+	Reading: number
+}
+
+export interface OcaInt16SensorProperties extends OcaBasicSensorProperties {
+	Reading: number
+}
+
+export interface OcaInt32SensorProperties extends OcaBasicSensorProperties {
+	Reading: number
+}
+
+export interface OcaInt64SensorProperties extends OcaBasicSensorProperties {
+	Reading: number
+}
+
+export interface OcaUint8SensorProperties extends OcaBasicSensorProperties {
+	Reading: number
+}
+
+export interface OcaUint16SensorProperties extends OcaBasicSensorProperties {
+	Reading: number
+}
+
+export interface OcaUint32SensorProperties extends OcaBasicSensorProperties {
+	Reading: number
+}
+
+export interface OcaUint64SensorProperties extends OcaBasicSensorProperties {
+	Reading: number
+}
+
+export interface OcaFloat32SensorProperties extends OcaBasicSensorProperties {
+	Reading: number
+}
+
+export interface OcaFloat64SensorProperties extends OcaBasicSensorProperties {
+	Reading: number
+}
+
+export interface OcaStringSensorProperties extends OcaBasicSensorProperties {
+	Reading: string
+}
+
+export interface OcaBitstringSensorProperties extends OcaBasicSensorProperties {
+	NrBits: number
+}
+
+// Structural workers
+
+export interface OcaBlockProperties extends OcaWorkerProperties {
+	Type: number
+	Members: OcaObjectIdentification[]
+	SignalPaths: Map<number, OcaSignalPath>
+	MostRecentParamSetIdentifier: OcaLibVolIdentifier
+	GlobalType: OcaGlobalTypeIdentifier
+	ONoMap: Map<number, number>
+}
+
+export interface OcaBlockFactoryProperties extends OcaWorkerProperties {}
+
+export interface OcaMatrixProperties extends OcaWorkerProperties {
+	X: number
+	Y: number
+	xSize: number
+	ySize: number
+	Members: number[][]
+	Proxy: number
+	PortsPerRow: number
+	PortsPerColumn: number
+}
+
+// Agents
+
+export interface OcaAgentProperties extends OcaRootProperties {
+	Label: string
+	Owner: number
+}
+
+export interface OcaGrouperProperties extends OcaAgentProperties {
+	Mode: OcaGrouperMode
+}
+
+export interface OcaRamperProperties extends OcaAgentProperties {
+	State: OcaRamperState
+	RampedProperty: OcaProperty
+	TimeMode: OcaTimeMode
+	StartTime: OcaTimePTP
+	Duration: number
+	InterpolationLaw: OcaRamperInterpolationLaw
+	Goal: number
+}
+
+export interface OcaNumericObserverProperties extends OcaAgentProperties {
+	State: OcaObserverState
+	ObservedProperty: OcaProperty
+	Threshold: number
+	Operator: OcaRelationalOperator
+	Twosided: boolean
+	Hysteresis: number
+	Period: number
+}
+
+export interface OcaNumericObserverListProperties extends OcaAgentProperties {
+	State: OcaObserverState
+	ObservedProperties: OcaProperty[]
+	Threshold: number
+	Operator: OcaRelationalOperator
+	Twosided: boolean
+	Hysteresis: number
+	Period: number
+}
+
+export interface OcaPowerSupplyProperties extends OcaAgentProperties {
+	Type: OcaPowerSupplyType
+	ModelInfo: string
+	State: OcaPowerSupplyState
+	Charging: boolean
+	LoadFractionAvailable: number
+	StorageFractionAvailable: number
+	Location: OcaPowerSupplyLocation
+}
+
+export interface OcaMediaClock3Properties extends OcaAgentProperties {
+	Availability: OcaMediaClockAvailability
+	TimeSourceONo: number
+	Offset: OcaTimePTP
+	CurrentRate: OcaMediaClockRate
+	SupportedRates: Map<number, OcaMediaClockRate[]>
+}
+
+export interface OcaTimeSourceProperties extends OcaAgentProperties {
+	Availability: OcaTimeSourceAvailability
+	Protocol: OcaTimeProtocol
+	Parameters: string
+	ReferenceType: OcaTimeReferenceType
+	ReferenceID: string
+	SyncStatus: OcaTimeSourceSyncStatus
+}
+
+export interface OcaPhysicalPositionProperties extends OcaAgentProperties {
+	CoordinateSystem: OcaPositionCoordinateSystem
+	PositionDescriptorFieldFlags: number
+	Position: OcaPositionDescriptor
+}
+
+// Networks (ApplicationNetwork branch)
+
+export interface OcaApplicationNetworkProperties extends OcaRootProperties {
+	Label: string
+	Owner: number
+	ServiceID: Uint8Array
+	SystemInterfaces: OcaNetworkSystemInterfaceDescriptor[]
+	State: OcaApplicationNetworkState
+	ErrorCode: number
+}
+
+export interface OcaControlNetworkProperties extends OcaApplicationNetworkProperties {
+	Protocol: OcaNetworkControlProtocol
+}
+
+export interface OcaMediaTransportNetworkProperties extends OcaApplicationNetworkProperties {
+	Protocol: OcaNetworkMediaProtocol
+	Ports: OcaPort[]
+	MaxSourceConnectors: number
+	MaxSinkConnectors: number
+	MaxPinsPerConnector: number
+	AlignmentLevel: number
+	AlignmentGain: number
+}
+
+// Managers
+
+export interface OcaManagerProperties extends OcaRootProperties {}
+
+export interface OcaDeviceManagerProperties extends OcaManagerProperties {
+	OcaVersion: number
+	ModelGUID: OcaModelGUID
+	SerialNumber: string
+	DeviceName: string
+	SoftwareVersion: OcaVersion[]
+	DeviceRole: string
+	UserInventoryCode: string
+	Enabled: boolean
+	State: OcaDeviceState
+	Busy: boolean
+	ResetCause: OcaResetCause
+	Message: string
+	Managers: OcaManagerDescriptor[]
+	DeviceRevisionID: string
+}
+
+export interface OcaSecurityManagerProperties extends OcaManagerProperties {
+	SecureControlData: boolean
+}
+
+export interface OcaFirmwareManagerProperties extends OcaManagerProperties {
+	ComponentVersions: OcaVersion[]
+}
+
+export interface OcaSubscriptionManagerProperties extends OcaManagerProperties {
+	State: OcaSubscriptionManagerState
+}
+
+export interface OcaPowerManagerProperties extends OcaManagerProperties {
+	State: OcaPowerState
+	PowerSupplies: number[]
+	ActivePowerSupplies: number[]
+	AutoState: boolean
+	TargetState: OcaPowerState
+}
+
+export interface OcaNetworkManagerProperties extends OcaManagerProperties {
+	Networks: number[]
+	StreamNetworks: number[]
+	ControlNetworks: number[]
+	MediaTransportNetworks: number[]
+}
+
+export interface OcaMediaClockManagerProperties extends OcaManagerProperties {
+	Clocks: number[]
+	Clock3s: number[]
+}
+
+export interface OcaLibraryManagerProperties extends OcaManagerProperties {
+	Libraries: OcaLibraryIdentifier[]
+}
+
+export interface OcaAudioProcessingManagerProperties extends OcaManagerProperties {}
+
+export interface OcaDeviceTimeManagerProperties extends OcaManagerProperties {
+	TimeSources: number[]
+	CurrentDeviceTimeSource: number
+}
+
+export interface OcaTaskManagerProperties extends OcaManagerProperties {
+	State: OcaTaskManagerState
+	Tasks: Map<number, OcaTask>
+}
+
+export interface OcaCodingManagerProperties extends OcaManagerProperties {
+	AvailableEncodingSchemes: Map<number, string>
+	AvailableDecodingSchemes: Map<number, string>
+}
+
+export interface OcaDiagnosticManagerProperties extends OcaManagerProperties {}
+
+// Deprecated v1 classes
+
+export interface OcaNetworkProperties extends OcaRootProperties {
+	LinkType: OcaNetworkLinkType
+	IdAdvertised: Uint8Array
+	ControlProtocol: OcaNetworkControlProtocol
+	MediaProtocol: OcaNetworkMediaProtocol
+	Status: OcaNetworkStatus
+	Statistics: OcaNetworkStatistics
+	SystemInterfaces: OcaNetworkSystemInterfaceDescriptor[]
+}
+
+export interface OcaMediaClockProperties extends OcaRootProperties {
+	Type: OcaMediaClockType
+	DomainID: number
+	SupportedRates: OcaMediaClockRate[]
+	Rate: OcaMediaClockRate
+	LockState: OcaMediaClockLockState
+}
+
+export interface OcaStreamNetworkProperties extends OcaRootProperties {
+	ControlProtocol: OcaNetworkControlProtocol
+	IdAdvertised: Uint8Array
+	LinkType: OcaNetworkLinkType
+	MediaProtocol: OcaNetworkMediaProtocol
+	SignalChannelsSink: number[]
+	SignalChannelsSource: number[]
+	Statistics: OcaNetworkStatistics
+	Status: OcaNetworkStatus
+	StreamConnectors: number[]
+	SystemInterfaces: OcaNetworkSystemInterfaceDescriptor[]
+}
+
+export interface OcaStreamConnectorProperties extends OcaRootProperties {
+	IDAdvertised: OcaStreamConnectorIdentification
+	OwnerNetwork: number
+	Pins: Map<number, number>
+	Status: OcaStreamConnectorStatus
+	Streams: Map<number, OcaStream>
+}
+
+export interface OcaNetworkSignalChannelProperties extends OcaRootProperties {
+	ConnectorPins: Map<number, number>
+	IDAdvertised: Uint8Array
+	Network: number
+	RemoteChannelID: Uint8Array
+	SourceOrSink: OcaNetworkMediaSourceOrSink
+	Status: OcaNetworkSignalChannelStatus
+}
+
+// ---------------------------------------------------------------------------
 // Module augmentation
 // ---------------------------------------------------------------------------
 
@@ -405,7 +964,7 @@ declare module 'aes70/src/controller/object_base' {
 
 		GetPropertyID(name: string): OcaPropertyID
 		GetPropertyName(id: OcaPropertyID): string
-		GetPropertySync(): PropertySync
+		GetPropertySync(): PropertySync<Record<string, unknown>>
 		get_properties(): Properties
 	}
 }
@@ -416,9 +975,9 @@ export interface OcaPropertyID {
 }
 
 /** Returned by GetPropertySync(). */
-export interface PropertySync {
+export interface PropertySync<T extends OcaRootProperties = OcaRootProperties> {
 	sync(): Promise<void>
-	forEach(callback: (value: unknown, name: string) => void): void
+	forEach<K extends keyof T & string>(callback: (value: T[K], name: K) => void): void
 	Dispose(): void
 }
 
@@ -433,6 +992,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaRoot
 	// -------------------------------------------------------------------------
 	interface OcaRoot {
+		GetPropertySync(): PropertySync<OcaRootProperties>
 		/** Read-only local property: ClassID. */
 		readonly ClassID: OcaClassID
 		/** Read-only local property: ClassVersion. */
@@ -459,6 +1019,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaWorker
 	// -------------------------------------------------------------------------
 	interface OcaWorker {
+		GetPropertySync(): PropertySync<OcaWorkerProperties>
 		readonly OnEnabledChanged: PropertyEvent<boolean>
 		readonly OnLabelChanged: PropertyEvent<string>
 		readonly OnLatencyChanged: PropertyEvent<number>
@@ -485,6 +1046,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaSensor
 	// -------------------------------------------------------------------------
 	interface OcaSensor {
+		GetPropertySync(): PropertySync<OcaSensorProperties>
 		readonly OnReadingStateChanged: PropertyEvent<OcaSensorReadingState>
 		GetReadingState(): Promise<OcaSensorReadingState>
 	}
@@ -493,6 +1055,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaLevelSensor
 	// -------------------------------------------------------------------------
 	interface OcaLevelSensor {
+		GetPropertySync(): PropertySync<OcaLevelSensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
@@ -501,6 +1064,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaAudioLevelSensor
 	// -------------------------------------------------------------------------
 	interface OcaAudioLevelSensor {
+		GetPropertySync(): PropertySync<OcaAudioLevelSensorProperties>
 		readonly OnLawChanged: PropertyEvent<OcaLevelMeterLaw>
 		GetLaw(): Promise<OcaLevelMeterLaw>
 		SetLaw(Law: OcaLevelMeterLaw): Promise<void>
@@ -510,6 +1074,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaTimeIntervalSensor
 	// -------------------------------------------------------------------------
 	interface OcaTimeIntervalSensor {
+		GetPropertySync(): PropertySync<OcaTimeIntervalSensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
@@ -518,6 +1083,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaFrequencySensor
 	// -------------------------------------------------------------------------
 	interface OcaFrequencySensor {
+		GetPropertySync(): PropertySync<OcaFrequencySensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
@@ -526,6 +1092,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaTemperatureSensor
 	// -------------------------------------------------------------------------
 	interface OcaTemperatureSensor {
+		GetPropertySync(): PropertySync<OcaTemperatureSensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
@@ -534,6 +1101,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaVoltageSensor
 	// -------------------------------------------------------------------------
 	interface OcaVoltageSensor {
+		GetPropertySync(): PropertySync<OcaVoltageSensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
@@ -542,6 +1110,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaCurrentSensor
 	// -------------------------------------------------------------------------
 	interface OcaCurrentSensor {
+		GetPropertySync(): PropertySync<OcaCurrentSensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
@@ -550,6 +1119,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaImpedanceSensor
 	// -------------------------------------------------------------------------
 	interface OcaImpedanceSensor {
+		GetPropertySync(): PropertySync<OcaImpedanceSensorProperties>
 		readonly OnReadingChanged: PropertyEvent<OcaImpedance>
 		GetReading(): Promise<Arguments<[OcaImpedance, OcaImpedance, OcaImpedance]>>
 	}
@@ -558,6 +1128,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaGainSensor
 	// -------------------------------------------------------------------------
 	interface OcaGainSensor {
+		GetPropertySync(): PropertySync<OcaGainSensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
@@ -566,55 +1137,68 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// Basic sensors (boolean, int, uint, float)
 	// -------------------------------------------------------------------------
 	interface OcaBooleanSensor {
+		GetPropertySync(): PropertySync<OcaBooleanSensorProperties>
 		readonly OnReadingChanged: PropertyEvent<boolean>
 		GetReading(): Promise<boolean>
 	}
 
 	interface OcaInt8Sensor {
+		GetPropertySync(): PropertySync<OcaInt8SensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
 	interface OcaInt16Sensor {
+		GetPropertySync(): PropertySync<OcaInt16SensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
 	interface OcaInt32Sensor {
+		GetPropertySync(): PropertySync<OcaInt32SensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
 	interface OcaInt64Sensor {
+		GetPropertySync(): PropertySync<OcaInt64SensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
 	interface OcaUint8Sensor {
+		GetPropertySync(): PropertySync<OcaUint8SensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
 	interface OcaUint16Sensor {
+		GetPropertySync(): PropertySync<OcaUint16SensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
 	interface OcaUint32Sensor {
+		GetPropertySync(): PropertySync<OcaUint32SensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
 	interface OcaUint64Sensor {
+		GetPropertySync(): PropertySync<OcaUint64SensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
 	interface OcaFloat32Sensor {
+		GetPropertySync(): PropertySync<OcaFloat32SensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
 	interface OcaFloat64Sensor {
+		GetPropertySync(): PropertySync<OcaFloat64SensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number>
 		GetReading(): Promise<Arguments<[number, number, number]>>
 	}
 	interface OcaStringSensor {
+		GetPropertySync(): PropertySync<OcaStringSensorProperties>
 		readonly OnReadingChanged: PropertyEvent<string>
 		GetReading(): Promise<Arguments<[string, number]>>
 	}
 	interface OcaBitstringSensor {
+		GetPropertySync(): PropertySync<OcaBitstringSensorProperties>
 		readonly OnReadingChanged: PropertyEvent<number[]>
 		GetNrBits(): Promise<number>
 		GetBit(bitNr: number): Promise<number>
@@ -624,13 +1208,58 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaIdentificationSensor
 	// -------------------------------------------------------------------------
 	interface OcaIdentificationSensor {
+		GetPropertySync(): PropertySync<OcaIdentificationSensorProperties>
 		readonly OnStarted: Event
+	}
+
+	// -------------------------------------------------------------------------
+	// OcaActuator (base — no methods beyond OcaWorker)
+	// -------------------------------------------------------------------------
+	interface OcaActuator {
+		GetPropertySync(): PropertySync<OcaActuatorProperties>
+	}
+
+	// -------------------------------------------------------------------------
+	// OcaBasicActuator (base — no methods beyond OcaActuator)
+	// -------------------------------------------------------------------------
+	interface OcaBasicActuator {
+		GetPropertySync(): PropertySync<OcaBasicActuatorProperties>
+	}
+
+	// -------------------------------------------------------------------------
+	// OcaBasicSensor (base — no methods beyond OcaSensor)
+	// -------------------------------------------------------------------------
+	interface OcaBasicSensor {
+		GetPropertySync(): PropertySync<OcaBasicSensorProperties>
+	}
+
+	// -------------------------------------------------------------------------
+	// OcaSignalInput / OcaSignalOutput / OcaSummingPoint
+	// -------------------------------------------------------------------------
+	interface OcaSignalInput {
+		GetPropertySync(): PropertySync<OcaSignalInputProperties>
+	}
+
+	interface OcaSignalOutput {
+		GetPropertySync(): PropertySync<OcaSignalOutputProperties>
+	}
+
+	interface OcaSummingPoint {
+		GetPropertySync(): PropertySync<OcaSummingPointProperties>
+	}
+
+	// -------------------------------------------------------------------------
+	// OcaBlockFactory
+	// -------------------------------------------------------------------------
+	interface OcaBlockFactoryAgent {
+		GetPropertySync(): PropertySync<OcaBlockFactoryProperties>
 	}
 
 	// -------------------------------------------------------------------------
 	// OcaMute
 	// -------------------------------------------------------------------------
 	interface OcaMute {
+		GetPropertySync(): PropertySync<OcaMuteProperties>
 		readonly OnStateChanged: PropertyEvent<OcaMuteState>
 		GetState(): Promise<OcaMuteState>
 		SetState(state: OcaMuteState): Promise<void>
@@ -640,6 +1269,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaPolarity
 	// -------------------------------------------------------------------------
 	interface OcaPolarity {
+		GetPropertySync(): PropertySync<OcaPolarityProperties>
 		readonly OnStateChanged: PropertyEvent<OcaPolarityState>
 		GetState(): Promise<OcaPolarityState>
 		SetState(state: OcaPolarityState): Promise<void>
@@ -649,6 +1279,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaSwitch
 	// -------------------------------------------------------------------------
 	interface OcaSwitch {
+		GetPropertySync(): PropertySync<OcaSwitchProperties>
 		readonly OnPositionChanged: PropertyEvent<number>
 		readonly OnPositionNamesChanged: PropertyEvent<string[]>
 		readonly OnPositionEnabledsChanged: PropertyEvent<boolean[]>
@@ -668,6 +1299,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaGain
 	// -------------------------------------------------------------------------
 	interface OcaGain {
+		GetPropertySync(): PropertySync<OcaGainProperties>
 		readonly OnGainChanged: PropertyEvent<number>
 		/** Returns [Gain, minGain, maxGain]. */
 		GetGain(): Promise<Arguments<[number, number, number]>>
@@ -678,6 +1310,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaPanBalance
 	// -------------------------------------------------------------------------
 	interface OcaPanBalance {
+		GetPropertySync(): PropertySync<OcaPanBalanceProperties>
 		readonly OnPositionChanged: PropertyEvent<number>
 		readonly OnMidpointChanged: PropertyEvent<number>
 		/** Returns [Position, minPosition, maxPosition]. */
@@ -691,6 +1324,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaDelay
 	// -------------------------------------------------------------------------
 	interface OcaDelay {
+		GetPropertySync(): PropertySync<OcaDelayProperties>
 		readonly OnDelayTimeChanged: PropertyEvent<number>
 		/** Returns [DelayTime, minDelayTime, maxDelayTime]. */
 		GetDelayTime(): Promise<Arguments<[number, number, number]>>
@@ -701,6 +1335,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaDelayExtended
 	// -------------------------------------------------------------------------
 	interface OcaDelayExtended {
+		GetPropertySync(): PropertySync<OcaDelayExtendedProperties>
 		readonly OnDelayValueChanged: PropertyEvent<OcaDelayValue>
 		/** Returns [DelayValue, minDelayValue, maxDelayValue]. */
 		GetDelayValue(): Promise<Arguments<[OcaDelayValue, OcaDelayValue, OcaDelayValue]>>
@@ -712,6 +1347,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaFrequencyActuator
 	// -------------------------------------------------------------------------
 	interface OcaFrequencyActuator {
+		GetPropertySync(): PropertySync<OcaFrequencyActuatorProperties>
 		readonly OnFrequencyChanged: PropertyEvent<number>
 		GetFrequency(): Promise<Arguments<[number, number, number]>>
 		SetFrequency(Frequency: number): Promise<void>
@@ -721,6 +1357,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaFilterClassical
 	// -------------------------------------------------------------------------
 	interface OcaFilterClassical {
+		GetPropertySync(): PropertySync<OcaFilterClassicalProperties>
 		readonly OnFrequencyChanged: PropertyEvent<number>
 		readonly OnPassbandChanged: PropertyEvent<OcaFilterPassband>
 		readonly OnShapeChanged: PropertyEvent<OcaClassicalFilterShape>
@@ -750,6 +1387,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaFilterParametric
 	// -------------------------------------------------------------------------
 	interface OcaFilterParametric {
+		GetPropertySync(): PropertySync<OcaFilterParametricProperties>
 		readonly OnFrequencyChanged: PropertyEvent<number>
 		readonly OnShapeChanged: PropertyEvent<OcaParametricEQShape>
 		readonly OnWidthParameterChanged: PropertyEvent<number>
@@ -779,6 +1417,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaFilterPolynomial
 	// -------------------------------------------------------------------------
 	interface OcaFilterPolynomial {
+		GetPropertySync(): PropertySync<OcaFilterPolynomialProperties>
 		readonly OnAChanged: PropertyEvent<number[]>
 		readonly OnBChanged: PropertyEvent<number[]>
 		readonly OnSampleRateChanged: PropertyEvent<number>
@@ -792,6 +1431,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaFilterFIR
 	// -------------------------------------------------------------------------
 	interface OcaFilterFIR {
+		GetPropertySync(): PropertySync<OcaFilterFIRProperties>
 		readonly OnLengthChanged: PropertyEvent<number>
 		readonly OnCoefficientsChanged: PropertyEvent<number[]>
 		readonly OnSampleRateChanged: PropertyEvent<number>
@@ -806,6 +1446,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaFilterArbitraryCurve
 	// -------------------------------------------------------------------------
 	interface OcaFilterArbitraryCurve {
+		GetPropertySync(): PropertySync<OcaFilterArbitraryCurveProperties>
 		readonly OnTransferFunctionChanged: PropertyEvent<OcaTransferFunction>
 		readonly OnSampleRateChanged: PropertyEvent<number>
 		readonly OnTFMinLengthChanged: PropertyEvent<number>
@@ -822,6 +1463,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaDynamics
 	// -------------------------------------------------------------------------
 	interface OcaDynamics {
+		GetPropertySync(): PropertySync<OcaDynamicsProperties>
 		readonly OnFunctionChanged: PropertyEvent<OcaDynamicsFunction>
 		readonly OnRatioChanged: PropertyEvent<number>
 		readonly OnThresholdChanged: PropertyEvent<number>
@@ -881,6 +1523,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaDynamicsDetector
 	// -------------------------------------------------------------------------
 	interface OcaDynamicsDetector {
+		GetPropertySync(): PropertySync<OcaDynamicsDetectorProperties>
 		readonly OnLawChanged: PropertyEvent<OcaLevelDetectionLaw>
 		readonly OnAttackTimeChanged: PropertyEvent<number>
 		readonly OnReleaseTimeChanged: PropertyEvent<number>
@@ -906,6 +1549,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaDynamicsCurve
 	// -------------------------------------------------------------------------
 	interface OcaDynamicsCurve {
+		GetPropertySync(): PropertySync<OcaDynamicsCurveProperties>
 		readonly OnNSegmentsChanged: PropertyEvent<number>
 		readonly OnThresholdChanged: PropertyEvent<number[]>
 		readonly OnSlopeChanged: PropertyEvent<number[]>
@@ -939,6 +1583,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaSignalGenerator
 	// -------------------------------------------------------------------------
 	interface OcaSignalGenerator {
+		GetPropertySync(): PropertySync<OcaSignalGeneratorProperties>
 		readonly OnFrequency1Changed: PropertyEvent<number>
 		readonly OnFrequency2Changed: PropertyEvent<number>
 		readonly OnLevelChanged: PropertyEvent<number>
@@ -981,6 +1626,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaTemperatureActuator
 	// -------------------------------------------------------------------------
 	interface OcaTemperatureActuator {
+		GetPropertySync(): PropertySync<OcaTemperatureActuatorProperties>
 		readonly OnTemperatureChanged: PropertyEvent<number>
 		GetTemperature(): Promise<Arguments<[number, number, number]>>
 		SetTemperature(temperature: number): Promise<void>
@@ -990,6 +1636,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaIdentificationActuator
 	// -------------------------------------------------------------------------
 	interface OcaIdentificationActuator {
+		GetPropertySync(): PropertySync<OcaIdentificationActuatorProperties>
 		readonly OnActiveChanged: PropertyEvent<boolean>
 		GetActive(): Promise<boolean>
 		SetActive(active: boolean): Promise<void>
@@ -999,68 +1646,81 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// Basic actuators
 	// -------------------------------------------------------------------------
 	interface OcaBooleanActuator {
+		GetPropertySync(): PropertySync<OcaBooleanActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<boolean>
 		GetSetting(): Promise<boolean>
 		SetSetting(Setting: boolean): Promise<void>
 	}
 
 	interface OcaInt8Actuator {
+		GetPropertySync(): PropertySync<OcaInt8ActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<number>
 		GetSetting(): Promise<Arguments<[number, number, number]>>
 		SetSetting(Setting: number): Promise<void>
 	}
 	interface OcaInt16Actuator {
+		GetPropertySync(): PropertySync<OcaInt16ActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<number>
 		GetSetting(): Promise<Arguments<[number, number, number]>>
 		SetSetting(Setting: number): Promise<void>
 	}
 	interface OcaInt32Actuator {
+		GetPropertySync(): PropertySync<OcaInt32ActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<number>
 		GetSetting(): Promise<Arguments<[number, number, number]>>
 		SetSetting(Setting: number): Promise<void>
 	}
 	interface OcaInt64Actuator {
+		GetPropertySync(): PropertySync<OcaInt64ActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<number>
 		GetSetting(): Promise<Arguments<[number, number, number]>>
 		SetSetting(Setting: number): Promise<void>
 	}
 	interface OcaUint8Actuator {
+		GetPropertySync(): PropertySync<OcaUint8ActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<number>
 		GetSetting(): Promise<Arguments<[number, number, number]>>
 		SetSetting(Setting: number): Promise<void>
 	}
 	interface OcaUint16Actuator {
+		GetPropertySync(): PropertySync<OcaUint16ActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<number>
 		GetSetting(): Promise<Arguments<[number, number, number]>>
 		SetSetting(Setting: number): Promise<void>
 	}
 	interface OcaUint32Actuator {
+		GetPropertySync(): PropertySync<OcaUint32ActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<number>
 		GetSetting(): Promise<Arguments<[number, number, number]>>
 		SetSetting(Setting: number): Promise<void>
 	}
 	interface OcaUint64Actuator {
+		GetPropertySync(): PropertySync<OcaUint64ActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<number>
 		GetSetting(): Promise<Arguments<[number, number, number]>>
 		SetSetting(Setting: number): Promise<void>
 	}
 	interface OcaFloat32Actuator {
+		GetPropertySync(): PropertySync<OcaFloat32ActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<number>
 		GetSetting(): Promise<Arguments<[number, number, number]>>
 		SetSetting(Setting: number): Promise<void>
 	}
 	interface OcaFloat64Actuator {
+		GetPropertySync(): PropertySync<OcaFloat64ActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<number>
 		GetSetting(): Promise<Arguments<[number, number, number]>>
 		SetSetting(Setting: number): Promise<void>
 	}
 	interface OcaStringActuator {
+		GetPropertySync(): PropertySync<OcaStringActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<string>
 		GetMaxLen(): Promise<number>
 		GetSetting(): Promise<string>
 		SetSetting(Setting: string): Promise<void>
 	}
 	interface OcaBitstringActuator {
+		GetPropertySync(): PropertySync<OcaBitstringActuatorProperties>
 		readonly OnSettingChanged: PropertyEvent<number[]>
 		GetNrBits(): Promise<number>
 		GetBit(bitNr: number): Promise<number>
@@ -1071,6 +1731,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaBlock
 	// -------------------------------------------------------------------------
 	interface OcaBlock {
+		GetPropertySync(): PropertySync<OcaBlockProperties>
 		readonly OnMembersChanged: PropertyEvent<OcaObjectIdentification[]>
 		readonly OnSignalPathsChanged: PropertyEvent<Map<number, OcaSignalPath>>
 		readonly OnMostRecentParamSetIdentifierChanged: PropertyEvent<OcaLibVolIdentifier>
@@ -1129,6 +1790,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaMatrix
 	// -------------------------------------------------------------------------
 	interface OcaMatrix {
+		GetPropertySync(): PropertySync<OcaMatrixProperties>
 		readonly OnXSizeChanged: PropertyEvent<number>
 		readonly OnYSizeChanged: PropertyEvent<number>
 		readonly OnMembersChanged: PropertyEvent<number[][]>
@@ -1160,6 +1822,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaAgent
 	// -------------------------------------------------------------------------
 	interface OcaAgent {
+		GetPropertySync(): PropertySync<OcaAgentProperties>
 		readonly OnLabelChanged: PropertyEvent<string>
 		readonly OnOwnerChanged: PropertyEvent<number>
 		GetLabel(): Promise<string>
@@ -1172,6 +1835,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaGrouper
 	// -------------------------------------------------------------------------
 	interface OcaGrouper {
+		GetPropertySync(): PropertySync<OcaGrouperProperties>
 		readonly OnModeChanged: PropertyEvent<OcaGrouperMode>
 		readonly OnEnrollmentChanged: PropertyEvent<OcaGrouperEnrollment>
 		AddGroup(Label: string): Promise<Arguments<[number, number]>>
@@ -1197,6 +1861,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaRamper
 	// -------------------------------------------------------------------------
 	interface OcaRamper {
+		GetPropertySync(): PropertySync<OcaRamperProperties>
 		readonly OnStateChanged: PropertyEvent<OcaRamperState>
 		readonly OnGoalChanged: PropertyEvent<number>
 		readonly OnDurationChanged: PropertyEvent<number>
@@ -1227,6 +1892,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaNumericObserver
 	// -------------------------------------------------------------------------
 	interface OcaNumericObserver {
+		GetPropertySync(): PropertySync<OcaNumericObserverProperties>
 		readonly OnObservationChanged: Event
 		readonly OnStateChanged: PropertyEvent<OcaObserverState>
 		readonly OnObservedPropertyChanged: PropertyEvent<OcaProperty>
@@ -1255,6 +1921,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaNumericObserverList
 	// -------------------------------------------------------------------------
 	interface OcaNumericObserverList {
+		GetPropertySync(): PropertySync<OcaNumericObserverListProperties>
 		readonly OnObservationChanged: Event
 		readonly OnStateChanged: PropertyEvent<OcaObserverState>
 		readonly OnObservedPropertiesChanged: PropertyEvent<OcaProperty[]>
@@ -1283,6 +1950,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaPowerSupply
 	// -------------------------------------------------------------------------
 	interface OcaPowerSupply {
+		GetPropertySync(): PropertySync<OcaPowerSupplyProperties>
 		readonly OnTypeChanged: PropertyEvent<OcaPowerSupplyType>
 		readonly OnModelInfoChanged: PropertyEvent<string>
 		readonly OnStateChanged: PropertyEvent<OcaPowerSupplyState>
@@ -1304,6 +1972,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaMediaClock3
 	// -------------------------------------------------------------------------
 	interface OcaMediaClock3 {
+		GetPropertySync(): PropertySync<OcaMediaClock3Properties>
 		readonly OnAvailabilityChanged: PropertyEvent<OcaMediaClockAvailability>
 		readonly OnTimeSourceONoChanged: PropertyEvent<number>
 		readonly OnOffsetChanged: PropertyEvent<OcaTimePTP>
@@ -1323,6 +1992,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaTimeSource
 	// -------------------------------------------------------------------------
 	interface OcaTimeSource {
+		GetPropertySync(): PropertySync<OcaTimeSourceProperties>
 		readonly OnAvailabilityChanged: PropertyEvent<OcaTimeSourceAvailability>
 		readonly OnProtocolChanged: PropertyEvent<OcaTimeProtocol>
 		readonly OnParametersChanged: PropertyEvent<string>
@@ -1347,6 +2017,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaPhysicalPosition
 	// -------------------------------------------------------------------------
 	interface OcaPhysicalPosition {
+		GetPropertySync(): PropertySync<OcaPhysicalPositionProperties>
 		readonly OnCoordinateSystemChanged: PropertyEvent<OcaPositionCoordinateSystem>
 		readonly OnPositionDescriptorFieldFlagsChanged: PropertyEvent<number>
 		readonly OnPositionChanged: PropertyEvent<OcaPositionDescriptor>
@@ -1360,6 +2031,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaApplicationNetwork
 	// -------------------------------------------------------------------------
 	interface OcaApplicationNetwork {
+		GetPropertySync(): PropertySync<OcaApplicationNetworkProperties>
 		readonly OnLabelChanged: PropertyEvent<string>
 		readonly OnOwnerChanged: PropertyEvent<number>
 		readonly OnServiceIDChanged: PropertyEvent<Uint8Array>
@@ -1384,6 +2056,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaControlNetwork
 	// -------------------------------------------------------------------------
 	interface OcaControlNetwork {
+		GetPropertySync(): PropertySync<OcaControlNetworkProperties>
 		readonly OnProtocolChanged: PropertyEvent<OcaNetworkControlProtocol>
 		GetProtocol(): Promise<OcaNetworkControlProtocol>
 		SetProtocol(Protocol: OcaNetworkControlProtocol): Promise<void>
@@ -1393,6 +2066,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaMediaTransportNetwork
 	// -------------------------------------------------------------------------
 	interface OcaMediaTransportNetwork {
+		GetPropertySync(): PropertySync<OcaMediaTransportNetworkProperties>
 		readonly OnProtocolChanged: PropertyEvent<OcaNetworkMediaProtocol>
 		readonly OnPortsChanged: PropertyEvent<OcaPort[]>
 		readonly OnMaxSourceConnectorsChanged: PropertyEvent<number>
@@ -1446,6 +2120,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaManager (base)
 	// -------------------------------------------------------------------------
 	interface OcaManager {
+		GetPropertySync(): PropertySync<OcaManagerProperties>
 		// No additional methods beyond OcaRoot; sub-managers add their own.
 	}
 
@@ -1453,6 +2128,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaDeviceManager
 	// -------------------------------------------------------------------------
 	interface OcaDeviceManager {
+		GetPropertySync(): PropertySync<OcaDeviceManagerProperties>
 		readonly OnModelGUIDChanged: PropertyEvent<OcaModelGUID>
 		readonly OnSerialNumberChanged: PropertyEvent<string>
 		readonly OnDeviceNameChanged: PropertyEvent<string>
@@ -1493,6 +2169,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaSecurityManager
 	// -------------------------------------------------------------------------
 	interface OcaSecurityManager {
+		GetPropertySync(): PropertySync<OcaSecurityManagerProperties>
 		readonly OnSecureControlDataChanged: PropertyEvent<boolean>
 		EnableControlSecurity(): Promise<void>
 		DisableControlSecurity(): Promise<void>
@@ -1505,6 +2182,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaFirmwareManager
 	// -------------------------------------------------------------------------
 	interface OcaFirmwareManager {
+		GetPropertySync(): PropertySync<OcaFirmwareManagerProperties>
 		readonly OnComponentVersionsChanged: PropertyEvent<OcaVersion[]>
 		GetComponentVersions(): Promise<OcaVersion[]>
 		StartUpdateProcess(): Promise<void>
@@ -1524,6 +2202,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaSubscriptionManager
 	// -------------------------------------------------------------------------
 	interface OcaSubscriptionManager {
+		GetPropertySync(): PropertySync<OcaSubscriptionManagerProperties>
 		readonly OnStateChanged: PropertyEvent<OcaSubscriptionManagerState>
 		RemoveSubscription(Event: OcaEventData, Subscriber: OcaMethod): Promise<void>
 		DisableNotifications(): Promise<void>
@@ -1561,6 +2240,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaPowerManager
 	// -------------------------------------------------------------------------
 	interface OcaPowerManager {
+		GetPropertySync(): PropertySync<OcaPowerManagerProperties>
 		readonly OnStateChanged: PropertyEvent<OcaPowerState>
 		readonly OnPowerSuppliesChanged: PropertyEvent<number[]>
 		readonly OnActivePowerSuppliesChanged: PropertyEvent<number[]>
@@ -1579,6 +2259,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaNetworkManager
 	// -------------------------------------------------------------------------
 	interface OcaNetworkManager {
+		GetPropertySync(): PropertySync<OcaNetworkManagerProperties>
 		readonly OnNetworksChanged: PropertyEvent<number[]>
 		readonly OnStreamNetworksChanged: PropertyEvent<number[]>
 		readonly OnControlNetworksChanged: PropertyEvent<number[]>
@@ -1594,6 +2275,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaMediaClockManager
 	// -------------------------------------------------------------------------
 	interface OcaMediaClockManager {
+		GetPropertySync(): PropertySync<OcaMediaClockManagerProperties>
 		readonly OnClocksChanged: PropertyEvent<number[]>
 		readonly OnClock3sChanged: PropertyEvent<number[]>
 		GetClocks(): Promise<number[]>
@@ -1605,6 +2287,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaLibraryManager
 	// -------------------------------------------------------------------------
 	interface OcaLibraryManager {
+		GetPropertySync(): PropertySync<OcaLibraryManagerProperties>
 		readonly OnLibrariesChanged: PropertyEvent<OcaLibraryIdentifier[]>
 		AddLibrary(Type: OcaLibVolType): Promise<number>
 		DeleteLibrary(ONo: number): Promise<void>
@@ -1621,6 +2304,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaAudioProcessingManager
 	// -------------------------------------------------------------------------
 	interface OcaAudioProcessingManager {
+		GetPropertySync(): PropertySync<OcaAudioProcessingManagerProperties>
 		// No additional methods defined in standard.
 	}
 
@@ -1628,6 +2312,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaDeviceTimeManager
 	// -------------------------------------------------------------------------
 	interface OcaDeviceTimeManager {
+		GetPropertySync(): PropertySync<OcaDeviceTimeManagerProperties>
 		readonly OnTimeSourcesChanged: PropertyEvent<number[]>
 		readonly OnCurrentDeviceTimeSourceChanged: PropertyEvent<number>
 		GetDeviceTimeNTP(): Promise<number>
@@ -1643,6 +2328,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaTaskManager
 	// -------------------------------------------------------------------------
 	interface OcaTaskManager {
+		GetPropertySync(): PropertySync<OcaTaskManagerProperties>
 		readonly OnStateChanged: PropertyEvent<OcaTaskManagerState>
 		readonly OnTasksChanged: PropertyEvent<Map<number, OcaTask>>
 
@@ -1664,6 +2350,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaCodingManager
 	// -------------------------------------------------------------------------
 	interface OcaCodingManager {
+		GetPropertySync(): PropertySync<OcaCodingManagerProperties>
 		readonly OnAvailableEncodingSchemes: PropertyEvent<Map<number, string>>
 		readonly OnAvailableDecodingSchemes: PropertyEvent<Map<number, string>>
 		GetAvailableEncodingSchemes(): Promise<Map<number, string>>
@@ -1674,6 +2361,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaDiagnosticManager
 	// -------------------------------------------------------------------------
 	interface OcaDiagnosticManager {
+		GetPropertySync(): PropertySync<OcaDiagnosticManagerProperties>
 		GetLockStatus(): Promise<string>
 	}
 
@@ -1681,6 +2369,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaNetwork (deprecated v1 class)
 	// -------------------------------------------------------------------------
 	interface OcaNetwork {
+		GetPropertySync(): PropertySync<OcaNetworkProperties>
 		readonly OnLinkTypeChanged: PropertyEvent<OcaNetworkLinkType>
 		readonly OnIdAdvertisedChanged: PropertyEvent<Uint8Array>
 		readonly OnControlProtocolChanged: PropertyEvent<OcaNetworkControlProtocol>
@@ -1708,6 +2397,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaMediaClock (deprecated v1 class)
 	// -------------------------------------------------------------------------
 	interface OcaMediaClock {
+		GetPropertySync(): PropertySync<OcaMediaClockProperties>
 		readonly OnTypeChanged: PropertyEvent<OcaMediaClockType>
 		readonly OnDomainIDChanged: PropertyEvent<number>
 		readonly OnRatesChanged: PropertyEvent<OcaMediaClockRate[]>
@@ -1727,6 +2417,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaStreamNetwork (deprecated v1 class)
 	// -------------------------------------------------------------------------
 	interface OcaStreamNetwork {
+		GetPropertySync(): PropertySync<OcaStreamNetworkProperties>
 		readonly OnControlProtocolChanged: PropertyEvent<OcaNetworkControlProtocol>
 		readonly OnIdAdvertisedChanged: PropertyEvent<Uint8Array>
 		readonly OnLinkTypeChanged: PropertyEvent<OcaNetworkLinkType>
@@ -1759,6 +2450,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaStreamConnector (deprecated v1 class)
 	// -------------------------------------------------------------------------
 	interface OcaStreamConnector {
+		GetPropertySync(): PropertySync<OcaStreamConnectorProperties>
 		readonly OnIDAdvertisedChanged: PropertyEvent<OcaStreamConnectorIdentification>
 		readonly OnOwnerNetworkChanged: PropertyEvent<number>
 		readonly OnPinsChanged: PropertyEvent<Map<number, number>>
@@ -1781,6 +2473,7 @@ declare module 'aes70/src/controller/ControlClasses' {
 	// OcaNetworkSignalChannel (deprecated v1 class)
 	// -------------------------------------------------------------------------
 	interface OcaNetworkSignalChannel {
+		GetPropertySync(): PropertySync<OcaNetworkSignalChannelProperties>
 		readonly OnConnectorPinChanged: PropertyEvent<Map<number, number>>
 		readonly OnIDAdvertisedChanged: PropertyEvent<Uint8Array>
 		readonly OnNetworkChanged: PropertyEvent<number>

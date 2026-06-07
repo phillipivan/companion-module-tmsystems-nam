@@ -1,6 +1,6 @@
 {
 	"extends": "./tsconfig.build.json",
-	"include": ["src/**/*.ts", "types/Aes70.d.ts"],
+	"include": ["src/**/*.ts", "types/**/*.d.ts"],
 	"exclude": ["node_modules/**"],
 	"compilerOptions": {
 		"types": ["node"]
