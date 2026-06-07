@@ -99,7 +99,8 @@ import {
 	OcaWorker,
 } from 'aes70/src/controller/ControlClasses.js'
 import { ObjectBase } from 'aes70/src/controller/object_base.js'
-import type { PropertySync, OcaRootProperties } from '../types/aes70.js'
+import type { PropertySync, OcaRootProperties, OcaClassName } from '../types/aes70.js'
+import { OCA_CLASS_NAMES } from '../types/aes70.js'
 import { createModuleLogger } from '@companion-module/base'
 import EventEmitter from 'events'
 
@@ -228,10 +229,10 @@ export interface ObjectEntry {
 	/** The live OCA control object. */
 	readonly obj: ObjectBase
 	/** The exact OCA class name resolved for this object (e.g. 'OcaGain'). */
-	readonly className: string
-	/** Action IDs associated with this object (e.g. OSC/MIDI command IDs). */
+	readonly className: OcaClassName
+	/** Action IDs associated with this object. */
 	readonly actionIds: Set<string>
-	/** Feedback IDs associated with this object (e.g. subscription keys). */
+	/** Feedback IDs associated with this object. */
 	readonly feedbackIds: Set<string>
 	/**
 	 * Active property sync handle. Present when at least one action or feedback
@@ -257,14 +258,14 @@ export interface ObjectEntry {
  *
  * ### Listening for classes
  * ```ts
- * helper.on('OcaGain', (obj) => {
+ * helper.on(OCA_CLASS_NAMES.OcaGain, (obj) => {
  *   obj.GetGain().then(([gain]) => console.log('Gain:', gain))
  * })
  * ```
  *
  * ### Querying by class
  * ```ts
- * const gainPaths = helper.getByClass('OcaGain')  // Set<string>
+ * const gainPaths = helper.getByClass(OCA_CLASS_NAMES.OcaGain)  // Set<string>
  * for (const path of gainPaths) {
  *   const entry = helper.getEntry(path)!
  *   const gain = entry.obj as OcaGain
@@ -308,7 +309,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 * Keys are the most-derived class name resolved by `_resolveClassName`,
 	 * e.g. `'OcaGain'`, `'OcaDelayExtended'`, `'OcaDeviceManager'`.
 	 */
-	private _classIndex: Map<string, Set<string>> = new Map()
+	private _classIndex: Map<OcaClassName, Set<string>> = new Map()
 
 	/**
 	 * Per-object registry: role path → ObjectEntry.
@@ -530,131 +531,131 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 * Resolve the most-derived known class name for `obj` without emitting
 	 * any event.  Falls back to `'ObjectBase'` for unrecognised objects.
 	 */
-	private _resolveClassName(obj: ObjectBase): string {
-		if (!(obj instanceof OcaRoot)) return 'ObjectBase'
+	private _resolveClassName(obj: ObjectBase): OcaClassName {
+		if (!(obj instanceof OcaRoot)) return OCA_CLASS_NAMES.ObjectBase
 
 		if (obj instanceof OcaWorker) {
 			if (obj instanceof OcaActuator) return this._resolveActuatorName(obj)
 			if (obj instanceof OcaSensor) return this._resolveSensorName(obj)
-			if (obj instanceof OcaBlock) return 'OcaBlock'
-			if (obj instanceof OcaBlockFactoryAgent) return 'OcaBlockFactory'
-			if (obj instanceof OcaMatrix) return 'OcaMatrix'
-			return 'OcaWorker'
+			if (obj instanceof OcaBlock) return OCA_CLASS_NAMES.OcaBlock
+			if (obj instanceof OcaBlockFactoryAgent) return OCA_CLASS_NAMES.OcaBlockFactory
+			if (obj instanceof OcaMatrix) return OCA_CLASS_NAMES.OcaMatrix
+			return OCA_CLASS_NAMES.OcaWorker
 		}
 		if (obj instanceof OcaAgent) return this._resolveAgentName(obj)
 		if (obj instanceof OcaManager) return this._resolveManagerName(obj)
-		if (obj instanceof OcaMediaTransportNetwork) return 'OcaMediaTransportNetwork'
-		if (obj instanceof OcaControlNetwork) return 'OcaControlNetwork'
-		if (obj instanceof OcaApplicationNetwork) return 'OcaApplicationNetwork'
-		if (obj instanceof OcaNetworkSignalChannel) return 'OcaNetworkSignalChannel'
-		if (obj instanceof OcaStreamConnector) return 'OcaStreamConnector'
-		if (obj instanceof OcaStreamNetwork) return 'OcaStreamNetwork'
-		if (obj instanceof OcaNetwork) return 'OcaNetwork'
-		if (obj instanceof OcaMediaClock) return 'OcaMediaClock'
-		return 'OcaRoot'
+		if (obj instanceof OcaMediaTransportNetwork) return OCA_CLASS_NAMES.OcaMediaTransportNetwork
+		if (obj instanceof OcaControlNetwork) return OCA_CLASS_NAMES.OcaControlNetwork
+		if (obj instanceof OcaApplicationNetwork) return OCA_CLASS_NAMES.OcaApplicationNetwork
+		if (obj instanceof OcaNetworkSignalChannel) return OCA_CLASS_NAMES.OcaNetworkSignalChannel
+		if (obj instanceof OcaStreamConnector) return OCA_CLASS_NAMES.OcaStreamConnector
+		if (obj instanceof OcaStreamNetwork) return OCA_CLASS_NAMES.OcaStreamNetwork
+		if (obj instanceof OcaNetwork) return OCA_CLASS_NAMES.OcaNetwork
+		if (obj instanceof OcaMediaClock) return OCA_CLASS_NAMES.OcaMediaClock
+		return OCA_CLASS_NAMES.OcaRoot
 	}
 
-	private _resolveActuatorName(obj: OcaActuator): string {
-		if (obj instanceof OcaMute) return 'OcaMute'
-		if (obj instanceof OcaPolarity) return 'OcaPolarity'
-		if (obj instanceof OcaSwitch) return 'OcaSwitch'
-		if (obj instanceof OcaGain) return 'OcaGain'
-		if (obj instanceof OcaPanBalance) return 'OcaPanBalance'
-		if (obj instanceof OcaDelayExtended) return 'OcaDelayExtended'
-		if (obj instanceof OcaDelay) return 'OcaDelay'
-		if (obj instanceof OcaFrequencyActuator) return 'OcaFrequencyActuator'
-		if (obj instanceof OcaFilterClassical) return 'OcaFilterClassical'
-		if (obj instanceof OcaFilterParametric) return 'OcaFilterParametric'
-		if (obj instanceof OcaFilterPolynomial) return 'OcaFilterPolynomial'
-		if (obj instanceof OcaFilterFIR) return 'OcaFilterFIR'
-		if (obj instanceof OcaFilterArbitraryCurve) return 'OcaFilterArbitraryCurve'
-		if (obj instanceof OcaDynamics) return 'OcaDynamics'
-		if (obj instanceof OcaDynamicsDetector) return 'OcaDynamicsDetector'
+	private _resolveActuatorName(obj: OcaActuator): OcaClassName {
+		if (obj instanceof OcaMute) return OCA_CLASS_NAMES.OcaMute
+		if (obj instanceof OcaPolarity) return OCA_CLASS_NAMES.OcaPolarity
+		if (obj instanceof OcaSwitch) return OCA_CLASS_NAMES.OcaSwitch
+		if (obj instanceof OcaGain) return OCA_CLASS_NAMES.OcaGain
+		if (obj instanceof OcaPanBalance) return OCA_CLASS_NAMES.OcaPanBalance
+		if (obj instanceof OcaDelayExtended) return OCA_CLASS_NAMES.OcaDelayExtended
+		if (obj instanceof OcaDelay) return OCA_CLASS_NAMES.OcaDelay
+		if (obj instanceof OcaFrequencyActuator) return OCA_CLASS_NAMES.OcaFrequencyActuator
+		if (obj instanceof OcaFilterClassical) return OCA_CLASS_NAMES.OcaFilterClassical
+		if (obj instanceof OcaFilterParametric) return OCA_CLASS_NAMES.OcaFilterParametric
+		if (obj instanceof OcaFilterPolynomial) return OCA_CLASS_NAMES.OcaFilterPolynomial
+		if (obj instanceof OcaFilterFIR) return OCA_CLASS_NAMES.OcaFilterFIR
+		if (obj instanceof OcaFilterArbitraryCurve) return OCA_CLASS_NAMES.OcaFilterArbitraryCurve
+		if (obj instanceof OcaDynamics) return OCA_CLASS_NAMES.OcaDynamics
+		if (obj instanceof OcaDynamicsDetector) return OCA_CLASS_NAMES.OcaDynamicsDetector
 		if (obj instanceof OcaDynamicsCurve) return 'OcaDynamicsCurve'
 		if (obj instanceof OcaSignalGenerator) return 'OcaSignalGenerator'
-		if (obj instanceof OcaSignalInput) return 'OcaSignalInput'
-		if (obj instanceof OcaSignalOutput) return 'OcaSignalOutput'
-		if (obj instanceof OcaTemperatureActuator) return 'OcaTemperatureActuator'
-		if (obj instanceof OcaIdentificationActuator) return 'OcaIdentificationActuator'
-		if (obj instanceof OcaSummingPoint) return 'OcaSummingPoint'
+		if (obj instanceof OcaSignalInput) return OCA_CLASS_NAMES.OcaSignalInput
+		if (obj instanceof OcaSignalOutput) return OCA_CLASS_NAMES.OcaSignalOutput
+		if (obj instanceof OcaTemperatureActuator) return OCA_CLASS_NAMES.OcaTemperatureActuator
+		if (obj instanceof OcaIdentificationActuator) return OCA_CLASS_NAMES.OcaIdentificationActuator
+		if (obj instanceof OcaSummingPoint) return OCA_CLASS_NAMES.OcaSummingPoint
 		if (obj instanceof OcaBasicActuator) {
-			if (obj instanceof OcaBooleanActuator) return 'OcaBooleanActuator'
-			if (obj instanceof OcaInt8Actuator) return 'OcaInt8Actuator'
-			if (obj instanceof OcaInt16Actuator) return 'OcaInt16Actuator'
-			if (obj instanceof OcaInt32Actuator) return 'OcaInt32Actuator'
-			if (obj instanceof OcaInt64Actuator) return 'OcaInt64Actuator'
-			if (obj instanceof OcaUint8Actuator) return 'OcaUint8Actuator'
-			if (obj instanceof OcaUint16Actuator) return 'OcaUint16Actuator'
-			if (obj instanceof OcaUint32Actuator) return 'OcaUint32Actuator'
-			if (obj instanceof OcaUint64Actuator) return 'OcaUint64Actuator'
-			if (obj instanceof OcaFloat32Actuator) return 'OcaFloat32Actuator'
-			if (obj instanceof OcaFloat64Actuator) return 'OcaFloat64Actuator'
-			if (obj instanceof OcaStringActuator) return 'OcaStringActuator'
-			if (obj instanceof OcaBitstringActuator) return 'OcaBitstringActuator'
-			return 'OcaBasicActuator'
+			if (obj instanceof OcaBooleanActuator) return OCA_CLASS_NAMES.OcaBooleanActuator
+			if (obj instanceof OcaInt8Actuator) return OCA_CLASS_NAMES.OcaInt8Actuator
+			if (obj instanceof OcaInt16Actuator) return OCA_CLASS_NAMES.OcaInt16Actuator
+			if (obj instanceof OcaInt32Actuator) return OCA_CLASS_NAMES.OcaInt32Actuator
+			if (obj instanceof OcaInt64Actuator) return OCA_CLASS_NAMES.OcaInt64Actuator
+			if (obj instanceof OcaUint8Actuator) return OCA_CLASS_NAMES.OcaUint8Actuator
+			if (obj instanceof OcaUint16Actuator) return OCA_CLASS_NAMES.OcaUint16Actuator
+			if (obj instanceof OcaUint32Actuator) return OCA_CLASS_NAMES.OcaUint32Actuator
+			if (obj instanceof OcaUint64Actuator) return OCA_CLASS_NAMES.OcaUint64Actuator
+			if (obj instanceof OcaFloat32Actuator) return OCA_CLASS_NAMES.OcaFloat32Actuator
+			if (obj instanceof OcaFloat64Actuator) return OCA_CLASS_NAMES.OcaFloat64Actuator
+			if (obj instanceof OcaStringActuator) return OCA_CLASS_NAMES.OcaStringActuator
+			if (obj instanceof OcaBitstringActuator) return OCA_CLASS_NAMES.OcaBitstringActuator
+			return OCA_CLASS_NAMES.OcaBasicActuator
 		}
-		return 'OcaActuator'
+		return OCA_CLASS_NAMES.OcaActuator
 	}
 
-	private _resolveSensorName(obj: OcaSensor): string {
+	private _resolveSensorName(obj: OcaSensor): OcaClassName {
 		if (obj instanceof OcaLevelSensor) {
-			if (obj instanceof OcaAudioLevelSensor) return 'OcaAudioLevelSensor'
-			return 'OcaLevelSensor'
+			if (obj instanceof OcaAudioLevelSensor) return OCA_CLASS_NAMES.OcaAudioLevelSensor
+			return OCA_CLASS_NAMES.OcaLevelSensor
 		}
-		if (obj instanceof OcaTimeIntervalSensor) return 'OcaTimeIntervalSensor'
-		if (obj instanceof OcaFrequencySensor) return 'OcaFrequencySensor'
-		if (obj instanceof OcaTemperatureSensor) return 'OcaTemperatureSensor'
-		if (obj instanceof OcaIdentificationSensor) return 'OcaIdentificationSensor'
-		if (obj instanceof OcaVoltageSensor) return 'OcaVoltageSensor'
-		if (obj instanceof OcaCurrentSensor) return 'OcaCurrentSensor'
-		if (obj instanceof OcaImpedanceSensor) return 'OcaImpedanceSensor'
-		if (obj instanceof OcaGainSensor) return 'OcaGainSensor'
+		if (obj instanceof OcaTimeIntervalSensor) return OCA_CLASS_NAMES.OcaTimeIntervalSensor
+		if (obj instanceof OcaFrequencySensor) return OCA_CLASS_NAMES.OcaFrequencySensor
+		if (obj instanceof OcaTemperatureSensor) return OCA_CLASS_NAMES.OcaTemperatureSensor
+		if (obj instanceof OcaIdentificationSensor) return OCA_CLASS_NAMES.OcaIdentificationSensor
+		if (obj instanceof OcaVoltageSensor) return OCA_CLASS_NAMES.OcaVoltageSensor
+		if (obj instanceof OcaCurrentSensor) return OCA_CLASS_NAMES.OcaCurrentSensor
+		if (obj instanceof OcaImpedanceSensor) return OCA_CLASS_NAMES.OcaImpedanceSensor
+		if (obj instanceof OcaGainSensor) return OCA_CLASS_NAMES.OcaGainSensor
 		if (obj instanceof OcaBasicSensor) {
-			if (obj instanceof OcaBooleanSensor) return 'OcaBooleanSensor'
-			if (obj instanceof OcaInt8Sensor) return 'OcaInt8Sensor'
-			if (obj instanceof OcaInt16Sensor) return 'OcaInt16Sensor'
-			if (obj instanceof OcaInt32Sensor) return 'OcaInt32Sensor'
-			if (obj instanceof OcaInt64Sensor) return 'OcaInt64Sensor'
-			if (obj instanceof OcaUint8Sensor) return 'OcaUint8Sensor'
-			if (obj instanceof OcaUint16Sensor) return 'OcaUint16Sensor'
-			if (obj instanceof OcaUint32Sensor) return 'OcaUint32Sensor'
-			if (obj instanceof OcaUint64Sensor) return 'OcaUint64Sensor'
-			if (obj instanceof OcaFloat32Sensor) return 'OcaFloat32Sensor'
-			if (obj instanceof OcaFloat64Sensor) return 'OcaFloat64Sensor'
-			if (obj instanceof OcaStringSensor) return 'OcaStringSensor'
-			if (obj instanceof OcaBitstringSensor) return 'OcaBitstringSensor'
-			return 'OcaBasicSensor'
+			if (obj instanceof OcaBooleanSensor) return OCA_CLASS_NAMES.OcaBooleanSensor
+			if (obj instanceof OcaInt8Sensor) return OCA_CLASS_NAMES.OcaInt8Sensor
+			if (obj instanceof OcaInt16Sensor) return OCA_CLASS_NAMES.OcaInt16Sensor
+			if (obj instanceof OcaInt32Sensor) return OCA_CLASS_NAMES.OcaInt32Sensor
+			if (obj instanceof OcaInt64Sensor) return OCA_CLASS_NAMES.OcaInt64Sensor
+			if (obj instanceof OcaUint8Sensor) return OCA_CLASS_NAMES.OcaUint8Sensor
+			if (obj instanceof OcaUint16Sensor) return OCA_CLASS_NAMES.OcaUint16Sensor
+			if (obj instanceof OcaUint32Sensor) return OCA_CLASS_NAMES.OcaUint32Sensor
+			if (obj instanceof OcaUint64Sensor) return OCA_CLASS_NAMES.OcaUint64Sensor
+			if (obj instanceof OcaFloat32Sensor) return OCA_CLASS_NAMES.OcaFloat32Sensor
+			if (obj instanceof OcaFloat64Sensor) return OCA_CLASS_NAMES.OcaFloat64Sensor
+			if (obj instanceof OcaStringSensor) return OCA_CLASS_NAMES.OcaStringSensor
+			if (obj instanceof OcaBitstringSensor) return OCA_CLASS_NAMES.OcaBitstringSensor
+			return OCA_CLASS_NAMES.OcaBasicSensor
 		}
-		return 'OcaSensor'
+		return OCA_CLASS_NAMES.OcaSensor
 	}
 
-	private _resolveAgentName(obj: OcaAgent): string {
-		if (obj instanceof OcaGrouper) return 'OcaGrouper'
-		if (obj instanceof OcaNumericObserverList) return 'OcaNumericObserverList'
-		if (obj instanceof OcaNumericObserver) return 'OcaNumericObserver'
-		if (obj instanceof OcaRamper) return 'OcaRamper'
-		if (obj instanceof OcaPowerSupply) return 'OcaPowerSupply'
-		if (obj instanceof OcaMediaClock3) return 'OcaMediaClock3'
-		if (obj instanceof OcaTimeSource) return 'OcaTimeSource'
-		if (obj instanceof OcaPhysicalPosition) return 'OcaPhysicalPosition'
-		return 'OcaAgent'
+	private _resolveAgentName(obj: OcaAgent): OcaClassName {
+		if (obj instanceof OcaGrouper) return OCA_CLASS_NAMES.OcaGrouper
+		if (obj instanceof OcaNumericObserverList) return OCA_CLASS_NAMES.OcaNumericObserverList
+		if (obj instanceof OcaNumericObserver) return OCA_CLASS_NAMES.OcaNumericObserver
+		if (obj instanceof OcaRamper) return OCA_CLASS_NAMES.OcaRamper
+		if (obj instanceof OcaPowerSupply) return OCA_CLASS_NAMES.OcaPowerSupply
+		if (obj instanceof OcaMediaClock3) return OCA_CLASS_NAMES.OcaMediaClock3
+		if (obj instanceof OcaTimeSource) return OCA_CLASS_NAMES.OcaTimeSource
+		if (obj instanceof OcaPhysicalPosition) return OCA_CLASS_NAMES.OcaPhysicalPosition
+		return OCA_CLASS_NAMES.OcaAgent
 	}
 
-	private _resolveManagerName(obj: OcaManager): string {
-		if (obj instanceof OcaDeviceManager) return 'OcaDeviceManager'
-		if (obj instanceof OcaSecurityManager) return 'OcaSecurityManager'
-		if (obj instanceof OcaFirmwareManager) return 'OcaFirmwareManager'
-		if (obj instanceof OcaSubscriptionManager) return 'OcaSubscriptionManager'
-		if (obj instanceof OcaPowerManager) return 'OcaPowerManager'
-		if (obj instanceof OcaNetworkManager) return 'OcaNetworkManager'
-		if (obj instanceof OcaMediaClockManager) return 'OcaMediaClockManager'
-		if (obj instanceof OcaLibraryManager) return 'OcaLibraryManager'
-		if (obj instanceof OcaAudioProcessingManager) return 'OcaAudioProcessingManager'
-		if (obj instanceof OcaDeviceTimeManager) return 'OcaDeviceTimeManager'
-		if (obj instanceof OcaTaskManager) return 'OcaTaskManager'
-		if (obj instanceof OcaCodingManager) return 'OcaCodingManager'
-		if (obj instanceof OcaDiagnosticManager) return 'OcaDiagnosticManager'
-		return 'OcaManager'
+	private _resolveManagerName(obj: OcaManager): OcaClassName {
+		if (obj instanceof OcaDeviceManager) return OCA_CLASS_NAMES.OcaDeviceManager
+		if (obj instanceof OcaSecurityManager) return OCA_CLASS_NAMES.OcaSecurityManager
+		if (obj instanceof OcaFirmwareManager) return OCA_CLASS_NAMES.OcaFirmwareManager
+		if (obj instanceof OcaSubscriptionManager) return OCA_CLASS_NAMES.OcaSubscriptionManager
+		if (obj instanceof OcaPowerManager) return OCA_CLASS_NAMES.OcaPowerManager
+		if (obj instanceof OcaNetworkManager) return OCA_CLASS_NAMES.OcaNetworkManager
+		if (obj instanceof OcaMediaClockManager) return OCA_CLASS_NAMES.OcaMediaClockManager
+		if (obj instanceof OcaLibraryManager) return OCA_CLASS_NAMES.OcaLibraryManager
+		if (obj instanceof OcaAudioProcessingManager) return OCA_CLASS_NAMES.OcaAudioProcessingManager
+		if (obj instanceof OcaDeviceTimeManager) return OCA_CLASS_NAMES.OcaDeviceTimeManager
+		if (obj instanceof OcaTaskManager) return OCA_CLASS_NAMES.OcaTaskManager
+		if (obj instanceof OcaCodingManager) return OCA_CLASS_NAMES.OcaCodingManager
+		if (obj instanceof OcaDiagnosticManager) return OCA_CLASS_NAMES.OcaDiagnosticManager
+		return OCA_CLASS_NAMES.OcaManager
 	}
 
 	// -------------------------------------------------------------------------
@@ -662,109 +663,109 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	// -------------------------------------------------------------------------
 
 	private _emitActuator(obj: OcaActuator): void {
-		if (obj instanceof OcaMute) this.emit('OcaMute', obj)
-		else if (obj instanceof OcaPolarity) this.emit('OcaPolarity', obj)
-		else if (obj instanceof OcaSwitch) this.emit('OcaSwitch', obj)
-		else if (obj instanceof OcaGain) this.emit('OcaGain', obj)
-		else if (obj instanceof OcaPanBalance) this.emit('OcaPanBalance', obj)
-		else if (obj instanceof OcaDelayExtended) this.emit('OcaDelayExtended', obj)
-		else if (obj instanceof OcaDelay) this.emit('OcaDelay', obj)
-		else if (obj instanceof OcaFrequencyActuator) this.emit('OcaFrequencyActuator', obj)
-		else if (obj instanceof OcaFilterClassical) this.emit('OcaFilterClassical', obj)
-		else if (obj instanceof OcaFilterParametric) this.emit('OcaFilterParametric', obj)
-		else if (obj instanceof OcaFilterPolynomial) this.emit('OcaFilterPolynomial', obj)
-		else if (obj instanceof OcaFilterFIR) this.emit('OcaFilterFIR', obj)
-		else if (obj instanceof OcaFilterArbitraryCurve) this.emit('OcaFilterArbitraryCurve', obj)
-		else if (obj instanceof OcaDynamics) this.emit('OcaDynamics', obj)
-		else if (obj instanceof OcaDynamicsDetector) this.emit('OcaDynamicsDetector', obj)
-		else if (obj instanceof OcaDynamicsCurve) this.emit('OcaDynamicsCurve', obj)
-		else if (obj instanceof OcaSignalGenerator) this.emit('OcaSignalGenerator', obj)
-		else if (obj instanceof OcaSignalInput) this.emit('OcaSignalInput', obj)
-		else if (obj instanceof OcaSignalOutput) this.emit('OcaSignalOutput', obj)
-		else if (obj instanceof OcaTemperatureActuator) this.emit('OcaTemperatureActuator', obj)
-		else if (obj instanceof OcaIdentificationActuator) this.emit('OcaIdentificationActuator', obj)
-		else if (obj instanceof OcaSummingPoint) this.emit('OcaSummingPoint', obj)
+		if (obj instanceof OcaMute) this.emit(OCA_CLASS_NAMES.OcaMute, obj)
+		else if (obj instanceof OcaPolarity) this.emit(OCA_CLASS_NAMES.OcaPolarity, obj)
+		else if (obj instanceof OcaSwitch) this.emit(OCA_CLASS_NAMES.OcaSwitch, obj)
+		else if (obj instanceof OcaGain) this.emit(OCA_CLASS_NAMES.OcaGain, obj)
+		else if (obj instanceof OcaPanBalance) this.emit(OCA_CLASS_NAMES.OcaPanBalance, obj)
+		else if (obj instanceof OcaDelayExtended) this.emit(OCA_CLASS_NAMES.OcaDelayExtended, obj)
+		else if (obj instanceof OcaDelay) this.emit(OCA_CLASS_NAMES.OcaDelay, obj)
+		else if (obj instanceof OcaFrequencyActuator) this.emit(OCA_CLASS_NAMES.OcaFrequencyActuator, obj)
+		else if (obj instanceof OcaFilterClassical) this.emit(OCA_CLASS_NAMES.OcaFilterClassical, obj)
+		else if (obj instanceof OcaFilterParametric) this.emit(OCA_CLASS_NAMES.OcaFilterParametric, obj)
+		else if (obj instanceof OcaFilterPolynomial) this.emit(OCA_CLASS_NAMES.OcaFilterPolynomial, obj)
+		else if (obj instanceof OcaFilterFIR) this.emit(OCA_CLASS_NAMES.OcaFilterFIR, obj)
+		else if (obj instanceof OcaFilterArbitraryCurve) this.emit(OCA_CLASS_NAMES.OcaFilterArbitraryCurve, obj)
+		else if (obj instanceof OcaDynamics) this.emit(OCA_CLASS_NAMES.OcaDynamics, obj)
+		else if (obj instanceof OcaDynamicsDetector) this.emit(OCA_CLASS_NAMES.OcaDynamicsDetector, obj)
+		else if (obj instanceof OcaDynamicsCurve) this.emit(OCA_CLASS_NAMES.OcaDynamicsCurve, obj)
+		else if (obj instanceof OcaSignalGenerator) this.emit(OCA_CLASS_NAMES.OcaSignalGenerator, obj)
+		else if (obj instanceof OcaSignalInput) this.emit(OCA_CLASS_NAMES.OcaSignalInput, obj)
+		else if (obj instanceof OcaSignalOutput) this.emit(OCA_CLASS_NAMES.OcaSignalOutput, obj)
+		else if (obj instanceof OcaTemperatureActuator) this.emit(OCA_CLASS_NAMES.OcaTemperatureActuator, obj)
+		else if (obj instanceof OcaIdentificationActuator) this.emit(OCA_CLASS_NAMES.OcaIdentificationActuator, obj)
+		else if (obj instanceof OcaSummingPoint) this.emit(OCA_CLASS_NAMES.OcaSummingPoint, obj)
 		else if (obj instanceof OcaBasicActuator) this._emitBasicActuator(obj)
-		else this.emit('OcaActuator', obj)
+		else this.emit(OCA_CLASS_NAMES.OcaActuator, obj)
 	}
 
 	private _emitBasicActuator(obj: OcaBasicActuator): void {
-		if (obj instanceof OcaBooleanActuator) this.emit('OcaBooleanActuator', obj)
-		else if (obj instanceof OcaInt8Actuator) this.emit('OcaInt8Actuator', obj)
-		else if (obj instanceof OcaInt16Actuator) this.emit('OcaInt16Actuator', obj)
-		else if (obj instanceof OcaInt32Actuator) this.emit('OcaInt32Actuator', obj)
-		else if (obj instanceof OcaInt64Actuator) this.emit('OcaInt64Actuator', obj)
-		else if (obj instanceof OcaUint8Actuator) this.emit('OcaUint8Actuator', obj)
-		else if (obj instanceof OcaUint16Actuator) this.emit('OcaUint16Actuator', obj)
-		else if (obj instanceof OcaUint32Actuator) this.emit('OcaUint32Actuator', obj)
-		else if (obj instanceof OcaUint64Actuator) this.emit('OcaUint64Actuator', obj)
-		else if (obj instanceof OcaFloat32Actuator) this.emit('OcaFloat32Actuator', obj)
-		else if (obj instanceof OcaFloat64Actuator) this.emit('OcaFloat64Actuator', obj)
-		else if (obj instanceof OcaStringActuator) this.emit('OcaStringActuator', obj)
-		else if (obj instanceof OcaBitstringActuator) this.emit('OcaBitstringActuator', obj)
-		else this.emit('OcaBasicActuator', obj)
+		if (obj instanceof OcaBooleanActuator) this.emit(OCA_CLASS_NAMES.OcaBooleanActuator, obj)
+		else if (obj instanceof OcaInt8Actuator) this.emit(OCA_CLASS_NAMES.OcaInt8Actuator, obj)
+		else if (obj instanceof OcaInt16Actuator) this.emit(OCA_CLASS_NAMES.OcaInt16Actuator, obj)
+		else if (obj instanceof OcaInt32Actuator) this.emit(OCA_CLASS_NAMES.OcaInt32Actuator, obj)
+		else if (obj instanceof OcaInt64Actuator) this.emit(OCA_CLASS_NAMES.OcaInt64Actuator, obj)
+		else if (obj instanceof OcaUint8Actuator) this.emit(OCA_CLASS_NAMES.OcaUint8Actuator, obj)
+		else if (obj instanceof OcaUint16Actuator) this.emit(OCA_CLASS_NAMES.OcaUint16Actuator, obj)
+		else if (obj instanceof OcaUint32Actuator) this.emit(OCA_CLASS_NAMES.OcaUint32Actuator, obj)
+		else if (obj instanceof OcaUint64Actuator) this.emit(OCA_CLASS_NAMES.OcaUint64Actuator, obj)
+		else if (obj instanceof OcaFloat32Actuator) this.emit(OCA_CLASS_NAMES.OcaFloat32Actuator, obj)
+		else if (obj instanceof OcaFloat64Actuator) this.emit(OCA_CLASS_NAMES.OcaFloat64Actuator, obj)
+		else if (obj instanceof OcaStringActuator) this.emit(OCA_CLASS_NAMES.OcaStringActuator, obj)
+		else if (obj instanceof OcaBitstringActuator) this.emit(OCA_CLASS_NAMES.OcaBitstringActuator, obj)
+		else this.emit(OCA_CLASS_NAMES.OcaBasicActuator, obj)
 	}
 
 	private _emitSensor(obj: OcaSensor): void {
 		if (obj instanceof OcaLevelSensor) {
-			if (obj instanceof OcaAudioLevelSensor) this.emit('OcaAudioLevelSensor', obj)
-			else this.emit('OcaLevelSensor', obj)
-		} else if (obj instanceof OcaTimeIntervalSensor) this.emit('OcaTimeIntervalSensor', obj)
-		else if (obj instanceof OcaFrequencySensor) this.emit('OcaFrequencySensor', obj)
-		else if (obj instanceof OcaTemperatureSensor) this.emit('OcaTemperatureSensor', obj)
-		else if (obj instanceof OcaIdentificationSensor) this.emit('OcaIdentificationSensor', obj)
-		else if (obj instanceof OcaVoltageSensor) this.emit('OcaVoltageSensor', obj)
-		else if (obj instanceof OcaCurrentSensor) this.emit('OcaCurrentSensor', obj)
-		else if (obj instanceof OcaImpedanceSensor) this.emit('OcaImpedanceSensor', obj)
-		else if (obj instanceof OcaGainSensor) this.emit('OcaGainSensor', obj)
+			if (obj instanceof OcaAudioLevelSensor) this.emit(OCA_CLASS_NAMES.OcaAudioLevelSensor, obj)
+			else this.emit(OCA_CLASS_NAMES.OcaLevelSensor, obj)
+		} else if (obj instanceof OcaTimeIntervalSensor) this.emit(OCA_CLASS_NAMES.OcaTimeIntervalSensor, obj)
+		else if (obj instanceof OcaFrequencySensor) this.emit(OCA_CLASS_NAMES.OcaFrequencySensor, obj)
+		else if (obj instanceof OcaTemperatureSensor) this.emit(OCA_CLASS_NAMES.OcaTemperatureSensor, obj)
+		else if (obj instanceof OcaIdentificationSensor) this.emit(OCA_CLASS_NAMES.OcaIdentificationSensor, obj)
+		else if (obj instanceof OcaVoltageSensor) this.emit(OCA_CLASS_NAMES.OcaVoltageSensor, obj)
+		else if (obj instanceof OcaCurrentSensor) this.emit(OCA_CLASS_NAMES.OcaCurrentSensor, obj)
+		else if (obj instanceof OcaImpedanceSensor) this.emit(OCA_CLASS_NAMES.OcaImpedanceSensor, obj)
+		else if (obj instanceof OcaGainSensor) this.emit(OCA_CLASS_NAMES.OcaGainSensor, obj)
 		else if (obj instanceof OcaBasicSensor) this._emitBasicSensor(obj)
-		else this.emit('OcaSensor', obj)
+		else this.emit(OCA_CLASS_NAMES.OcaSensor, obj)
 	}
 
 	private _emitBasicSensor(obj: OcaBasicSensor): void {
-		if (obj instanceof OcaBooleanSensor) this.emit('OcaBooleanSensor', obj)
-		else if (obj instanceof OcaInt8Sensor) this.emit('OcaInt8Sensor', obj)
-		else if (obj instanceof OcaInt16Sensor) this.emit('OcaInt16Sensor', obj)
-		else if (obj instanceof OcaInt32Sensor) this.emit('OcaInt32Sensor', obj)
-		else if (obj instanceof OcaInt64Sensor) this.emit('OcaInt64Sensor', obj)
-		else if (obj instanceof OcaUint8Sensor) this.emit('OcaUint8Sensor', obj)
-		else if (obj instanceof OcaUint16Sensor) this.emit('OcaUint16Sensor', obj)
-		else if (obj instanceof OcaUint32Sensor) this.emit('OcaUint32Sensor', obj)
-		else if (obj instanceof OcaUint64Sensor) this.emit('OcaUint64Sensor', obj)
-		else if (obj instanceof OcaFloat32Sensor) this.emit('OcaFloat32Sensor', obj)
-		else if (obj instanceof OcaFloat64Sensor) this.emit('OcaFloat64Sensor', obj)
-		else if (obj instanceof OcaStringSensor) this.emit('OcaStringSensor', obj)
-		else if (obj instanceof OcaBitstringSensor) this.emit('OcaBitstringSensor', obj)
-		else this.emit('OcaBasicSensor', obj)
+		if (obj instanceof OcaBooleanSensor) this.emit(OCA_CLASS_NAMES.OcaBooleanSensor, obj)
+		else if (obj instanceof OcaInt8Sensor) this.emit(OCA_CLASS_NAMES.OcaInt8Sensor, obj)
+		else if (obj instanceof OcaInt16Sensor) this.emit(OCA_CLASS_NAMES.OcaInt16Sensor, obj)
+		else if (obj instanceof OcaInt32Sensor) this.emit(OCA_CLASS_NAMES.OcaInt32Sensor, obj)
+		else if (obj instanceof OcaInt64Sensor) this.emit(OCA_CLASS_NAMES.OcaInt64Sensor, obj)
+		else if (obj instanceof OcaUint8Sensor) this.emit(OCA_CLASS_NAMES.OcaUint8Sensor, obj)
+		else if (obj instanceof OcaUint16Sensor) this.emit(OCA_CLASS_NAMES.OcaUint16Sensor, obj)
+		else if (obj instanceof OcaUint32Sensor) this.emit(OCA_CLASS_NAMES.OcaUint32Sensor, obj)
+		else if (obj instanceof OcaUint64Sensor) this.emit(OCA_CLASS_NAMES.OcaUint64Sensor, obj)
+		else if (obj instanceof OcaFloat32Sensor) this.emit(OCA_CLASS_NAMES.OcaFloat32Sensor, obj)
+		else if (obj instanceof OcaFloat64Sensor) this.emit(OCA_CLASS_NAMES.OcaFloat64Sensor, obj)
+		else if (obj instanceof OcaStringSensor) this.emit(OCA_CLASS_NAMES.OcaStringSensor, obj)
+		else if (obj instanceof OcaBitstringSensor) this.emit(OCA_CLASS_NAMES.OcaBitstringSensor, obj)
+		else this.emit(OCA_CLASS_NAMES.OcaBasicSensor, obj)
 	}
 
 	private _emitAgent(obj: OcaAgent): void {
-		if (obj instanceof OcaGrouper) this.emit('OcaGrouper', obj)
-		else if (obj instanceof OcaNumericObserverList) this.emit('OcaNumericObserverList', obj)
-		else if (obj instanceof OcaNumericObserver) this.emit('OcaNumericObserver', obj)
-		else if (obj instanceof OcaRamper) this.emit('OcaRamper', obj)
-		else if (obj instanceof OcaPowerSupply) this.emit('OcaPowerSupply', obj)
-		else if (obj instanceof OcaMediaClock3) this.emit('OcaMediaClock3', obj)
-		else if (obj instanceof OcaTimeSource) this.emit('OcaTimeSource', obj)
-		else if (obj instanceof OcaPhysicalPosition) this.emit('OcaPhysicalPosition', obj)
-		else this.emit('OcaAgent', obj)
+		if (obj instanceof OcaGrouper) this.emit(OCA_CLASS_NAMES.OcaGrouper, obj)
+		else if (obj instanceof OcaNumericObserverList) this.emit(OCA_CLASS_NAMES.OcaNumericObserverList, obj)
+		else if (obj instanceof OcaNumericObserver) this.emit(OCA_CLASS_NAMES.OcaNumericObserver, obj)
+		else if (obj instanceof OcaRamper) this.emit(OCA_CLASS_NAMES.OcaRamper, obj)
+		else if (obj instanceof OcaPowerSupply) this.emit(OCA_CLASS_NAMES.OcaPowerSupply, obj)
+		else if (obj instanceof OcaMediaClock3) this.emit(OCA_CLASS_NAMES.OcaMediaClock3, obj)
+		else if (obj instanceof OcaTimeSource) this.emit(OCA_CLASS_NAMES.OcaTimeSource, obj)
+		else if (obj instanceof OcaPhysicalPosition) this.emit(OCA_CLASS_NAMES.OcaPhysicalPosition, obj)
+		else this.emit(OCA_CLASS_NAMES.OcaAgent, obj)
 	}
 
 	private _emitManager(obj: OcaManager): void {
-		if (obj instanceof OcaDeviceManager) this.emit('OcaDeviceManager', obj)
-		else if (obj instanceof OcaSecurityManager) this.emit('OcaSecurityManager', obj)
-		else if (obj instanceof OcaFirmwareManager) this.emit('OcaFirmwareManager', obj)
-		else if (obj instanceof OcaSubscriptionManager) this.emit('OcaSubscriptionManager', obj)
-		else if (obj instanceof OcaPowerManager) this.emit('OcaPowerManager', obj)
-		else if (obj instanceof OcaNetworkManager) this.emit('OcaNetworkManager', obj)
-		else if (obj instanceof OcaMediaClockManager) this.emit('OcaMediaClockManager', obj)
-		else if (obj instanceof OcaLibraryManager) this.emit('OcaLibraryManager', obj)
-		else if (obj instanceof OcaAudioProcessingManager) this.emit('OcaAudioProcessingManager', obj)
-		else if (obj instanceof OcaDeviceTimeManager) this.emit('OcaDeviceTimeManager', obj)
-		else if (obj instanceof OcaTaskManager) this.emit('OcaTaskManager', obj)
-		else if (obj instanceof OcaCodingManager) this.emit('OcaCodingManager', obj)
-		else if (obj instanceof OcaDiagnosticManager) this.emit('OcaDiagnosticManager', obj)
-		else this.emit('OcaManager', obj)
+		if (obj instanceof OcaDeviceManager) this.emit(OCA_CLASS_NAMES.OcaDeviceManager, obj)
+		else if (obj instanceof OcaSecurityManager) this.emit(OCA_CLASS_NAMES.OcaSecurityManager, obj)
+		else if (obj instanceof OcaFirmwareManager) this.emit(OCA_CLASS_NAMES.OcaFirmwareManager, obj)
+		else if (obj instanceof OcaSubscriptionManager) this.emit(OCA_CLASS_NAMES.OcaSubscriptionManager, obj)
+		else if (obj instanceof OcaPowerManager) this.emit(OCA_CLASS_NAMES.OcaPowerManager, obj)
+		else if (obj instanceof OcaNetworkManager) this.emit(OCA_CLASS_NAMES.OcaNetworkManager, obj)
+		else if (obj instanceof OcaMediaClockManager) this.emit(OCA_CLASS_NAMES.OcaMediaClockManager, obj)
+		else if (obj instanceof OcaLibraryManager) this.emit(OCA_CLASS_NAMES.OcaLibraryManager, obj)
+		else if (obj instanceof OcaAudioProcessingManager) this.emit(OCA_CLASS_NAMES.OcaAudioProcessingManager, obj)
+		else if (obj instanceof OcaDeviceTimeManager) this.emit(OCA_CLASS_NAMES.OcaDeviceTimeManager, obj)
+		else if (obj instanceof OcaTaskManager) this.emit(OCA_CLASS_NAMES.OcaTaskManager, obj)
+		else if (obj instanceof OcaCodingManager) this.emit(OCA_CLASS_NAMES.OcaCodingManager, obj)
+		else if (obj instanceof OcaDiagnosticManager) this.emit(OCA_CLASS_NAMES.OcaDiagnosticManager, obj)
+		else this.emit(OCA_CLASS_NAMES.OcaManager, obj)
 	}
 
 	// -------------------------------------------------------------------------
@@ -784,15 +785,25 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 * }
 	 * ```
 	 */
-	public getByClass(className: string): ReadonlySet<string> {
+	public getByClass(className: OcaClassName): ReadonlySet<string> {
 		return this._classIndex.get(className) ?? new Set()
+	}
+
+	/**
+	 * True if there is at least one object of the given class name in the current
+	 * role map.
+	 */
+
+	public hasClass(className: OcaClassName): boolean {
+		const size = this._classIndex.get(className)?.size ?? 0
+		return size > 0
 	}
 
 	/**
 	 * Return every class name that has at least one registered object,
 	 * in insertion order.
 	 */
-	public getClassNames(): string[] {
+	public getClassNames(): OcaClassName[] {
 		return Array.from(this._classIndex.keys())
 	}
 
@@ -804,8 +815,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 * { OcaGain: ['Faders/Master', 'Faders/Ch1'], OcaMute: [...] }
 	 * ```
 	 */
-	public getClassIndex(): Record<string, string[]> {
-		const out: Record<string, string[]> = {}
+	public getClassIndex(): Partial<Record<OcaClassName, string[]>> {
+		const out: Partial<Record<OcaClassName, string[]>> = {}
 		for (const [cls, paths] of this._classIndex) {
 			out[cls] = Array.from(paths)
 		}
@@ -834,7 +845,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	/**
 	 * Return the resolved class name for a role path, or `undefined`.
 	 */
-	public getClassName(rolePath: string): string | undefined {
+	public getClassName(rolePath: string): OcaClassName | undefined {
 		return this._objectRegistry.get(rolePath)?.className
 	}
 
@@ -1429,6 +1440,14 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	}
 	static isOcaStreamConnector(obj: unknown): obj is OcaStreamConnector {
 		return obj instanceof OcaStreamConnector && obj.ClassName === 'OcaStreamConnector'
+	}
+
+	// -------------------------------------------------------------------------
+	// Static type-guard method — class name validation
+	// -------------------------------------------------------------------------
+	static isValidClassName(name: string): name is OcaClassName {
+		const names = Object.values(OCA_CLASS_NAMES) as string[]
+		return names.includes(name)
 	}
 }
 
