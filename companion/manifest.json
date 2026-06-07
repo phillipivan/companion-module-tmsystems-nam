@@ -31,11 +31,6 @@
 				"type": "oca",
 				"protocol": "tcp",
 				"addressFamily": "ipv4"
-			},
-			{
-				"type": "oca",
-				"protocol": "udp",
-				"addressFamily": "ipv4"
 			}
 		]
 	}
