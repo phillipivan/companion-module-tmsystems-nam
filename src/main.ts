@@ -4,9 +4,8 @@ import { UpdateVariableDefinitions } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
-//import { TCPConnection } from 'aes70/src/controller/tcp_connection.js'
-//import { DeviceTree, RemoteDevice } from 'aes70/src/controller/remote_device.js'
-import { TCPConnection, RemoteDevice, DeviceTree } from 'aes70'
+import { WebSocket } from 'ws'
+import { TCPConnection, UDPConnection, WebSocketConnection, RemoteDevice } from 'aes70'
 import { OcaModuleTypes } from './types.js'
 import { handleBonjourHost } from './utils.js'
 import { OcaHelper } from './OcaHelper.js'
@@ -16,7 +15,7 @@ export { UpgradeScripts }
 export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	config!: ModuleConfig // Setup in init()
 	client!: RemoteDevice
-	connection!: TCPConnection
+	connection!: TCPConnection | UDPConnection | WebSocket
 	ocaHelper = new OcaHelper()
 
 	constructor(internal: unknown) {
@@ -53,55 +52,46 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			this.updateStatus(InstanceStatus.BadConfig, `No host`)
 			return
 		}
-		this.connection = await TCPConnection.connect({
-			host: config.host,
-			port: config.port ?? 65000,
-		})
+		if (config.protocol === 'ws') this.connection = await this.initWebSocketConnection(config)
+		else if (config.protocol === 'udp') this.connection = await this.initUdpConnection(config)
+		else this.connection = await this.initTcpConnection(config)
 		this.client = new RemoteDevice(this.connection)
 		this.client.on('error', (error: unknown) => {
-			console.log(error)
+			this.log('error', `Connection error: ${error}`)
+			this.updateStatus(InstanceStatus.ConnectionFailure, `Connection error: ${error}`)
+			this.ocaHelper.clearAllIds('*') // clear all action/feedback IDs on connection failure
+			this.client.removeAllEventListeners()
 		})
 		this.client.on('close', (error: unknown) => {
-			console.log(error)
+			this.log('warn', `Connection closed: ${error}`)
 		})
 
-		this.client.set_keepalive_interval(1)
-		console.log('Device name:', await this.client.DeviceManager.GetModelDescription())
-		const tree = await this.client.get_device_tree()
+		this.client.set_keepalive_interval(5)
+		this.log('info', `Connected to Device:\n${JSON.stringify(await this.client.DeviceManager.GetProduct())}`)
 		const rollMap = await this.client.get_role_map()
 		this.ocaHelper.loadRoleMap(rollMap)
-		rollMap.forEach((object, key) => {
-			console.log('Role: %s', key)
-			console.log('Object: %o', object)
+		this.ocaHelper.getClassNames().forEach((className) => {
+			this.log('info', `Class: ${className} (${this.ocaHelper.getByClass(className).size} objects)`)
 		})
-		const rec = async (a: DeviceTree) => {
-			for (let i = 0; i < a.length; i++) {
-				const obj = a[i]
+		this.updateStatus(InstanceStatus.Ok)
+	}
 
-				if (Array.isArray(obj)) {
-					// children
-					await rec(obj)
-				} else {
-					// @ts-expect-error node type may not have a value property
-					console.log('Type: %s', obj.constructor.ClassName)
-					this.log('info', JSON.stringify(obj))
-					console.log('Properties:')
-					const properties = obj.GetPropertySync()
+	async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
+		return TCPConnection.connect({
+			host: config.host,
+			port: config.port || 65000,
+		})
+	}
 
-					// fetch the values of all properties from the device.
-					await properties.sync()
+	async initUdpConnection(config: ModuleConfig): Promise<UDPConnection> {
+		return UDPConnection.connect({
+			host: config.host,
+			port: config.port || 65000,
+		})
+	}
 
-					properties.forEach((value: any, name: any) => {
-						if (value !== undefined) console.log('  %s: %o', name, value)
-					})
-
-					// unsubscribe all event handlers
-					properties.Dispose()
-				}
-			}
-		}
-
-		await rec(tree)
+	async initWebSocketConnection(config: ModuleConfig): Promise<WebSocketConnection> {
+		return WebSocketConnection.connect({ url: `ws://${config.host}:${config.port || 65000}` })
 	}
 
 	// Return config fields for web config
