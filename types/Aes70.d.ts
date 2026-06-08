@@ -612,7 +612,7 @@ export const OCA_CLASS_IDS = {
 	OcaApplicationNetwork: '1.4',
 	OcaControlNetwork: '1.4.1',
 	OcaMediaTransportNetwork: '1.4.2',
-} as const
+} as const satisfies Record<OcaClassName, string>
 
 export type OcaClassId = (typeof OCA_CLASS_IDS)[keyof typeof OCA_CLASS_IDS]
 
