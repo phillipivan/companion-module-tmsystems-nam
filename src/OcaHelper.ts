@@ -1489,4 +1489,23 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		const names = Object.values(OCA_CLASS_NAMES) as string[]
 		return names.includes(name)
 	}
+
+	// -------------------------------------------------------------------------
+	// Static Class ID conversion methods
+	// -------------------------------------------------------------------------
+
+	static classIdToBinary(id: string): string {
+		if (id === '') return ''
+		return id
+			.split('.')
+			.map((n) => String.fromCharCode(parseInt(n)))
+			.join('')
+	}
+
+	static classIdToDotted(binary: string): string {
+		if (binary === '') return ''
+		return Array.from(binary)
+			.map((c) => c.charCodeAt(0))
+			.join('.')
+	}
 }
