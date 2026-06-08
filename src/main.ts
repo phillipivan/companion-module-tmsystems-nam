@@ -6,17 +6,23 @@ import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
 import { WebSocket } from 'ws'
 import { TCPConnection, UDPConnection, WebSocketConnection, RemoteDevice } from 'aes70'
+import { throttle, type ThrottledFunction } from 'es-toolkit'
 import { OcaModuleTypes } from './types.js'
 import { handleBonjourHost } from './utils.js'
 import { OcaHelper } from './OcaHelper.js'
 
 export { UpgradeScripts }
 
+const FEEDBACK_THOTTLE_MS = 30
+
 export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	config!: ModuleConfig // Setup in init()
 	private client!: RemoteDevice
 	private connection!: TCPConnection | UDPConnection | WebSocket
 	public ocaHelper = new OcaHelper()
+	private feedbacksToCheck: Set<string> = new Set()
+	private controller = new AbortController()
+	throttledCheckFeedbacksById: ThrottledFunction<() => void> = this.createThrottledFeedbackCheck(this.controller.signal)
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -27,6 +33,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 		this.updateStatus(InstanceStatus.Connecting)
 
+		// Setup OcaHelper event listeners they dont need to be reset with every connection
 		this.ocaHelper.on('map:loaded', (roleMap) => {
 			this.log('info', `Role map loaded: ${roleMap.size} entries`)
 			this.ocaHelper.getClassNames().forEach((className) => {
@@ -44,19 +51,27 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				`Orphaned IDs detected: ${orphanedIds.length} Action or Feedback IDs have no associated object\n${orphanedIds.join(', ')}`,
 			)
 		})
+		this.ocaHelper.on('property:change', (feedbackIds) => {
+			this.feedbacksToCheck = new Set([...this.feedbacksToCheck, ...feedbackIds])
+			this.throttledCheckFeedbacksById()
+		})
 
 		void this.configUpdated(config)
 	}
 	// When module gets deleted
 	public async destroy(): Promise<void> {
 		this.log('debug', `destroy ${this.id}:${this.label}`)
+		this.controller.abort()
 		if (this.client) this.client.removeAllEventListeners()
 		if (this.connection) this.connection.close()
 	}
 
 	public async configUpdated(config: ModuleConfig): Promise<void> {
 		this.config = handleBonjourHost(config)
-
+		this.controller.abort()
+		this.controller = new AbortController()
+		this.feedbacksToCheck.clear()
+		this.throttledCheckFeedbacksById = this.createThrottledFeedbackCheck(this.controller.signal)
 		void this.connect(config)
 	}
 
@@ -124,6 +139,19 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 	private async initWebSocketConnection(config: ModuleConfig): Promise<WebSocketConnection> {
 		return WebSocketConnection.connect({ url: `ws://${config.host}:${config.port || 65000}` })
+	}
+
+	private createThrottledFeedbackCheck(signal?: AbortSignal): ThrottledFunction<() => void> {
+		return throttle(
+			() => {
+				if (this.feedbacksToCheck.size === 0) return
+				const feedbackIds = Array.from(this.feedbacksToCheck)
+				this.checkFeedbacksById(...feedbackIds)
+				this.feedbacksToCheck.clear()
+			},
+			FEEDBACK_THOTTLE_MS,
+			{ edges: ['leading', 'trailing'], signal },
+		)
 	}
 
 	// Return config fields for web config
