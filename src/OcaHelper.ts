@@ -230,6 +230,10 @@ interface OcaHelperInternalEvents {
 	 * new map.  Those IDs have been dropped.
 	 */
 	'ids:orphaned': [rolePaths: string[]]
+	/**
+	 * Fired when properties of an object have changed that some feedbacks are subscribed to and need to be re-checked.  The set contains the IDs of the feedbacks that need to be checked.
+	 */
+	'property:change': [feedbackIds: Set<string>]
 }
 
 // ---------------------------------------------------------------------------
@@ -242,7 +246,7 @@ interface OcaHelperInternalEvents {
  */
 export interface ObjectEntry {
 	/** The live OCA control object. */
-	readonly obj: ObjectBase
+	readonly obj: OcaRoot
 	/** The exact OCA class name resolved for this object (e.g. 'OcaGain'). */
 	readonly className: OcaClassName
 	/** Action IDs associated with this object. */
@@ -255,6 +259,7 @@ export interface ObjectEntry {
 	 * subscriptions have been disposed.
 	 */
 	properties?: PropertySync<OcaRootProperties>
+	onPropertyChanged?: () => void
 }
 
 // ---------------------------------------------------------------------------
@@ -380,7 +385,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 
 		// Populate
 		for (const [rolePath, obj] of roleMap) {
-			if (!(obj instanceof ObjectBase)) continue
+			if (!(obj instanceof OcaRoot)) continue
 			this._roleMap.set(rolePath, obj)
 			this._registerObject(rolePath, obj)
 		}
@@ -418,7 +423,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 * Register a single object into all internal indexes and emit its typed
 	 * class event.  Called by `loadRoleMap` for every entry in the role map.
 	 */
-	private _registerObject(rolePath: string, obj: ObjectBase): void {
+	private _registerObject(rolePath: string, obj: OcaRoot): void {
 		const className = this._resolveClassName(obj)
 
 		// classIndex
@@ -586,8 +591,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		if (obj instanceof OcaFilterArbitraryCurve) return OCA_CLASS_NAMES.OcaFilterArbitraryCurve
 		if (obj instanceof OcaDynamics) return OCA_CLASS_NAMES.OcaDynamics
 		if (obj instanceof OcaDynamicsDetector) return OCA_CLASS_NAMES.OcaDynamicsDetector
-		if (obj instanceof OcaDynamicsCurve) return 'OcaDynamicsCurve'
-		if (obj instanceof OcaSignalGenerator) return 'OcaSignalGenerator'
+		if (obj instanceof OcaDynamicsCurve) return OCA_CLASS_NAMES.OcaDynamicsCurve
+		if (obj instanceof OcaSignalGenerator) return OCA_CLASS_NAMES.OcaSignalGenerator
 		if (obj instanceof OcaSignalInput) return OCA_CLASS_NAMES.OcaSignalInput
 		if (obj instanceof OcaSignalOutput) return OCA_CLASS_NAMES.OcaSignalOutput
 		if (obj instanceof OcaTemperatureActuator) return OCA_CLASS_NAMES.OcaTemperatureActuator
@@ -1132,6 +1137,13 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 			const properties = entry.obj.GetPropertySync()
 			await properties.sync()
 			entry.properties = properties
+
+			const handler = () => {
+				if (entry.feedbackIds.size === 0) return
+				this.emit('property:change', new Set(entry.feedbackIds))
+			}
+			entry.onPropertyChanged = handler
+			entry.obj.OnPropertyChanged.subscribe(handler)
 		} catch (err) {
 			this.logger.warn(`Failed to sync properties for "${entry.className}" (ONo ${entry.obj.ObjectNumber}): ${err}`)
 		}
@@ -1145,6 +1157,10 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		if (entry.properties === undefined) return
 		entry.properties.Dispose()
 		entry.properties = undefined
+		if (entry.onPropertyChanged) {
+			entry.obj.OnPropertyChanged.unsubscribe(entry.onPropertyChanged)
+			entry.onPropertyChanged = undefined
+		}
 	}
 
 	private _requireEntry(rolePath: string): ObjectEntry {
