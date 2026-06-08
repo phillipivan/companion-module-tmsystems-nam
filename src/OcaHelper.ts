@@ -101,7 +101,7 @@ import {
 import { ObjectBase } from 'aes70/src/controller/object_base.js'
 import type { PropertySync, OcaRootProperties, OcaClassName } from '../types/aes70.js'
 import { OCA_CLASS_NAMES } from '../types/aes70.js'
-import { createModuleLogger } from '@companion-module/base'
+import { createModuleLogger, type DropdownChoice } from '@companion-module/base'
 import EventEmitter from 'events'
 
 // ---------------------------------------------------------------------------
@@ -807,6 +807,15 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 */
 	public getByClass(className: OcaClassName): ReadonlySet<string> {
 		return this._classIndex.get(className) ?? new Set()
+	}
+
+	/**
+	 * Return the set of role paths for all objects of a given OCA class name, formatted as an array of `DropdownChoice` for use in Action and Feedback definitions.
+	 *
+	 */
+	public getChoicesByClass(className: OcaClassName): DropdownChoice[] {
+		const paths = this.getByClass(className)
+		return Array.from(paths).map((path) => ({ id: path, label: path }))
 	}
 
 	/**
