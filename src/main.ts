@@ -5,7 +5,7 @@ import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
 import { WebSocket } from 'ws'
-import { TCPConnection, UDPConnection, WebSocketConnection, RemoteDevice } from 'aes70'
+import { TCPConnection, UDPConnection, WebSocketConnection, RemoteDevice, type WebSocketConstructor } from 'aes70'
 import { throttle, type ThrottledFunction } from 'es-toolkit'
 import { OcaModuleTypes } from './types.js'
 import { handleBonjourHost } from './utils.js'
@@ -138,7 +138,10 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	}
 
 	private async initWebSocketConnection(config: ModuleConfig): Promise<WebSocketConnection> {
-		return WebSocketConnection.connect({ url: `ws://${config.host}:${config.port || 65000}` })
+		return WebSocketConnection.connect(
+			{ url: `ws://${config.host}:${config.port || 65000}` },
+			WebSocket as unknown as WebSocketConstructor,
+		)
 	}
 
 	private createThrottledFeedbackCheck(signal?: AbortSignal): ThrottledFunction<() => void> {
