@@ -99,8 +99,8 @@ import {
 	OcaWorker,
 } from 'aes70/src/controller/ControlClasses.js'
 import { ObjectBase } from 'aes70/src/controller/object_base.js'
-import type { PropertySync, OcaRootProperties, OcaClassName } from '../types/aes70.js'
-import { OCA_CLASS_NAMES } from '../types/aes70.d.js'
+import type { PropertySync, OcaRootProperties } from '../types/aes70.js'
+import { OCA_CLASS_NAMES, type OcaClassName } from './consts/aes70-constants.js'
 import { createModuleLogger, type DropdownChoice } from '@companion-module/base'
 import EventEmitter from 'events'
 
