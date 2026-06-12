@@ -125,7 +125,7 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 			optionsToMonitorForSubscribe: ['objectId'],
 			skipUnsubscribeOnOptionsChange: false,
 			subscribe: async (action) => {
-				const objectId = String(action.options.objectId)
+				const objectId = action.options.objectId
 				if (objectId) {
 					await self.ocaHelper.addActionId(objectId, action.id)
 				}
@@ -134,8 +134,8 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				self.ocaHelper.removeActionId(action.id)
 			},
 			learn: async (action) => {
-				const objectId = String(action.options.objectId)
-				const property = String(action.options.property)
+				const objectId = action.options.objectId
+				const property = action.options.property
 				logger.debug(`Learning action for objectId ${objectId} and property ${property}`)
 				const entry = self.ocaHelper.getEntry(objectId)
 				if (!entry) {
@@ -159,16 +159,10 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				return { [`value_${property}`]: propValue }
 			},
 			callback: async (action) => {
-				const objectId = String(action.options.objectId)
-				const property = String(action.options.property)
-				const valueOption = action.options[`value_${property}`]
-				let value: boolean | string | number
-				if (typeof valueOption === 'boolean' || typeof valueOption === 'string' || typeof valueOption === 'number') {
-					value = valueOption
-				} else {
-					logger.warn(`Unsupported value type for property ${property}: ${typeof valueOption}`)
-					return
-				}
+				const objectId = action.options.objectId
+				const property = action.options.property
+				const value = action.options[`value_${property}`]
+
 				const entry = self.ocaHelper.getEntry(objectId)
 				if (!entry) {
 					logger.warn(`No entry found for objectId ${objectId}`)
