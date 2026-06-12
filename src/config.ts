@@ -24,6 +24,16 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			isVisibleExpression: `!$(options:bonjourHost)`,
 		},
 		{
+			type: 'number',
+			id: 'port',
+			label: 'Port',
+			width: 4,
+			min: 1,
+			max: 65535,
+			default: 65000,
+			isVisibleExpression: `!$(options:bonjourHost)`,
+		},
+		{
 			type: 'dropdown',
 			id: 'protocol',
 			label: 'Protocol',
