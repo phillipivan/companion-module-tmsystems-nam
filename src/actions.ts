@@ -3,6 +3,7 @@ import {
 	type CompanionActionDefinitions,
 	//type CompanionOptionValues,
 	createModuleLogger,
+	DropdownChoice,
 	type SomeCompanionActionInputField,
 } from '@companion-module/base'
 import type ModuleInstance from './main.js'
@@ -68,44 +69,56 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				choices: objectChoices,
 				default: objectChoices[0]?.id,
 			},
-			{
-				type: 'dropdown',
-				id: 'property',
-				label: 'Property',
-				choices: properties.map((prop) => ({ id: prop.name, label: ocaClassNameToLabel(prop.name) })),
-				default: properties[0]?.name,
-				disableAutoExpression: true,
-			},
 		]
+		const propertyChoices: DropdownChoice[] = []
+		const propertyOptions: SomeCompanionActionInputField[] = []
 		properties.forEach((prop) => {
 			if (prop.write) {
 				if (prop.type === 'boolean') {
-					options.push({
+					propertyOptions.push({
 						type: 'checkbox',
 						id: `value_${prop.name}`,
 						label: ocaClassNameToLabel(prop.name),
 						default: true,
+						isVisibleExpression: `$(options:property) == '${prop.name}'`,
 					})
+					propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
 				} else if (prop.type === 'string') {
-					options.push({
+					propertyOptions.push({
 						type: 'textinput',
 						id: `value_${prop.name}`,
 						label: ocaClassNameToLabel(prop.name),
 						default: '',
+						isVisibleExpression: `$(options:property) == '${prop.name}'`,
 					})
+					propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
 				} else if (prop.type === 'number') {
-					options.push({
+					propertyOptions.push({
 						type: 'number',
 						id: `value_${prop.name}`,
 						label: ocaClassNameToLabel(prop.name),
 						default: 0,
 						min: 0, // needs to change
 						max: 100, // needs to change
+						isVisibleExpression: `$(options:property) == '${prop.name}'`,
 					})
+					propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
 				}
 			}
 		})
-
+		if (propertyChoices.length == 0) {
+			logger.debug(`No valid properties for ${className} skipping action definition`)
+			continue
+		}
+		options.push({
+			type: 'dropdown',
+			id: 'property',
+			label: 'Property',
+			choices: propertyChoices,
+			default: propertyChoices[0]?.id,
+			disableAutoExpression: true,
+		})
+		propertyOptions.forEach((prop) => options.push(prop))
 		const actionDefinition: CompanionActionDefinition<SetPropertyOptions> = {
 			name: `${ocaClassNameToLabel(className)} - Set Property`,
 			options: options,
