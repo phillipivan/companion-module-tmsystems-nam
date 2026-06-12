@@ -42,7 +42,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			this.updateStatus(InstanceStatus.Ok)
 
 			// Set action and feedback defintions now that we know what controlclasses the device has
-			this.updateCompanionBits()
+			void this.updateCompanionBits()
 		})
 
 		this.ocaHelper.on('ids:orphaned', (orphanedIds) => {
@@ -75,9 +75,9 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		void this.connect(config)
 	}
 
-	private updateCompanionBits(): void {
+	private async updateCompanionBits(): Promise<void> {
 		this.log('debug', 'Updating Companion bits')
-		this.updateActions()
+		await this.updateActions()
 		this.updateFeedbacks()
 		this.updateVariableDefinitions()
 	}
@@ -95,6 +95,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		if (config.protocol === 'ws') this.connection = await this.initWebSocketConnection(config)
 		else if (config.protocol === 'udp') this.connection = await this.initUdpConnection(config)
 		else this.connection = await this.initTcpConnection(config)
+		this.connection.on('open', () => this.log('info', 'Connection opened'))
 		this.updateStatus(InstanceStatus.Connecting, 'Connected to device, loading role map...')
 
 		this.client = new RemoteDevice(this.connection)
@@ -118,12 +119,19 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		})
 
 		this.client.set_keepalive_interval(5)
-		this.log('info', `Connected to Device:\n${JSON.stringify(await this.client.DeviceManager.GetProduct(), null, 2)}`)
+		try {
+			const product = await this.client.DeviceManager.GetProduct()
+			this.log('info', `Connected to Device:\n${JSON.stringify(product, null, 2)}`)
+		} catch (err) {
+			this.log('warn', `GetProduct() not supported by this device: ${err instanceof Error ? err.message : String(err)}`)
+		}
+
 		const rollMap = await this.client.get_role_map()
 		this.ocaHelper.loadRoleMap(rollMap)
 	}
 
 	private async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
+		this.log('debug', `Initializing TCP connection to ${config.host}:${config.port || 65000}`)
 		return TCPConnection.connect({
 			host: config.host,
 			port: config.port || 65000,
@@ -131,6 +139,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	}
 
 	private async initUdpConnection(config: ModuleConfig): Promise<UDPConnection> {
+		this.log('debug', `Initializing UDP connection to ${config.host}:${config.port || 65000}`)
 		return UDPConnection.connect({
 			host: config.host,
 			port: config.port || 65000,
@@ -138,6 +147,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	}
 
 	private async initWebSocketConnection(config: ModuleConfig): Promise<WebSocketConnection> {
+		this.log('debug', `Initializing WebSocket connection to ws://${config.host}:${config.port || 65000}`)
 		return WebSocketConnection.connect(
 			{ url: `ws://${config.host}:${config.port || 65000}` },
 			WebSocket as unknown as WebSocketConstructor,
@@ -162,8 +172,8 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		return GetConfigFields()
 	}
 
-	private updateActions(): void {
-		UpdateActions(this)
+	private async updateActions(): Promise<void> {
+		await UpdateActions(this)
 	}
 
 	private updateFeedbacks(): void {
