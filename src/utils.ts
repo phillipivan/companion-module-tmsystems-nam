@@ -22,11 +22,15 @@ export function handleBonjourHost(config: ModuleConfig): ModuleConfig {
  */
 
 export function ocaClassNameToLabel(className: string): string {
-	// TO DO: Don't insert spaces between consecutive capital letters, 'ID', 'FIR' etc
-	return className
-		.replace(/^Oca/, '')
-		.replace(/(?<!^)([A-Z])/g, ' $1')
-		.trim()
+	return (
+		className
+			.replace(/^Oca/, '')
+			// 1. Space between lowercase/number and an uppercase letter (e.g., 'FilterFIR' -> 'Filter FIR')
+			.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+			// 2. Space before the last uppercase letter in a block *only* if followed by a lowercase letter (e.g., 'IDReader' -> 'ID Reader')
+			.replace(/([A-Z]+)(?=[A-Z][a-z])/g, '$1 ')
+			.trim()
+	)
 }
 
 export interface MakeSafeJsonOptions {
