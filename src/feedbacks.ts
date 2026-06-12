@@ -5,7 +5,7 @@ export type FeedbackSchema = Record<string, never>
 
 export function UpdateFeedbacks(self: ModuleInstance): void {
 	const feedbackDefinitions: Partial<CompanionFeedbackDefinitions<FeedbackSchema>> = {}
-	const logger = createModuleLogger('Oca_Feedbacks')
+	const logger = createModuleLogger('OCA Feedbacks')
 	logger.debug('Updating feedbacks')
 	self.setFeedbackDefinitions(feedbackDefinitions)
 }
