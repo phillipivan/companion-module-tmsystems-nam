@@ -262,6 +262,17 @@ export interface ObjectEntry {
 	onPropertyChanged?: () => void
 }
 
+export interface PropertyDescription {
+	/** The name of the property. */
+	readonly name: string
+	/** The type of the property. */
+	readonly type: string
+	/** Whether the property is readable. */
+	readonly read: boolean
+	/** Whether the property is setable. */
+	readonly write: boolean
+}
+
 // ---------------------------------------------------------------------------
 // OcaHelper
 // ---------------------------------------------------------------------------
@@ -850,6 +861,43 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 			out[cls] = Array.from(paths)
 		}
 		return out
+	}
+
+	/**
+	 * Return an array of property descriptions for the given class
+	 * ```
+	 */
+
+	public async getClassProperties(className: OcaClassName): Promise<PropertyDescription[]> {
+		const rolePath = this._classIndex.get(className)?.values().next().value
+		this.logger.debug(`Getting properties for class "${className}" using role path "${rolePath}".`)
+		const entry = this._objectRegistry.get(rolePath ?? '')
+
+		if (!entry) return []
+
+		const objWithMethods = entry.obj as unknown as Record<string, unknown>
+
+		// Spin up a temporary sync just to read property structure and types
+		const propSync = entry.obj.GetPropertySync()
+		await propSync.sync()
+
+		const props: PropertyDescription[] = []
+		propSync.forEach((value, name) => {
+			this.logger.debug(`Inspecting property "${name}" of class "${className}" with value: ${value}`)
+			const valueType = typeof value
+			if (valueType == 'string' || valueType == 'number' || valueType == 'boolean') {
+				props.push({
+					name,
+					type: valueType,
+					read: typeof objWithMethods[`Get${name}`] === 'function',
+					write: typeof objWithMethods[`Set${name}`] === 'function',
+				})
+			}
+		})
+
+		if (entry.actionIds.size === 0 && entry.feedbackIds.size === 0) propSync.Dispose()
+
+		return props
 	}
 
 	// -------------------------------------------------------------------------
