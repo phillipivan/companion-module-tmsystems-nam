@@ -14,6 +14,21 @@ export function handleBonjourHost(config: ModuleConfig): ModuleConfig {
 	return config
 }
 
+/**
+ * Strip leading 'Oca', insert white space prior to captical letters.
+ * 'OcaLevelSensor' becomes 'Level Sensor'
+ * @param className
+ * @returns
+ */
+
+export function ocaClassNameToLabel(className: string): string {
+	// TO DO: Don't insert spaces between consecutive capital letters, 'ID', 'FIR' etc
+	return className
+		.replace(/^Oca/, '')
+		.replace(/(?<!^)([A-Z])/g, ' $1')
+		.trim()
+}
+
 export interface MakeSafeJsonOptions {
 	/**
 	 * If true, Promise values will be awaited and their resolved values
