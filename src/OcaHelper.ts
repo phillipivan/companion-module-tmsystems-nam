@@ -883,20 +883,23 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 
 		const props: PropertyDescription[] = []
 		propSync.forEach((value, name) => {
-			this.logger.debug(`Inspecting property "${name}" of class "${className}" with value: ${value}`)
 			const valueType = typeof value
-			if (valueType == 'string' || valueType == 'number' || valueType == 'boolean') {
+			this.logger.debug(
+				`Inspecting property "${name}" of class "${className}" with value: ${value} of type: ${valueType}`,
+			)
+
+			if (name !== 'ClassID' && valueType !== 'undefined') {
 				props.push({
 					name,
 					type: valueType,
-					read: typeof objWithMethods[`Get${name}`] === 'function',
+					read: true, //typeof objWithMethods[`Get${name}`] === 'function',
 					write: typeof objWithMethods[`Set${name}`] === 'function',
 				})
 			}
 		})
 
 		if (entry.actionIds.size === 0 && entry.feedbackIds.size === 0) propSync.Dispose()
-
+		this.logger.debug(`Properties for ${className}:\n${JSON.stringify(props, null, 2)}`)
 		return props
 	}
 
