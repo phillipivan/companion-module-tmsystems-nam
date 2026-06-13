@@ -2,9 +2,9 @@
 	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
 	"id": "generic-aes70",
 	"type": "connection",
-	"name": "AES 70",
-	"shortname": "AES 70",
-	"description": "Open Control Architecture: AES 70",
+	"name": "AES70",
+	"shortname": "AES70",
+	"description": "Open Control Architecture: AES70",
 	"version": "0.0.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/phillipivan/companion-module-tmsystems-nam.git",
@@ -23,14 +23,19 @@
 	},
 	"legacyIds": [],
 	"manufacturer": "generic",
-	"products": ["AES 70"],
+	"products": ["AES70"],
 	"keywords": ["OCA", "Open Control Architecture"],
 	"bonjourQueries": {
 		"bonjourHost": [
 			{
 				"type": "oca",
 				"protocol": "tcp",
-				"addressFamily": "ipv4"
+				"txt": {}
+			},
+			{
+				"type": "oca",
+				"protocol": "udp",
+				"txt": {}
 			}
 		]
 	}

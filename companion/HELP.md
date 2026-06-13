@@ -1,4 +1,4 @@
-## Open Control Architecture: AES-70
+## Open Control Architecture: AES70
 
 Connect via TCP, UDP or WebSockets
 
