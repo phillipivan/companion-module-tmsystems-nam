@@ -4,7 +4,11 @@ Connect via TCP, UDP or WebSockets
 
 Set or get properties of control objects.
 
-Caveats:
+Each control class the device exposes will result in one action and one value feedback, so long as the class has at least one property of a data type the module can handle.
+
+Within that action or feedback there are dropdown selections for the control object and property, actions also have a value input to set the selected property.
+
+### Caveats:
 
 Compatibility with custom control classes is untested.
 
