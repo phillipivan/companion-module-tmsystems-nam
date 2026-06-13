@@ -97,6 +97,17 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 					logger.warn(`No entry found for objectId ${objectId}. Aborting feedback check ${feedback.id}`)
 					return null
 				}
+				let propValue: any = undefined
+				entry.properties?.forEach((value, name) => {
+					if (name === property) {
+						propValue = makeSafeJsonValue(value)
+					}
+				})
+				if (propValue !== undefined) return propValue
+
+				// If properties sync check failed
+				logger.debug(`property: ${property} not found in entry.properties, trying getter`)
+
 				const getterName = `Get${property}`
 				const getter = (entry.obj as unknown as Record<string, unknown>)[getterName]
 				if (typeof getter !== 'function') {
