@@ -101,6 +101,10 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 						isVisibleExpression: `$(options:property) == '${prop.name}'`,
 					})
 					propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
+				} else {
+					logger.debug(
+						`Property ${prop.name} of type ${prop.type} on class ${className} is not supported by actions due to unsupported datatype`,
+					)
 				}
 			}
 		})
