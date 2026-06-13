@@ -16,7 +16,8 @@ type SetPropertyActionKey = `set_property_${OcaClassName}`
 type SetPropertyOptions = {
 	objectId: string
 	property: string
-	[key: string]: string | number | boolean
+} & {
+	[K in `value_${string}`]: string | number | boolean
 }
 
 type SetPropertyAction = {
@@ -61,7 +62,7 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 			logger.debug(
 				`Class ${className} has ${objectChoices.length} objects and ${properties.filter((p) => p.write).length} writable properties`,
 			)
-		const options: SomeCompanionActionInputField<string>[] = [
+		const options: SomeCompanionActionInputField<keyof SetPropertyOptions>[] = [
 			{
 				type: 'dropdown',
 				id: 'objectId',
@@ -71,13 +72,14 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 			},
 		]
 		const propertyChoices: DropdownChoice[] = []
-		const propertyOptions: SomeCompanionActionInputField[] = []
+		const propertyOptions: SomeCompanionActionInputField<keyof SetPropertyOptions>[] = []
 		properties.forEach((prop) => {
 			if (prop.write) {
+				const inputId = `value_${prop.name}` as const
 				if (prop.type === 'boolean') {
 					propertyOptions.push({
 						type: 'checkbox',
-						id: `value_${prop.name}`,
+						id: inputId,
 						label: ocaClassNameToLabel(prop.name),
 						default: true,
 						isVisibleExpression: `$(options:property) == '${prop.name}'`,
@@ -86,20 +88,21 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				} else if (prop.type === 'string') {
 					propertyOptions.push({
 						type: 'textinput',
-						id: `value_${prop.name}`,
+						id: inputId,
 						label: ocaClassNameToLabel(prop.name),
 						default: '',
+						useVariables: true,
 						isVisibleExpression: `$(options:property) == '${prop.name}'`,
 					})
 					propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
 				} else if (prop.type === 'number') {
 					propertyOptions.push({
 						type: 'number',
-						id: `value_${prop.name}`,
+						id: inputId,
 						label: ocaClassNameToLabel(prop.name),
 						default: 0,
-						min: 0, // needs to change
-						max: 100, // needs to change
+						min: -Number.MAX_VALUE, // Since each control object can declare its own acceptable input range, don't try and enforce it here
+						max: Number.MAX_VALUE,
 						isVisibleExpression: `$(options:property) == '${prop.name}'`,
 					})
 					propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
