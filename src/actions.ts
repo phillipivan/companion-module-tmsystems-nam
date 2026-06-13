@@ -28,12 +28,6 @@ export type ActionSchema = {
 	[K in SetPropertyActionKey]: SetPropertyAction
 }
 
-export function isCompleteActionDefinition(
-	def: Partial<CompanionActionDefinition<SetPropertyOptions>>,
-): def is CompanionActionDefinition<SetPropertyOptions> {
-	return typeof def.name === 'string' && Array.isArray(def.options) && typeof def.callback === 'function'
-}
-
 function completeActionSchema(
 	partial: Partial<CompanionActionDefinitions<ActionSchema>>,
 ): CompanionActionDefinitions<ActionSchema> {
