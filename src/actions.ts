@@ -60,9 +60,11 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 			{
 				type: 'dropdown',
 				id: 'objectId',
-				label: 'Object',
+				label: 'Control Object',
 				choices: objectChoices,
 				default: objectChoices[0]?.id,
+				allowCustom: false,
+				allowInvalidValues: false,
 			},
 		]
 		const propertyChoices: DropdownChoice[] = []
