@@ -6,7 +6,7 @@ Set or get properties of control objects.
 
 Each control class the device exposes will result in one action and one value feedback, so long as the class has at least one property of a data type the module can handle.
 
-Within that action or feedback there are dropdown selections for the control object and property, actions also have a value input to set the selected property.
+Within that action or feedback there are dropdown selections for the control object and property, actions also have a value input to set the selected property. Some feedback properties return plain values, other return objects.
 
 ### Caveats:
 
@@ -15,3 +15,5 @@ Compatibility with custom control classes is untested.
 Connection via UDP and WebSockets is untested.
 
 Actions only support setting properties that accept simple data types ( string | number | boolean ).
+
+Enum properties are only handled numerically.
