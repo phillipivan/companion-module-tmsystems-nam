@@ -78,8 +78,11 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	private async updateCompanionBits(): Promise<void> {
 		this.log('debug', 'Updating Companion bits')
 		await this.updateActions()
-		this.updateFeedbacks()
+		await this.updateFeedbacks()
 		this.updateVariableDefinitions()
+
+		this.subscribeActions()
+		this.checkAllFeedbacks()
 	}
 
 	private async connect(config: ModuleConfig): Promise<void> {
@@ -176,8 +179,8 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		await UpdateActions(this)
 	}
 
-	private updateFeedbacks(): void {
-		UpdateFeedbacks(this)
+	private async updateFeedbacks(): Promise<void> {
+		await UpdateFeedbacks(this)
 	}
 
 	private updateVariableDefinitions(): void {
