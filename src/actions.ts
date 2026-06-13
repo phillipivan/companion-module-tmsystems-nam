@@ -11,7 +11,6 @@ import { ocaClassNameToLabel } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 
 type SetPropertyActionKey = `set_property_${OcaClassName}`
-// Produces: "set_property_OcaGain" | "set_property_OcaMute" | "set_property_OcaDelay" | ...
 
 type SetPropertyOptions = {
 	objectId: string
@@ -52,10 +51,10 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 		if (properties.filter((p) => p.write).length === 0) {
 			logger.debug(`Skipping action definition for class ${className} since it has no writable properties`)
 			continue
-		} else
-			logger.debug(
-				`Class ${className} has ${objectChoices.length} objects and ${properties.filter((p) => p.write).length} writable properties`,
-			)
+		}
+		logger.debug(
+			`Class ${className} has ${objectChoices.length} objects and ${properties.filter((p) => p.write).length} writable properties`,
+		)
 		const options: SomeCompanionActionInputField<keyof SetPropertyOptions>[] = [
 			{
 				type: 'dropdown',
@@ -164,14 +163,12 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 
 				const entry = self.ocaHelper.getEntry(objectId)
 				if (!entry) {
-					logger.warn(`No entry found for objectId ${objectId}`)
-					return
+					throw new Error(`No entry found for objectId ${objectId}. Aborting action ${action.id}`)
 				}
 				const setterName = `Set${property}`
 				const setter = (entry.obj as unknown as Record<string, unknown>)[setterName]
 				if (typeof setter !== 'function') {
-					logger.warn(`No setter '${setterName}' found on object at '${objectId}'`)
-					return
+					throw new Error(`No setter '${setterName}' found on object at '${objectId}'. Aborting action ${action.id}`)
 				}
 				await (setter as (v: boolean | string | number) => Promise<void>).call(entry.obj, value)
 			},
