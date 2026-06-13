@@ -14,6 +14,7 @@ type GetPropertyFeedbackKey = `get_property_${OcaClassName}`
 type GetPropertyOptions = {
 	objectId: string
 	property: string
+	sync: boolean
 }
 
 type GetPropertyFeedback = {
@@ -81,6 +82,13 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 			default: propertyChoices[0]?.id,
 			disableAutoExpression: false,
 		})
+		options.push({
+			type: 'checkbox',
+			id: 'sync',
+			label: 'Use Property Sync',
+			default: true,
+			description: 'May return complex data structure when false',
+		})
 		const feedbackDefinition: CompanionValueFeedbackDefinition<GetPropertyOptions> = {
 			name: `${ocaClassNameToLabel(className)} - Get Property`,
 			type: 'value',
@@ -92,21 +100,24 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 					await self.ocaHelper.addFeedbackId(objectId, feedback.id)
 				}
 				const property = feedback.options.property
+				const sync = feedback.options.sync
 				const entry = self.ocaHelper.getEntry(objectId)
 				if (!entry) {
 					logger.warn(`No entry found for objectId ${objectId}. Aborting feedback check ${feedback.id}`)
 					return null
 				}
-				let propValue: any = undefined
-				entry.properties?.forEach((value, name) => {
-					if (name === property) {
-						propValue = makeSafeJsonValue(value)
-					}
-				})
-				if (propValue !== undefined) return propValue
+				if (sync) {
+					let propValue: any = undefined
+					entry.properties?.forEach((value, name) => {
+						if (name === property && value !== undefined) {
+							propValue = makeSafeJsonValue(value)
+						}
+					})
+					if (propValue !== undefined) return propValue
 
-				// If properties sync check failed
-				logger.debug(`property: ${property} not found in entry.properties, trying getter`)
+					// If properties sync check failed
+					logger.debug(`property: ${property} not found in entry.properties, trying async getter`)
+				}
 
 				const getterName = `Get${property}`
 				const getter = (entry.obj as unknown as Record<string, unknown>)[getterName]
