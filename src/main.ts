@@ -129,8 +129,22 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			this.log('warn', `GetProduct() not supported by this device: ${err instanceof Error ? err.message : String(err)}`)
 		}
 
-		const rollMap = await this.client.get_role_map()
-		this.ocaHelper.loadRoleMap(rollMap)
+		try {
+			const rollMap = await this.client.get_role_map()
+			this.ocaHelper.loadRoleMap(rollMap)
+		} catch (err) {
+			this.log('error', `get_role_map() failed: ${err instanceof Error ? err.message : String(err)}`)
+			if (err instanceof Error) {
+				this.log('warn', `Error Name: ${err.name}`)
+				if (err.cause) this.log('warn', `Cause: ${JSON.stringify(err.cause, null, 2)}`)
+				if (err.stack) this.log('debug', `Stack: ${err.stack}`)
+			}
+			this.updateStatus(
+				InstanceStatus.UnknownError,
+				`get_role_map() failed: ${err instanceof Error ? err.message : String(err)}`,
+			)
+			return
+		}
 	}
 
 	private async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
