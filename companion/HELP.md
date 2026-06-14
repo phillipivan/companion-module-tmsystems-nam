@@ -1,19 +1,35 @@
 ## Open Control Architecture: AES70
 
-Connect via TCP, UDP or WebSockets
+[OCA Alliance](https://ocaalliance.com)
 
-Set or get properties of control objects.
+Connect to AES70/OCA-compatible devices via TCP, UDP, or WebSockets. Get or set properties on the device's control objects.
 
-Each control class the device exposes will result in one action and one value feedback, so long as the class has at least one property of a data type the module can handle.
+#### How it works
 
-Within that action or feedback there are dropdown selections for the `Control Object` and `Property`, actions also have a `Value` input option to set the selected property. Feedbacks have a `Use Property Sync` option which can force the module to use the `async` getter from the library when disabled - sometimes this returns different, more complex, data structures.
+When the module connects, it loads the device's role map and discovers every control class it exposes. For each control class that has at least one property of a supported data type, the module automatically generates one action and one value feedback for that class.
 
-### Caveats:
+#### Actions
 
-Compatibility with custom control classes is untested.
+| Option           | Description                                                        |
+| ---------------- | ------------------------------------------------------------------ |
+| `Control Object` | Dropdown listing the available objects of that class on the device |
+| `Property`       | Dropdown listing the supported properties for that class           |
+| `Value`          | The value to set on the selected property                          |
 
-Connection via UDP and WebSockets is untested.
+#### Feedbacks
 
-Actions only support setting properties that accept simple data types `( string | number | boolean )`.
+| Option              | Description                                                                                                                                                                                                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Control Object`    | Dropdown listing the available objects of that class on the device                                                                                                                                                                                                         |
+| `Property`          | Dropdown listing the supported properties for that class                                                                                                                                                                                                                   |
+| `Use Property Sync` | Enabled by default - uses the library's property-tracking ("sync") mechanism to keep the feedback value up to date. When disabled, the module instead uses the library's `async` getter directly, which can return different (and sometimes more complex) data structures. |
 
-Enum properties are only handled numerically.
+For more detail on how properties, getters, and sync work, see the [AES70.js documentation](https://docs.deuso.de/AES70.js/introduction.html).
+
+#### Caveats
+
+- This module has not yet reached a stable `1.0` release - breaking changes may occur without notice.
+- Compatibility with custom (vendor-specific) control classes is untested.
+- Connections via UDP and WebSockets are untested.
+- Actions only support setting properties with simple data types (`string | number | boolean`).
+- Enum properties are only handled numerically.
