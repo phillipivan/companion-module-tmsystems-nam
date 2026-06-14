@@ -7,8 +7,8 @@
 	"description": "Open Control Architecture: AES70",
 	"version": "0.0.0",
 	"license": "MIT",
-	"repository": "git+https://github.com/phillipivan/companion-module-tmsystems-nam.git",
-	"bugs": "https://github.com/phillipivan/companion-module-tmsystems-nam/issues",
+	"repository": "git+https://github.com/bitfocus/companion-module-generic-aes70.git",
+	"bugs": "https://github.com/bitfocus/companion-module-generic-aes70.git/issues",
 	"maintainers": [
 		{
 			"name": "Phillip Ivan Pietruschka",
@@ -30,12 +30,7 @@
 			{
 				"type": "oca",
 				"protocol": "tcp",
-				"txt": {}
-			},
-			{
-				"type": "oca",
-				"protocol": "udp",
-				"txt": {}
+				"addressFamily": "ipv4"
 			}
 		]
 	}
