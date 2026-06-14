@@ -6,7 +6,7 @@ import {
 	SomeCompanionFeedbackInputField,
 } from '@companion-module/base'
 import type ModuleInstance from './main.js'
-import { ocaClassNameToLabel, makeSafeJsonValue } from './utils.js'
+import { ocaClassNameToLabel, makeSafeJsonValue, unwrapValue } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 
 type GetPropertyFeedbackKey = `get_property_${OcaClassName}`
@@ -110,10 +110,10 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 					let propValue: any = undefined
 					entry.properties?.forEach((value, name) => {
 						if (name === property && value !== undefined) {
-							propValue = makeSafeJsonValue(value)
+							propValue = value
 						}
 					})
-					if (propValue !== undefined) return propValue
+					if (propValue !== undefined) return unwrapValue(await makeSafeJsonValue(propValue))
 
 					// If properties sync check failed
 					logger.debug(`property: ${property} not found in entry.properties, trying async getter`)
@@ -128,7 +128,7 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 					return null
 				}
 				const result = await (getter as () => Promise<unknown>).call(entry.obj)
-				return makeSafeJsonValue(result)
+				return await makeSafeJsonValue(result)
 			},
 			unsubscribe: async (feedback) => {
 				self.ocaHelper.removeFeedbackId(feedback.id)
