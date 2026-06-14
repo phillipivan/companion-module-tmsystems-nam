@@ -261,3 +261,24 @@ export async function makeSafeJsonValue(data: unknown, options: MakeSafeJsonOpti
 
 	return result === OMIT ? null : result
 }
+
+export function unwrapValue(obj: JsonValue): JsonValue {
+	if (
+		typeof obj === 'object' &&
+		obj !== null &&
+		!Array.isArray(obj) &&
+		Object.keys(obj).length === 1 &&
+		Object.prototype.hasOwnProperty.call(obj, 'value')
+	) {
+		return (obj as { value: JsonValue }).value
+	} else if (
+		typeof obj === 'object' &&
+		obj !== null &&
+		!Array.isArray(obj) &&
+		Object.keys(obj).length === 1 &&
+		Object.prototype.hasOwnProperty.call(obj, 'values')
+	) {
+		return (obj as { values: JsonValue }).values
+	}
+	return obj
+}
