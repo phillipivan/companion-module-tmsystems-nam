@@ -6,7 +6,7 @@ import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
 import { WebSocket } from 'ws'
 import { TCPConnection, UDPConnection, WebSocketConnection, RemoteDevice, type WebSocketConstructor } from 'aes70'
-import { throttle, type ThrottledFunction } from 'es-toolkit'
+import { debounce, type DebouncedFunction, throttle, type ThrottledFunction } from 'es-toolkit'
 import { OcaModuleTypes } from './types.js'
 import { handleBonjourHost } from './utils.js'
 import { OcaHelper } from './OcaHelper.js'
@@ -14,6 +14,8 @@ import { OcaHelper } from './OcaHelper.js'
 export { UpgradeScripts }
 
 const FEEDBACK_THOTTLE_MS = 30
+const RECONNECT_DEBOUNCE = 10000
+const KEEPALIVE_INTERVAL = 2
 
 export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	config!: ModuleConfig // Setup in init()
@@ -23,6 +25,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	private feedbacksToCheck: Set<string> = new Set()
 	private controller = new AbortController()
 	throttledCheckFeedbacksById: ThrottledFunction<() => void> = this.createThrottledFeedbackCheck(this.controller.signal)
+	debouncedReconnect: DebouncedFunction<() => void> = this.createDebouncedReconnect(this.controller.signal)
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -72,6 +75,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.controller = new AbortController()
 		this.feedbacksToCheck.clear()
 		this.throttledCheckFeedbacksById = this.createThrottledFeedbackCheck(this.controller.signal)
+		this.debouncedReconnect = this.createDebouncedReconnect(this.controller.signal)
 		void this.connect(config)
 	}
 
@@ -81,6 +85,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		await this.updateFeedbacks()
 		this.updateVariableDefinitions()
 
+		// Make sure all role paths are registered
 		this.subscribeActions()
 		this.checkAllFeedbacks()
 	}
@@ -95,11 +100,22 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			return
 		}
 
-		if (config.protocol === 'ws') this.connection = await this.initWebSocketConnection(config)
-		else if (config.protocol === 'udp') this.connection = await this.initUdpConnection(config)
-		else this.connection = await this.initTcpConnection(config)
-		this.connection.on('open', () => this.log('info', 'Connection opened'))
-		this.updateStatus(InstanceStatus.Connecting, 'Connected to device, loading role map...')
+		try {
+			if (config.protocol === 'ws') this.connection = await this.initWebSocketConnection(config)
+			else if (config.protocol === 'udp') this.connection = await this.initUdpConnection(config)
+			else this.connection = await this.initTcpConnection(config)
+
+			this.updateStatus(InstanceStatus.Connecting, 'Connected to device, loading role map...')
+		} catch (err) {
+			this.log('error', `Connection failed: ${err instanceof Error ? err.message : String(err)}`)
+			this.updateStatus(
+				InstanceStatus.ConnectionFailure,
+				`Connection failed: ${err instanceof Error ? err.message : String(err)}`,
+			)
+
+			this.debouncedReconnect()
+			return
+		}
 
 		this.client = new RemoteDevice(this.connection)
 
@@ -110,7 +126,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				`Connection error: ${error instanceof Error ? error.message : String(error)}`,
 			)
 
-			// TO DO: Implement retry logic with backoff
+			this.debouncedReconnect()
 		})
 
 		this.client.on('close', (error: unknown) => {
@@ -119,12 +135,15 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				InstanceStatus.Disconnected,
 				`Connection closed: ${error instanceof Error ? error.message : String(error)}`,
 			)
+
+			this.debouncedReconnect()
 		})
 
-		this.client.set_keepalive_interval(5)
+		this.client.set_keepalive_interval(KEEPALIVE_INTERVAL)
 		try {
 			const product = await this.client.DeviceManager.GetProduct()
 			this.log('info', `Connected to Device:\n${JSON.stringify(product, null, 2)}`)
+			this.debouncedReconnect.cancel()
 		} catch (err) {
 			this.log('warn', `GetProduct() not supported by this device: ${err instanceof Error ? err.message : String(err)}`)
 		}
@@ -132,6 +151,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		try {
 			const rollMap = await this.client.get_role_map()
 			this.ocaHelper.loadRoleMap(rollMap)
+			this.debouncedReconnect.cancel()
 		} catch (err) {
 			this.log('error', `get_role_map() failed: ${err instanceof Error ? err.message : String(err)}`)
 			if (err instanceof Error) {
@@ -181,6 +201,17 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			},
 			FEEDBACK_THOTTLE_MS,
 			{ edges: ['leading', 'trailing'], signal },
+		)
+	}
+
+	private createDebouncedReconnect(signal?: AbortSignal): DebouncedFunction<() => void> {
+		return debounce(
+			() => {
+				this.log('info', `Attempting to reconnect...`)
+				void this.connect(this.config)
+			},
+			RECONNECT_DEBOUNCE,
+			{ signal: signal },
 		)
 	}
 
