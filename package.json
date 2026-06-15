@@ -26,7 +26,6 @@
 		"@companion-module/base": "~2.0.4",
 		"aes70": "^2.0.19",
 		"es-toolkit": "^1.47.1",
-		"p-queue": "^9.3.0",
 		"ws": "^8.21.0"
 	},
 	"devDependencies": {
