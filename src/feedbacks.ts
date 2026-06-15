@@ -113,7 +113,7 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 							propValue = value
 						}
 					})
-					if (propValue !== undefined) return unwrapValue(await makeSafeJsonValue(propValue))
+					if (propValue !== undefined) return unwrapValue(await makeSafeJsonValue(propValue, { awaitPromises: true }))
 
 					// If properties sync check failed
 					logger.debug(`property: ${property} not found in entry.properties, trying async getter`)
@@ -128,7 +128,7 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 					return null
 				}
 				const result = await (getter as () => Promise<unknown>).call(entry.obj)
-				return await makeSafeJsonValue(result)
+				return await makeSafeJsonValue(result, { awaitPromises: true })
 			},
 			unsubscribe: async (feedback) => {
 				self.ocaHelper.removeFeedbackId(feedback.id)
