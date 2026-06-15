@@ -282,3 +282,16 @@ export function unwrapValue(obj: JsonValue): JsonValue {
 	}
 	return obj
 }
+
+export function excitementEmoji(level: number): string {
+	if (level < 10) return '😐'
+	if (level < 20) return '🙂'
+	if (level < 30) return '😊'
+	if (level < 40) return '😄'
+	if (level < 50) return '😃'
+	if (level < 60) return '😁'
+	if (level < 70) return '🤩'
+	if (level < 80) return '🥳'
+	if (level < 90) return '🤯'
+	return '🚀'
+}

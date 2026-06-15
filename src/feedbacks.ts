@@ -6,7 +6,7 @@ import {
 	SomeCompanionFeedbackInputField,
 } from '@companion-module/base'
 import type ModuleInstance from './main.js'
-import { ocaClassNameToLabel, makeSafeJsonValue, unwrapValue } from './utils.js'
+import { ocaClassNameToLabel, makeSafeJsonValue, unwrapValue, excitementEmoji } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 
 type GetPropertyFeedbackKey = `get_property_${OcaClassName}`
@@ -137,7 +137,8 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 		feedbackDefinitions[`get_property_${className}`] = feedbackDefinition
 	}
 
-	logger.info(`Completed feedback definitions: ${Object.keys(feedbackDefinitions).length} feedbacks defined`)
+	const feedbackCount = Object.keys(feedbackDefinitions).length
+	logger.info(`Completed feedback definitions: ${feedbackCount} feedbacks defined (${excitementEmoji(feedbackCount)})`)
 
 	self.setFeedbackDefinitions(completeFeedbackSchema(feedbackDefinitions))
 }

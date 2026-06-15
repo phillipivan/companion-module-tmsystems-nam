@@ -7,7 +7,7 @@ import {
 	type SomeCompanionActionInputField,
 } from '@companion-module/base'
 import type ModuleInstance from './main.js'
-import { ocaClassNameToLabel } from './utils.js'
+import { ocaClassNameToLabel, excitementEmoji } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 
 type SetPropertyActionKey = `set_property_${OcaClassName}`
@@ -180,7 +180,8 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 		actionDefinitions[`set_property_${className}`] = actionDefinition
 	}
 
-	logger.info(`Completed action definitions: ${Object.keys(actionDefinitions).length} actions defined`)
+	const actionCount = Object.keys(actionDefinitions).length
+	logger.info(`Completed action definitions: ${actionCount} actions defined (${excitementEmoji(actionCount)})`)
 
 	self.setActionDefinitions(completeActionSchema(actionDefinitions))
 }
