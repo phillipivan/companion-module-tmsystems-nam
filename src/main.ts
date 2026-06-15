@@ -67,8 +67,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	public async destroy(): Promise<void> {
 		this.log('debug', `destroy ${this.id}:${this.label}`)
 		this.controller.abort()
-		if (this.client) this.client.removeAllEventListeners()
-		if (this.connection) this.connection.close()
+		this.closeConnection()
 	}
 
 	public async configUpdated(config: ModuleConfig): Promise<void> {
@@ -92,10 +91,14 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.checkAllFeedbacks()
 	}
 
-	private async connect(config: ModuleConfig): Promise<void> {
-		// Clean up existing connection and listeners
+	private closeConnection(): void {
 		if (this.client) this.client.removeAllEventListeners()
 		if (this.connection) this.connection.close()
+	}
+
+	private async connect(config: ModuleConfig): Promise<void> {
+		// Clean up existing connection and listeners
+		this.closeConnection()
 
 		if (config.host === undefined || config.host === '') {
 			this.updateStatus(InstanceStatus.BadConfig, `No host`)
@@ -107,7 +110,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			else if (config.protocol === 'udp') this.connection = await this.initUdpConnection(config)
 			else this.connection = await this.initTcpConnection(config)
 
-			this.updateStatus(InstanceStatus.Connecting, 'Connected to device, loading role map...')
+			this.updateStatus(InstanceStatus.Connecting, 'Connection open, setting up remote device...')
 		} catch (err) {
 			this.log('error', `Connection failed: ${err instanceof Error ? err.message : String(err)}`)
 			this.updateStatus(
@@ -165,6 +168,10 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				InstanceStatus.UnknownError,
 				`get_role_map() failed: ${err instanceof Error ? err.message : String(err)}`,
 			)
+
+			// No point keeping the connection open if we can't talk to the device
+			this.closeConnection()
+			this.log('error', `Connection closed. Reconnection will not be attempted (😞). Check device before trying again.`)
 			return
 		}
 	}
