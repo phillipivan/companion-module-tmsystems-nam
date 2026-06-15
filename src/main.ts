@@ -18,14 +18,16 @@ const RECONNECT_DEBOUNCE = 10000
 const KEEPALIVE_INTERVAL = 2
 
 export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
-	config!: ModuleConfig // Setup in init()
+	private config!: ModuleConfig // Setup in init()
 	private client!: RemoteDevice
 	private connection!: TCPConnection | UDPConnection | WebSocket
 	public ocaHelper = new OcaHelper()
 	private feedbacksToCheck: Set<string> = new Set()
 	private controller = new AbortController()
-	throttledCheckFeedbacksById: ThrottledFunction<() => void> = this.createThrottledFeedbackCheck(this.controller.signal)
-	debouncedReconnect: DebouncedFunction<() => void> = this.createDebouncedReconnect(this.controller.signal)
+	private throttledCheckFeedbacksById: ThrottledFunction<() => void> = this.createThrottledFeedbackCheck(
+		this.controller.signal,
+	)
+	private debouncedReconnect: DebouncedFunction<() => void> = this.createDebouncedReconnect(this.controller.signal)
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -200,7 +202,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				this.feedbacksToCheck.clear()
 			},
 			FEEDBACK_THOTTLE_MS,
-			{ edges: ['leading', 'trailing'], signal },
+			{ edges: ['leading', 'trailing'], signal: signal },
 		)
 	}
 
