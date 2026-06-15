@@ -220,7 +220,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				void this.connect(this.config)
 			},
 			RECONNECT_DEBOUNCE,
-			{ signal: signal },
+			{ edges: ['trailing'], signal: signal },
 		)
 	}
 
