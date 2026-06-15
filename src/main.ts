@@ -124,7 +124,41 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 		this.client = new RemoteDevice(this.connection)
 
-		this.client.on('error', (error: unknown) => {
+		this.setupClientEventListeners(this.client)
+
+		this.client.set_keepalive_interval(KEEPALIVE_INTERVAL)
+
+		await this.getDeviceInfo(this.client)
+
+		await this.getRoleMap(this.client)
+	}
+
+	private async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
+		this.log('info', `Initializing TCP connection to ${config.host}:${config.port || 65000}`)
+		return TCPConnection.connect({
+			host: config.host,
+			port: config.port || 65000,
+		})
+	}
+
+	private async initUdpConnection(config: ModuleConfig): Promise<UDPConnection> {
+		this.log('info', `Initializing UDP connection to ${config.host}:${config.port || 65000}`)
+		return UDPConnection.connect({
+			host: config.host,
+			port: config.port || 65000,
+		})
+	}
+
+	private async initWebSocketConnection(config: ModuleConfig): Promise<WebSocketConnection> {
+		this.log('info', `Initializing WebSocket connection to ws://${config.host}:${config.port || 65000}`)
+		return WebSocketConnection.connect(
+			{ url: `ws://${config.host}:${config.port || 65000}` },
+			WebSocket as unknown as WebSocketConstructor,
+		)
+	}
+
+	private setupClientEventListeners(client: RemoteDevice): void {
+		client.on('error', (error: unknown) => {
 			this.log('error', `Connection error: ${error instanceof Error ? error.message : String(error)}`)
 			this.updateStatus(
 				InstanceStatus.ConnectionFailure,
@@ -134,7 +168,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			this.debouncedReconnect()
 		})
 
-		this.client.on('close', (error: unknown) => {
+		client.on('close', (error: unknown) => {
 			this.log('warn', `Connection closed: ${error instanceof Error ? error.message : String(error)}`)
 			this.updateStatus(
 				InstanceStatus.Disconnected,
@@ -143,18 +177,21 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 			this.debouncedReconnect()
 		})
+	}
 
-		this.client.set_keepalive_interval(KEEPALIVE_INTERVAL)
+	private async getDeviceInfo(client: RemoteDevice): Promise<void> {
 		try {
-			const product = await this.client.DeviceManager.GetProduct()
+			const product = await client.DeviceManager.GetProduct()
 			this.log('info', `Connected to Device:\n${JSON.stringify(product, null, 2)}`)
 			this.debouncedReconnect.cancel()
 		} catch (err) {
 			this.log('warn', `GetProduct() not supported by this device: ${err instanceof Error ? err.message : String(err)}`)
 		}
+	}
 
+	private async getRoleMap(client: RemoteDevice): Promise<void> {
 		try {
-			const rollMap = await this.client.get_role_map()
+			const rollMap = await client.get_role_map()
 			this.ocaHelper.loadRoleMap(rollMap)
 			this.debouncedReconnect.cancel()
 		} catch (err) {
@@ -172,32 +209,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			// No point keeping the connection open if we can't talk to the device
 			this.closeConnection()
 			this.log('error', `Connection closed. Reconnection will not be attempted (😞). Check device before trying again.`)
-			return
 		}
-	}
-
-	private async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
-		this.log('debug', `Initializing TCP connection to ${config.host}:${config.port || 65000}`)
-		return TCPConnection.connect({
-			host: config.host,
-			port: config.port || 65000,
-		})
-	}
-
-	private async initUdpConnection(config: ModuleConfig): Promise<UDPConnection> {
-		this.log('debug', `Initializing UDP connection to ${config.host}:${config.port || 65000}`)
-		return UDPConnection.connect({
-			host: config.host,
-			port: config.port || 65000,
-		})
-	}
-
-	private async initWebSocketConnection(config: ModuleConfig): Promise<WebSocketConnection> {
-		this.log('debug', `Initializing WebSocket connection to ws://${config.host}:${config.port || 65000}`)
-		return WebSocketConnection.connect(
-			{ url: `ws://${config.host}:${config.port || 65000}` },
-			WebSocket as unknown as WebSocketConstructor,
-		)
 	}
 
 	private createThrottledFeedbackCheck(signal?: AbortSignal): ThrottledFunction<() => void> {
