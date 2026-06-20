@@ -1,6 +1,7 @@
 import { ModuleConfig } from './config.js'
 import { createModuleLogger } from '@companion-module/base'
-import type { JsonValue, JsonObject } from '@companion-module/base'
+import type { DropdownChoice, JsonValue, JsonObject } from '@companion-module/base'
+import type { PropertyDescription } from './OcaHelper.js'
 
 const utilsLogger = createModuleLogger('Generic OCA Utils')
 
@@ -295,4 +296,12 @@ export function excitementEmoji(level: number): string {
 	if (level < 80) return '🥳'
 	if (level < 90) return '🤯'
 	return '🚀'
+}
+
+export function makePropChoices(props: PropertyDescription[]): DropdownChoice<string>[] {
+	const propertyChoices: DropdownChoice<string>[] = []
+	props.forEach((prop) => {
+		propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
+	})
+	return propertyChoices
 }

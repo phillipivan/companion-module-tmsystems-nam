@@ -6,7 +6,7 @@ import {
 	SomeCompanionFeedbackInputField,
 } from '@companion-module/base'
 import type ModuleInstance from './main.js'
-import { ocaClassNameToLabel, makeSafeJsonValue, unwrapValue, excitementEmoji } from './utils.js'
+import { ocaClassNameToLabel, makeSafeJsonValue, unwrapValue, excitementEmoji, makePropChoices } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 
 type GetPropertyFeedbackKey = `get_property_${OcaClassName}`
@@ -66,17 +66,14 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 				allowInvalidValues: false,
 			},
 		]
-		const propertyChoices: DropdownChoice[] = []
-		readableProps.forEach((prop) => {
-			propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
-		})
+		const propertyChoices: DropdownChoice<string>[] = makePropChoices(readableProps)
 
 		options.push({
 			type: 'dropdown',
 			id: 'property',
 			label: 'Property',
 			choices: propertyChoices,
-			default: propertyChoices[propertyChoices.length - 1]?.id,
+			default: propertyChoices.length >= 3 ? propertyChoices[2]?.id : propertyChoices[0]?.id,
 			disableAutoExpression: false,
 		})
 		options.push({

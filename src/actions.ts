@@ -7,7 +7,7 @@ import {
 	type SomeCompanionActionInputField,
 } from '@companion-module/base'
 import type ModuleInstance from './main.js'
-import { ocaClassNameToLabel, excitementEmoji } from './utils.js'
+import { ocaClassNameToLabel, excitementEmoji, makePropChoices } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 
 type SetPropertyActionKey = `set_property_${OcaClassName}`
@@ -70,7 +70,7 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				allowInvalidValues: false,
 			},
 		]
-		const propertyChoices: DropdownChoice<string>[] = []
+		const propertyChoices: DropdownChoice<string>[] = makePropChoices(writableProps)
 		const propertyOptions: SomeCompanionActionInputField<keyof SetPropertyOptions>[] = []
 		writableProps.forEach((prop) => {
 			const inputId = `value_${prop.name}` as const
@@ -103,7 +103,7 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 					isVisibleExpression: `$(options:property) == '${prop.name}'`,
 				})
 			}
-			propertyChoices.push({ id: prop.name, label: label })
+			//propertyChoices.push({ id: prop.name, label: label })
 		})
 
 		options.push({
@@ -111,7 +111,7 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 			id: 'property',
 			label: 'Property',
 			choices: propertyChoices,
-			default: propertyChoices[propertyChoices.length - 1]?.id, // Default to the last exposed property as often most relevant
+			default: propertyChoices[0]?.id,
 			disableAutoExpression: true,
 		})
 		propertyOptions.forEach((prop) => options.push(prop))
