@@ -103,7 +103,6 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 					isVisibleExpression: `$(options:property) == '${prop.name}'`,
 				})
 			}
-			//propertyChoices.push({ id: prop.name, label: label })
 		})
 
 		options.push({
