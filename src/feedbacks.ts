@@ -46,8 +46,8 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 	for (const className of classes) {
 		const objectChoices = self.ocaHelper.getChoicesByClass(className)
 		const properties = await self.ocaHelper.getClassProperties(className)
-
-		if (properties.filter((p) => p.read).length === 0) {
+		const readableProps = properties.filter((p) => p.read)
+		if (readableProps.length === 0) {
 			logger.debug(`Skipping feedback definition for class ${className} since it has no readable properties`)
 			continue
 		}
@@ -67,19 +67,16 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 			},
 		]
 		const propertyChoices: DropdownChoice[] = []
-		properties.forEach((prop) => {
-			if (prop.read) propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
+		readableProps.forEach((prop) => {
+			propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
 		})
-		if (propertyChoices.length == 0) {
-			logger.debug(`No valid properties for ${className} skipping feedback definition`)
-			continue
-		}
+
 		options.push({
 			type: 'dropdown',
 			id: 'property',
 			label: 'Property',
 			choices: propertyChoices,
-			default: propertyChoices[0]?.id,
+			default: propertyChoices[propertyChoices.length - 1]?.id,
 			disableAutoExpression: false,
 		})
 		options.push({
@@ -123,14 +120,20 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 				const getter = (entry.obj as unknown as Record<string, unknown>)[getterName]
 				if (typeof getter !== 'function') {
 					logger.warn(
-						`No getter '${getterName}' found on object at '${objectId}'. Aborting feedback check ${feedback.id}`,
+						`${feedback.feedbackId}\\${feedback.id}: No getter '${getterName}' found on object at '${objectId}'. Aborting feedback check ${feedback.id}`,
 					)
 					return null
 				}
 				const result = await (getter as () => Promise<unknown>).call(entry.obj)
-				return await makeSafeJsonValue(result, { awaitPromises: true })
+				const safeValue = await makeSafeJsonValue(result, { awaitPromises: true })
+				if (sync) {
+					const unwrappedValue = unwrapValue(safeValue)
+					if (Array.isArray(unwrappedValue)) return unwrappedValue[0]
+					return unwrappedValue
+				}
+				return safeValue
 			},
-			unsubscribe: async (feedback) => {
+			unsubscribe: (feedback) => {
 				self.ocaHelper.removeFeedbackId(feedback.id)
 			},
 		}

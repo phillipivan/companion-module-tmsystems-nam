@@ -47,13 +47,17 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 	for (const className of classes) {
 		const objectChoices = self.ocaHelper.getChoicesByClass(className)
 		const properties = await self.ocaHelper.getClassProperties(className)
-
-		if (properties.filter((p) => p.write).length === 0) {
-			logger.debug(`Skipping action definition for class ${className} since it has no writable properties`)
+		const writableProps = properties.filter(
+			(p) => p.write && (p.type === 'boolean' || p.type == 'string' || p.type == 'number'),
+		)
+		if (writableProps.length === 0) {
+			logger.debug(
+				`Skipping action definition for class ${className} since it has no writable properties of a supported type`,
+			)
 			continue
 		}
 		logger.debug(
-			`Class ${className} has ${objectChoices.length} objects and ${properties.filter((p) => p.write).length} writable properties`,
+			`Class ${className} has ${objectChoices.length} objects and ${writableProps.length} writable properties of supported types`,
 		)
 		const options: SomeCompanionActionInputField<keyof SetPropertyOptions>[] = [
 			{
@@ -66,58 +70,48 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				allowInvalidValues: false,
 			},
 		]
-		const propertyChoices: DropdownChoice[] = []
+		const propertyChoices: DropdownChoice<string>[] = []
 		const propertyOptions: SomeCompanionActionInputField<keyof SetPropertyOptions>[] = []
-		properties.forEach((prop) => {
-			if (prop.write) {
-				const inputId = `value_${prop.name}` as const
-				if (prop.type === 'boolean') {
-					propertyOptions.push({
-						type: 'checkbox',
-						id: inputId,
-						label: ocaClassNameToLabel(prop.name),
-						default: true,
-						isVisibleExpression: `$(options:property) == '${prop.name}'`,
-					})
-					propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
-				} else if (prop.type === 'string') {
-					propertyOptions.push({
-						type: 'textinput',
-						id: inputId,
-						label: ocaClassNameToLabel(prop.name),
-						default: '',
-						useVariables: true,
-						isVisibleExpression: `$(options:property) == '${prop.name}'`,
-					})
-					propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
-				} else if (prop.type === 'number') {
-					propertyOptions.push({
-						type: 'number',
-						id: inputId,
-						label: ocaClassNameToLabel(prop.name),
-						default: 0,
-						min: -Number.MAX_VALUE, // Since each control object can declare its own acceptable input range, don't try and enforce it here
-						max: Number.MAX_VALUE,
-						isVisibleExpression: `$(options:property) == '${prop.name}'`,
-					})
-					propertyChoices.push({ id: prop.name, label: ocaClassNameToLabel(prop.name) })
-				} else {
-					logger.debug(
-						`Property ${prop.name} of type ${prop.type} on class ${className} is not supported by actions due to unsupported datatype`,
-					)
-				}
+		writableProps.forEach((prop) => {
+			const inputId = `value_${prop.name}` as const
+			const label = ocaClassNameToLabel(prop.name)
+			if (prop.type === 'boolean') {
+				propertyOptions.push({
+					type: 'checkbox',
+					id: inputId,
+					label: label,
+					default: true,
+					isVisibleExpression: `$(options:property) == '${prop.name}'`,
+				})
+			} else if (prop.type === 'string') {
+				propertyOptions.push({
+					type: 'textinput',
+					id: inputId,
+					label: label,
+					default: '',
+					useVariables: true,
+					isVisibleExpression: `$(options:property) == '${prop.name}'`,
+				})
+			} else if (prop.type === 'number') {
+				propertyOptions.push({
+					type: 'number',
+					id: inputId,
+					label: label,
+					default: 0,
+					min: -Number.MAX_VALUE, // Since each control object can declare its own acceptable input range, don't try and enforce it here
+					max: Number.MAX_VALUE,
+					isVisibleExpression: `$(options:property) == '${prop.name}'`,
+				})
 			}
+			propertyChoices.push({ id: prop.name, label: label })
 		})
-		if (propertyChoices.length == 0) {
-			logger.debug(`No valid properties for ${className} skipping action definition`)
-			continue
-		}
+
 		options.push({
 			type: 'dropdown',
 			id: 'property',
 			label: 'Property',
 			choices: propertyChoices,
-			default: propertyChoices[0]?.id,
+			default: propertyChoices[propertyChoices.length - 1]?.id, // Default to the last exposed property as often most relevant
 			disableAutoExpression: true,
 		})
 		propertyOptions.forEach((prop) => options.push(prop))
