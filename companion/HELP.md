@@ -31,5 +31,5 @@ For more detail on how properties, getters, and sync work, see the [AES70.js doc
 - This module has not yet reached a stable `1.0` release - breaking changes may occur without notice.
 - Compatibility with custom (vendor-specific) control classes is untested.
 - Connections via UDP and WebSockets are untested.
-- Actions only support setting properties with simple data types (`string | number | boolean`).
+- Actions only support setting properties with simple data types (`string | number | boolean`), including enums with dropdowns.
 - Enum properties are only handled numerically.
