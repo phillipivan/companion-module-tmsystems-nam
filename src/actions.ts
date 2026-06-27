@@ -10,6 +10,7 @@ import type ModuleInstance from './main.js'
 import { ocaClassNameToLabel, excitementEmoji, makePropChoices } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 import type { JavaScriptType, PropertyDescription } from './OcaHelper.js'
+import { getPropertyEnumChoices } from './consts/aes70-enums.js'
 
 type SetPropertyActionKey = `set_property_${OcaClassName}`
 
@@ -30,10 +31,10 @@ export type ActionSchema = {
 	[K in SetPropertyActionKey]: SetPropertyAction
 }
 
-export type SupportedPropertyType = 'string' | 'number' | 'boolean'
+export type SupportedPropertyType = 'string' | 'number' | 'boolean' | 'object'
 
 function isSupportedPropertyType(type: JavaScriptType): type is SupportedPropertyType {
-	return type === 'boolean' || type === 'string' || type === 'number'
+	return type === 'boolean' || type === 'string' || type === 'number' || type == 'object'
 }
 
 function completeActionSchema(
@@ -79,41 +80,74 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				allowInvalidValues: false,
 			},
 		]
-		const propertyChoices: DropdownChoice<string>[] = makePropChoices(writableProps)
 		const propertyOptions: SomeCompanionActionInputField<keyof SetPropertyOptions>[] = []
+		const definedProps: (PropertyDescription & {
+			type: SupportedPropertyType
+		})[] = []
 		writableProps.forEach((prop) => {
 			const inputId = `value_${prop.name}` as const
 			const label = ocaClassNameToLabel(prop.name)
-			if (prop.type === 'boolean') {
-				propertyOptions.push({
-					type: 'checkbox',
-					id: inputId,
-					label: label,
-					default: true,
-					isVisibleExpression: `$(options:property) == '${prop.name}'`,
-				})
-			} else if (prop.type === 'string') {
-				propertyOptions.push({
-					type: 'textinput',
-					id: inputId,
-					label: label,
-					default: '',
-					useVariables: true,
-					isVisibleExpression: `$(options:property) == '${prop.name}'`,
-				})
-			} else if (prop.type === 'number') {
-				propertyOptions.push({
-					type: 'number',
-					id: inputId,
-					label: label,
-					default: 0,
-					min: -Number.MAX_VALUE, // Since each control object can declare its own acceptable input range, don't try and enforce it here
-					max: Number.MAX_VALUE,
-					isVisibleExpression: `$(options:property) == '${prop.name}'`,
-				})
+			const visibleExpr = `$(options:property) == '${prop.name}'`
+			switch (prop.type) {
+				case 'boolean':
+					propertyOptions.push({
+						type: 'checkbox',
+						id: inputId,
+						label,
+						default: true,
+						isVisibleExpression: visibleExpr,
+					})
+					definedProps.push(prop)
+					break
+				case 'string':
+					propertyOptions.push({
+						type: 'textinput',
+						id: inputId,
+						label,
+						default: '',
+						useVariables: true,
+						isVisibleExpression: visibleExpr,
+					})
+					definedProps.push(prop)
+					break
+				case 'number':
+					propertyOptions.push({
+						type: 'number',
+						id: inputId,
+						label,
+						default: 0,
+						min: -Number.MAX_VALUE,
+						max: Number.MAX_VALUE,
+						isVisibleExpression: visibleExpr,
+					})
+					definedProps.push(prop)
+					break
+				case 'object': {
+					const choices = getPropertyEnumChoices(className, prop.name)
+					if (choices) {
+						propertyOptions.push({
+							type: 'dropdown',
+							id: inputId,
+							label,
+							default: choices[0]?.id ?? 0,
+							choices,
+							allowCustom: false,
+							isVisibleExpression: visibleExpr,
+						})
+						definedProps.push(prop)
+					}
+					// If no enum mapping exists for this object-typed property, skip it —
+					// it's a struct or other complex type we can't represent as a simple input
+					break
+				}
+				default: {
+					const _exhaustive: never = prop.type
+					throw new Error(`Unhandled property type: ${_exhaustive}`)
+				}
 			}
 		})
 
+		const propertyChoices: DropdownChoice<string>[] = makePropChoices(definedProps)
 		options.push({
 			type: 'dropdown',
 			id: 'property',

@@ -1,4 +1,6 @@
 import type { DropdownChoice } from '@companion-module/base'
+import { type OcaClassName } from './aes70-constants.js'
+import { ocaClassNameToLabel } from '../utils.js'
 
 // Helper Functions
 
@@ -16,22 +18,23 @@ export function isNumericEnumValue<E extends Record<string, string | number>>(
 	return typeof value === 'number' && Object.values(enumObj).some((v) => typeof v === 'number' && v === value)
 }
 
-export function enumToDropdownChoices<E extends Record<string, string | number>>(
-	enumObj: E,
-): DropdownChoice<Extract<E[keyof E], number>>[] {
-	const entries = Object.entries(enumObj).filter(
-		(entry): entry is [string, Extract<E[keyof E], number>] => typeof entry[1] === 'number',
-	)
-
-	return entries.map(([label, id]) => ({
-		id,
-		label,
-	}))
+/**
+ * Converts a TypeScript numeric enum into Companion DropdownChoice[] format.
+ * - `id` is the enum's numeric value
+ * - `label` is the enum member's name, passed through ocaClassNameToLabel()
+ */
+export function enumToDropdownChoices<E extends Record<string, string | number>>(enumObj: E): DropdownChoice<number>[] {
+	return Object.keys(enumObj)
+		.filter((key) => typeof enumObj[key as keyof E] === 'number')
+		.map((key) => ({
+			id: enumObj[key as keyof E] as number,
+			label: ocaClassNameToLabel(key),
+		}))
 }
 
 export type EnumValue<E extends Record<string, string | number>> = Extract<E[keyof E], number>
 
-// Auto-generated from enums.txt
+// Auto-generated from txt
 
 export enum OcaActionObjectSearchResultFlags {
 	ONo = 1,
@@ -762,4 +765,126 @@ export enum OcaWaveformType {
 	NoisePink = 5,
 	NoiseWhite = 6,
 	PolarityTest = 7,
+}
+/**
+ * Maps (className, propertyName) → enum object.
+ * Only properties whose runtime type is 'number' (i.e. numeric enums) are included,
+ * since enumToDropdownChoices only handles numeric
+ */
+const PROPERTY_ENUM_MAP: Partial<
+	Record<OcaClassName, Partial<Record<string, Record<string, string | number> | undefined>>>
+> = {
+	OcaMute: {
+		State: OcaMuteState,
+	},
+	OcaPolarity: {
+		State: OcaPolarityState,
+	},
+	OcaDelay: {
+		DelayTime: undefined, // number, no enum
+	},
+	OcaDelayExtended: {
+		DelayValue: undefined,
+		DelayUnit: OcaDelayUnit,
+	},
+	OcaFilterClassical: {
+		Shape: OcaClassicalFilterShape,
+		Passband: OcaFilterPassband,
+	},
+	OcaFilterParametric: {
+		Shape: OcaParametricEQShape,
+	},
+	OcaDynamics: {
+		Function: OcaDynamicsFunction,
+	},
+	OcaDynamicsDetector: {
+		Law: OcaLevelDetectionLaw,
+	},
+	OcaSignalGenerator: {
+		Waveform: OcaWaveformType,
+		SweepType: OcaSweepType,
+	},
+	OcaAudioLevelSensor: {
+		Law: OcaLevelMeterLaw,
+	},
+	OcaSensor: {
+		ReadingState: OcaSensorReadingState,
+	},
+	OcaGrouper: {
+		Mode: OcaGrouperMode,
+	},
+	OcaRamper: {
+		State: OcaRamperState,
+		InterpolationLaw: OcaRamperInterpolationLaw,
+	},
+	OcaNumericObserver: {
+		State: OcaObserverState,
+		Operator: OcaRelationalOperator,
+	},
+	OcaNumericObserverList: {
+		State: OcaObserverState,
+		Operator: OcaRelationalOperator,
+	},
+	OcaPowerSupply: {
+		Type: OcaPowerSupplyType,
+		State: OcaPowerSupplyState,
+		Location: OcaPowerSupplyLocation,
+	},
+	OcaMediaClock3: {
+		Availability: OcaMediaClockAvailability,
+		LockState: OcaMediaClockLockState,
+	},
+	OcaTimeSource: {
+		Availability: OcaTimeSourceAvailability,
+		Protocol: undefined, // OcaTimeProtocol is a struct, not a numeric enum
+		SyncStatus: OcaTimeSourceSyncStatus,
+	},
+	OcaApplicationNetwork: {
+		State: OcaApplicationNetworkState,
+		ErrorCode: undefined,
+	},
+	OcaDeviceManager: {
+		State: OcaDeviceState,
+		ResetCause: OcaResetCause,
+	},
+	OcaPowerManager: {
+		State: OcaPowerState,
+	},
+	OcaTaskManager: {
+		State: OcaTaskManagerState,
+	},
+	// Legacy v1 classes
+	OcaNetwork: {
+		LinkType: OcaNetworkLinkType,
+		MediaProtocol: OcaNetworkMediaProtocol,
+		ControlProtocol: OcaNetworkControlProtocol,
+		Status: OcaNetworkStatus,
+	},
+	OcaMediaClock: {
+		Type: OcaMediaClockType,
+		Availability: OcaMediaClockAvailability,
+		LockState: OcaMediaClockLockState,
+	},
+	OcaStreamConnector: {
+		Status: OcaStreamConnectorStatus,
+	},
+	OcaNetworkSignalChannel: {
+		Status: OcaNetworkSignalChannelStatus,
+	},
+}
+
+/**
+ * Returns DropdownChoice<number>[] for the enum backing a class property,
+ * or undefined if no enum mapping exists for that class+property combination.
+ */
+export function getPropertyEnumChoices(
+	className: OcaClassName,
+	propertyName: string,
+): DropdownChoice<number>[] | undefined {
+	const classMap = PROPERTY_ENUM_MAP[className]
+	if (!classMap) return undefined
+	if (!(propertyName in classMap)) return undefined
+	const enumObj = classMap[propertyName]
+	if (!enumObj) return undefined
+	return enumToDropdownChoices(enumObj)
 }

@@ -303,17 +303,3 @@ export function makePropChoices(props: PropertyDescription[]): DropdownChoice<st
 	})
 	return propertyChoices
 }
-
-/**
- * Converts a TypeScript numeric enum into Companion DropdownChoice[] format.
- * - `id` is the enum's numeric value
- * - `label` is the enum member's name, passed through ocaClassNameToLabel()
- */
-export function enumToDropdownChoices<E extends Record<string, string | number>>(enumObj: E): DropdownChoice<number>[] {
-	return Object.keys(enumObj)
-		.filter((key) => typeof enumObj[key as keyof E] === 'number')
-		.map((key) => ({
-			id: enumObj[key as keyof E] as number,
-			label: ocaClassNameToLabel(key),
-		}))
-}
