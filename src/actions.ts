@@ -10,7 +10,7 @@ import type ModuleInstance from './main.js'
 import { ocaClassNameToLabel, excitementEmoji, makePropChoices } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 import type { JavaScriptType, PropertyDescription } from './OcaHelper.js'
-import { getPropertyEnumChoices } from './consts/aes70-enums.js'
+import { getPropertyEnumInfo } from './consts/aes70-enums.js'
 
 type SetPropertyActionKey = `set_property_${OcaClassName}`
 
@@ -123,16 +123,17 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 					definedProps.push(prop)
 					break
 				case 'object': {
-					const choices = getPropertyEnumChoices(className, prop.name)
-					if (choices) {
+					const enumInfo = getPropertyEnumInfo(className, prop.name)
+					if (enumInfo) {
 						propertyOptions.push({
 							type: 'dropdown',
 							id: inputId,
 							label,
-							default: choices[0]?.id ?? 0,
-							choices,
+							default: enumInfo.choices[0]?.id ?? 0,
+							choices: enumInfo.choices,
 							allowCustom: false,
 							isVisibleExpression: visibleExpr,
+							expressionDescription: enumInfo.expressionDescription,
 						})
 						definedProps.push(prop)
 					}

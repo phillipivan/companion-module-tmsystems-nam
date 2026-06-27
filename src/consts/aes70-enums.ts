@@ -873,18 +873,36 @@ const PROPERTY_ENUM_MAP: Partial<
 	},
 }
 
+export interface PropertyEnumInfo {
+	choices: DropdownChoice<number>[]
+	expressionDescription: string
+}
+
+function getEnumExpressionDescription(enumObj: Record<string, string | number>): string {
+	const values = Object.values(enumObj).filter((v): v is number => typeof v === 'number')
+	const min = Math.min(...values)
+	const max = Math.max(...values)
+	const isContiguous = values.length === max - min + 1
+
+	if (isContiguous && values.length > 5) {
+		return `Accepted values: ${min} - ${max}`
+	}
+	return `Accepted values: ${values.join(' | ')}`
+}
+
 /**
- * Returns DropdownChoice<number>[] for the enum backing a class property,
+ * Returns PropertyEnumInfo for the enum backing a class property,
  * or undefined if no enum mapping exists for that class+property combination.
  */
-export function getPropertyEnumChoices(
-	className: OcaClassName,
-	propertyName: string,
-): DropdownChoice<number>[] | undefined {
+export function getPropertyEnumInfo(className: OcaClassName, propertyName: string): PropertyEnumInfo | undefined {
 	const classMap = PROPERTY_ENUM_MAP[className]
 	if (!classMap) return undefined
 	if (!(propertyName in classMap)) return undefined
 	const enumObj = classMap[propertyName]
 	if (!enumObj) return undefined
-	return enumToDropdownChoices(enumObj)
+
+	return {
+		choices: enumToDropdownChoices(enumObj),
+		expressionDescription: getEnumExpressionDescription(enumObj),
+	}
 }
