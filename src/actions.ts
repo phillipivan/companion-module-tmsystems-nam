@@ -1,7 +1,7 @@
 import {
 	type CompanionActionDefinition,
 	type CompanionActionDefinitions,
-	//type CompanionOptionValues,
+	type CompanionActionSchema,
 	createModuleLogger,
 	DropdownChoice,
 	type SomeCompanionActionInputField,
@@ -22,6 +22,8 @@ type SetPropertyOptions = {
 type SetPropertyAction = {
 	options: SetPropertyOptions
 }
+
+type SetPropertyActionSchema = CompanionActionSchema<SetPropertyOptions, void>
 
 export type ActionSchema = {
 	[K in SetPropertyActionKey]: SetPropertyAction
@@ -114,11 +116,12 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 			disableAutoExpression: true,
 		})
 		propertyOptions.forEach((prop) => options.push(prop))
-		const actionDefinition: CompanionActionDefinition<SetPropertyOptions> = {
+		const actionDefinition: CompanionActionDefinition<SetPropertyActionSchema> = {
 			name: `${ocaClassNameToLabel(className)} - Set Property`,
 			options: options,
 			optionsToMonitorForSubscribe: ['objectId'],
 			skipUnsubscribeOnOptionsChange: false,
+			hasResult: false,
 			subscribe: async (action) => {
 				const objectId = action.options.objectId
 				if (objectId) {
