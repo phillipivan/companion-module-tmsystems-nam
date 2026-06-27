@@ -51,9 +51,7 @@ export interface MakeSafeJsonOptions {
 }
 
 export type MakeSafeJsonVisitorResult =
-	| { action: 'continue' }
-	| { action: 'omit' }
-	| { action: 'replace'; value: JsonValue }
+	{ action: 'continue' } | { action: 'omit' } | { action: 'replace'; value: JsonValue }
 
 export type MakeSafeJsonVisitor = (
 	path: readonly (string | number)[],
