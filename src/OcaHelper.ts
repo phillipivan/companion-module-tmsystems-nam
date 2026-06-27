@@ -262,11 +262,13 @@ export interface ObjectEntry {
 	onPropertyChanged?: () => void
 }
 
+export type JavaScriptType = 'string' | 'number' | 'bigint' | 'boolean' | 'symbol' | 'undefined' | 'object' | 'function'
+
 export interface PropertyDescription {
 	/** The name of the property. */
 	readonly name: string
 	/** The type of the property. */
-	readonly type: string
+	readonly type: JavaScriptType
 	/** Whether the property is readable. */
 	readonly read: boolean
 	/** Whether the property is setable. */

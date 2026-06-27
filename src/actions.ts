@@ -9,6 +9,7 @@ import {
 import type ModuleInstance from './main.js'
 import { ocaClassNameToLabel, excitementEmoji, makePropChoices } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
+import type { JavaScriptType, PropertyDescription } from './OcaHelper.js'
 
 type SetPropertyActionKey = `set_property_${OcaClassName}`
 
@@ -27,6 +28,12 @@ type SetPropertyActionSchema = CompanionActionSchema<SetPropertyOptions, void>
 
 export type ActionSchema = {
 	[K in SetPropertyActionKey]: SetPropertyAction
+}
+
+export type SupportedPropertyType = 'string' | 'number' | 'boolean'
+
+function isSupportedPropertyType(type: JavaScriptType): type is SupportedPropertyType {
+	return type === 'boolean' || type === 'string' || type === 'number'
 }
 
 function completeActionSchema(
@@ -50,7 +57,7 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 		const objectChoices = self.ocaHelper.getChoicesByClass(className)
 		const properties = await self.ocaHelper.getClassProperties(className)
 		const writableProps = properties.filter(
-			(p) => p.write && (p.type === 'boolean' || p.type == 'string' || p.type == 'number'),
+			(p): p is PropertyDescription & { type: SupportedPropertyType } => p.write && isSupportedPropertyType(p.type),
 		)
 		if (writableProps.length === 0) {
 			logger.debug(
