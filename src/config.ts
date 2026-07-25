@@ -1,5 +1,7 @@
 import { Regex, type SomeCompanionConfigField } from '@companion-module/base'
 
+export const DEFAULT_PORT = 65000
+
 export type ModuleConfig = {
 	bonjourHost?: string
 	host: string
@@ -30,7 +32,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			width: 4,
 			min: 1,
 			max: 65535,
-			default: 65000,
+			default: DEFAULT_PORT,
 			isVisibleExpression: `!$(options:bonjourHost)`,
 		},
 		{

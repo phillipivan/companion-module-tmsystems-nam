@@ -1,5 +1,5 @@
 import { InstanceBase, InstanceStatus, SomeCompanionConfigField } from '@companion-module/base'
-import { GetConfigFields, type ModuleConfig } from './config.js'
+import { DEFAULT_PORT, GetConfigFields, type ModuleConfig } from './config.js'
 import { UpdateVariableDefinitions } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions } from './actions.js'
@@ -134,27 +134,25 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	}
 
 	private async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
-		this.log('info', `Initializing TCP connection to ${config.host}:${config.port || 65000}`)
+		this.log('info', `Initializing TCP connection to ${config.host}:${config.port || DEFAULT_PORT}`)
 		return TCPConnection.connect({
 			host: config.host,
-			port: config.port || 65000,
+			port: config.port || DEFAULT_PORT,
 		})
 	}
 
 	private async initUdpConnection(config: ModuleConfig): Promise<UDPConnection> {
-		this.log('info', `Initializing UDP connection to ${config.host}:${config.port || 65000}`)
+		this.log('info', `Initializing UDP connection to ${config.host}:${config.port || DEFAULT_PORT}`)
 		return UDPConnection.connect({
 			host: config.host,
-			port: config.port || 65000,
+			port: config.port || DEFAULT_PORT,
 		})
 	}
 
 	private async initWebSocketConnection(config: ModuleConfig): Promise<WebSocketConnection> {
-		this.log('info', `Initializing WebSocket connection to ws://${config.host}:${config.port || 65000}`)
-		return WebSocketConnection.connect(
-			{ url: `ws://${config.host}:${config.port || 65000}` },
-			WebSocket as unknown as WebSocketConstructor,
-		)
+		const WsPath = `ws://${config.host}:${config.port || DEFAULT_PORT}`
+		this.log('info', `Initializing WebSocket connection to ${WsPath}`)
+		return WebSocketConnection.connect({ url: WsPath }, WebSocket as unknown as WebSocketConstructor)
 	}
 
 	private setupClientEventListeners(client: RemoteDevice): void {
