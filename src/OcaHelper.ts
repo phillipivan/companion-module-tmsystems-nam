@@ -499,12 +499,12 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 				this.emit('OcaBlock', obj)
 				return
 			}
-			if (obj instanceof OcaBlockFactoryAgent) {
-				this.emit('OcaBlockFactory', obj)
-				return
-			}
 			if (obj instanceof OcaMatrix) {
 				this.emit('OcaMatrix', obj)
+				return
+			}
+			if (obj instanceof OcaNetworkSignalChannel) {
+				this.emit('OcaNetworkSignalChannel', obj)
 				return
 			}
 			return
@@ -532,27 +532,6 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 			return
 		}
 
-		if (obj instanceof OcaNetworkSignalChannel) {
-			this.emit('OcaNetworkSignalChannel', obj)
-			return
-		}
-		if (obj instanceof OcaStreamConnector) {
-			this.emit('OcaStreamConnector', obj)
-			return
-		}
-		if (obj instanceof OcaStreamNetwork) {
-			this.emit('OcaStreamNetwork', obj)
-			return
-		}
-		if (obj instanceof OcaNetwork) {
-			this.emit('OcaNetwork', obj)
-			return
-		}
-		if (obj instanceof OcaMediaClock) {
-			this.emit('OcaMediaClock', obj)
-			return
-		}
-
 		this.emit('OcaRoot', obj)
 	}
 
@@ -571,8 +550,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 			if (obj instanceof OcaActuator) return this._resolveActuatorName(obj)
 			if (obj instanceof OcaSensor) return this._resolveSensorName(obj)
 			if (obj instanceof OcaBlock) return OCA_CLASS_NAMES.OcaBlock
-			if (obj instanceof OcaBlockFactoryAgent) return OCA_CLASS_NAMES.OcaBlockFactory
 			if (obj instanceof OcaMatrix) return OCA_CLASS_NAMES.OcaMatrix
+			if (obj instanceof OcaNetworkSignalChannel) return OCA_CLASS_NAMES.OcaNetworkSignalChannel
 			return OCA_CLASS_NAMES.OcaWorker
 		}
 		if (obj instanceof OcaAgent) return this._resolveAgentName(obj)
@@ -580,11 +559,6 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		if (obj instanceof OcaMediaTransportNetwork) return OCA_CLASS_NAMES.OcaMediaTransportNetwork
 		if (obj instanceof OcaControlNetwork) return OCA_CLASS_NAMES.OcaControlNetwork
 		if (obj instanceof OcaApplicationNetwork) return OCA_CLASS_NAMES.OcaApplicationNetwork
-		if (obj instanceof OcaNetworkSignalChannel) return OCA_CLASS_NAMES.OcaNetworkSignalChannel
-		if (obj instanceof OcaStreamConnector) return OCA_CLASS_NAMES.OcaStreamConnector
-		if (obj instanceof OcaStreamNetwork) return OCA_CLASS_NAMES.OcaStreamNetwork
-		if (obj instanceof OcaNetwork) return OCA_CLASS_NAMES.OcaNetwork
-		if (obj instanceof OcaMediaClock) return OCA_CLASS_NAMES.OcaMediaClock
 		return OCA_CLASS_NAMES.OcaRoot
 	}
 
@@ -671,6 +645,12 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		if (obj instanceof OcaMediaClock3) return OCA_CLASS_NAMES.OcaMediaClock3
 		if (obj instanceof OcaTimeSource) return OCA_CLASS_NAMES.OcaTimeSource
 		if (obj instanceof OcaPhysicalPosition) return OCA_CLASS_NAMES.OcaPhysicalPosition
+		// --- Deprecated v1 classes (aes70.js models these as OcaAgent subclasses) ---
+		if (obj instanceof OcaBlockFactoryAgent) return OCA_CLASS_NAMES.OcaBlockFactory
+		if (obj instanceof OcaStreamConnector) return OCA_CLASS_NAMES.OcaStreamConnector
+		if (obj instanceof OcaStreamNetwork) return OCA_CLASS_NAMES.OcaStreamNetwork
+		if (obj instanceof OcaNetwork) return OCA_CLASS_NAMES.OcaNetwork
+		if (obj instanceof OcaMediaClock) return OCA_CLASS_NAMES.OcaMediaClock
 		return OCA_CLASS_NAMES.OcaAgent
 	}
 
@@ -781,6 +761,12 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		else if (obj instanceof OcaMediaClock3) this.emit(OCA_CLASS_NAMES.OcaMediaClock3, obj)
 		else if (obj instanceof OcaTimeSource) this.emit(OCA_CLASS_NAMES.OcaTimeSource, obj)
 		else if (obj instanceof OcaPhysicalPosition) this.emit(OCA_CLASS_NAMES.OcaPhysicalPosition, obj)
+		// --- Deprecated v1 classes (aes70.js models these as OcaAgent subclasses) ---
+		else if (obj instanceof OcaBlockFactoryAgent) this.emit('OcaBlockFactory', obj)
+		else if (obj instanceof OcaStreamConnector) this.emit('OcaStreamConnector', obj)
+		else if (obj instanceof OcaStreamNetwork) this.emit('OcaStreamNetwork', obj)
+		else if (obj instanceof OcaNetwork) this.emit('OcaNetwork', obj)
+		else if (obj instanceof OcaMediaClock) this.emit('OcaMediaClock', obj)
 		else this.emit(OCA_CLASS_NAMES.OcaAgent, obj)
 	}
 
