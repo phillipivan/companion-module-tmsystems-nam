@@ -2,7 +2,7 @@ import { generateEslintConfig } from '@companion-module/tools/eslint/config.mjs'
 
 const baseConfig = await generateEslintConfig({
 	enableTypescript: true,
-	ignores: ['**/tests/*'],
+	ignores: ['**/tests/*', 'vitest.config.ts'],
 })
 
 const customConfig = [
@@ -17,6 +17,12 @@ const customConfig = [
 			// 'm/no-unpublished-import': 'off',
 			//'@typescript-eslint/no-unused-expressions': 'off',
 			//'@typescript-eslint/no-floating-promises': 'off',
+		},
+	},
+	{
+		files: ['src/**/*.spec.ts'],
+		rules: {
+			'n/no-unpublished-import': 'off',
 		},
 	},
 ]
