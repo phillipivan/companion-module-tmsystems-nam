@@ -71,25 +71,29 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 		]
 		const propertyChoices: DropdownChoice<string>[] = makePropChoices(readableProps)
 
-		options.push({
+		const propertyOption: SomeCompanionFeedbackInputField<keyof GetPropertyOptions> = {
 			type: 'dropdown',
 			id: 'property',
 			label: 'Property',
 			choices: propertyChoices,
 			default: propertyChoices.length >= 3 ? propertyChoices[2]?.id : propertyChoices[0]?.id,
 			disableAutoExpression: true,
-		})
-		options.push({
+		}
+		options.push(propertyOption)
+		const syncOption: SomeCompanionFeedbackInputField<keyof GetPropertyOptions> = {
 			type: 'checkbox',
 			id: 'sync',
 			label: 'Use Property Sync',
 			default: true,
 			description: 'May return complex data structure when false',
 			disableAutoExpression: true,
-		})
+		}
+		options.push(syncOption)
+		let hasEnumOption = false
 		readableProps.forEach((prop) => {
 			const enumInfo = getPropertyEnumInfo(className, prop.name)
 			if (!enumInfo) return
+			hasEnumOption = true
 			options.push({
 				type: 'checkbox',
 				id: `enum_${prop.name}`,
@@ -99,6 +103,11 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 				description: `Return enum label instead of raw value for property ${prop.name}`,
 			})
 		})
+		// disableAutoExpression is only needed to keep isVisibleExpression working for enum options above
+		if (!hasEnumOption) {
+			propertyOption.disableAutoExpression = false
+			syncOption.disableAutoExpression = false
+		}
 		const feedbackDefinition: CompanionValueFeedbackDefinition<GetPropertyOptions> = {
 			name: `${ocaClassNameToLabel(className)} - Get Property`,
 			type: 'value',
