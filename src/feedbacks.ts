@@ -77,7 +77,7 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 			label: 'Property',
 			choices: propertyChoices,
 			default: propertyChoices.length >= 3 ? propertyChoices[2]?.id : propertyChoices[0]?.id,
-			disableAutoExpression: false,
+			disableAutoExpression: true,
 		})
 		options.push({
 			type: 'checkbox',
@@ -124,12 +124,13 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 						}
 					})
 					if (propValue !== undefined) {
+						const unwrappedValue = unwrapValue(await makeSafeJsonValue(propValue, { awaitPromises: true }))
 						const useEnum = feedback.options[`enum_${property}`]
-						if (useEnum && typeof propValue === 'number') {
-							const enumLabel = getPropertyEnumValueLabel(className, property, propValue)
+						if (useEnum && typeof unwrappedValue === 'number') {
+							const enumLabel = getPropertyEnumValueLabel(className, property, unwrappedValue)
 							if (enumLabel !== undefined) return enumLabel
 						}
-						return unwrapValue(await makeSafeJsonValue(propValue, { awaitPromises: true }))
+						return unwrappedValue
 					}
 
 					// If properties sync check failed
