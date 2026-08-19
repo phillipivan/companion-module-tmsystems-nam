@@ -8,6 +8,7 @@ import {
 import type ModuleInstance from './main.js'
 import { ocaClassNameToLabel, makeSafeJsonValue, unwrapValue, excitementEmoji, makePropChoices } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
+import { getPropertyEnumInfo, getPropertyEnumValueLabel } from './consts/aes70-enums.js'
 
 type GetPropertyFeedbackKey = `get_property_${OcaClassName}`
 
@@ -15,6 +16,8 @@ type GetPropertyOptions = {
 	objectId: string
 	property: string
 	sync: boolean
+} & {
+	[K in `enum_${string}`]: boolean
 }
 
 type GetPropertyFeedback = {
@@ -82,6 +85,19 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 			label: 'Use Property Sync',
 			default: true,
 			description: 'May return complex data structure when false',
+			disableAutoExpression: true,
+		})
+		readableProps.forEach((prop) => {
+			const enumInfo = getPropertyEnumInfo(className, prop.name)
+			if (!enumInfo) return
+			options.push({
+				type: 'checkbox',
+				id: `enum_${prop.name}`,
+				label: 'Enum',
+				default: true,
+				isVisibleExpression: `$(options:property) == '${prop.name}' && $(options:sync) == true`,
+				description: `Return enum label instead of raw value for property ${prop.name}`,
+			})
 		})
 		const feedbackDefinition: CompanionValueFeedbackDefinition<GetPropertyOptions> = {
 			name: `${ocaClassNameToLabel(className)} - Get Property`,
@@ -107,7 +123,14 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 							propValue = value
 						}
 					})
-					if (propValue !== undefined) return unwrapValue(await makeSafeJsonValue(propValue, { awaitPromises: true }))
+					if (propValue !== undefined) {
+						const useEnum = feedback.options[`enum_${property}`]
+						if (useEnum && typeof propValue === 'number') {
+							const enumLabel = getPropertyEnumValueLabel(className, property, propValue)
+							if (enumLabel !== undefined) return enumLabel
+						}
+						return unwrapValue(await makeSafeJsonValue(propValue, { awaitPromises: true }))
+					}
 
 					// If properties sync check failed
 					logger.debug(`property: ${property} not found in entry.properties, trying async getter`)

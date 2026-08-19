@@ -890,19 +890,43 @@ function getEnumExpressionDescription(enumObj: Record<string, string | number>):
 	return `Accepted values: ${values.join(' | ')}`
 }
 
+function getPropertyEnumObj(
+	className: OcaClassName,
+	propertyName: string,
+): Record<string, string | number> | undefined {
+	const classMap = PROPERTY_ENUM_MAP[className]
+	if (!classMap) return undefined
+	if (!(propertyName in classMap)) return undefined
+	return classMap[propertyName]
+}
+
 /**
  * Returns PropertyEnumInfo for the enum backing a class property,
  * or undefined if no enum mapping exists for that class+property combination.
  */
 export function getPropertyEnumInfo(className: OcaClassName, propertyName: string): PropertyEnumInfo | undefined {
-	const classMap = PROPERTY_ENUM_MAP[className]
-	if (!classMap) return undefined
-	if (!(propertyName in classMap)) return undefined
-	const enumObj = classMap[propertyName]
+	const enumObj = getPropertyEnumObj(className, propertyName)
 	if (!enumObj) return undefined
 
 	return {
 		choices: enumToDropdownChoices(enumObj),
 		expressionDescription: getEnumExpressionDescription(enumObj),
 	}
+}
+
+/**
+ * Returns the enum member name for a class property's current value,
+ * or undefined if no enum mapping exists or the value isn't a member of it.
+ */
+export function getPropertyEnumValueLabel(
+	className: OcaClassName,
+	propertyName: string,
+	value: number,
+): string | undefined {
+	const enumObj = getPropertyEnumObj(className, propertyName)
+	if (!enumObj) return undefined
+
+	const key = Object.keys(enumObj).find((k) => enumObj[k] === value)
+	if (key === undefined) return undefined
+	return ocaClassNameToLabel(key)
 }

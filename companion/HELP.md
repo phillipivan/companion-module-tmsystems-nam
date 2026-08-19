@@ -23,6 +23,7 @@ When the module connects, it loads the device's role map and discovers every con
 | `Control Object`    | Dropdown listing the available objects of that class on the device                                                                                                                                                                                                         |
 | `Property`          | Dropdown listing the supported properties for that class                                                                                                                                                                                                                   |
 | `Use Property Sync` | Enabled by default - uses the library's property-tracking ("sync") mechanism to keep the feedback value up to date. When disabled, the module instead uses the library's `async` getter directly, which can return different (and sometimes more complex) data structures. |
+| `Enum`              | Shown only when the selected property is an enum and `Use Property Sync` is enabled. Enabled by default - returns the enum member's name instead of its raw numeric value.                                                                                                 |
 
 For more detail on how properties, getters, and sync work, see the [AES70.js documentation](https://docs.deuso.de/AES70.js/introduction.html).
 
@@ -32,4 +33,3 @@ For more detail on how properties, getters, and sync work, see the [AES70.js doc
 - Compatibility with custom (vendor-specific) control classes is untested.
 - Connections via UDP and WebSockets are untested.
 - Actions only support setting properties with simple data types (`string | number | boolean`), including enums with dropdowns.
-- Enum properties are only handled numerically.
