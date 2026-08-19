@@ -124,7 +124,7 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 					break
 				case 'object': {
 					const enumInfo = getPropertyEnumInfo(className, prop.name)
-					if (enumInfo) {
+					if (enumInfo && enumInfo.choices.length > 0) {
 						propertyOptions.push({
 							type: 'dropdown',
 							id: inputId,
