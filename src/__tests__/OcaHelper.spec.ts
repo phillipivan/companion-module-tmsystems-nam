@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { OcaHelper } from './OcaHelper.js'
-import { OCA_CLASS_NAMES } from './consts/aes70-constants.js'
+import { OcaHelper } from '../OcaHelper.js'
+import { OCA_CLASS_NAMES } from '../consts/aes70-constants.js'
 import {
 	OcaGain,
 	OcaMute,
@@ -224,10 +224,10 @@ describe('loadRoleMap', () => {
 		helper = new OcaHelper()
 	})
 
-	it('registers only OcaRoot instances and filters out other objects', () => {
+	it('registers only OcaRoot instances and filters out other objects', async () => {
 		const gain = makeObj(OcaGain, 1)
 		const notRoot = makePlainObjectBase(2)
-		helper.loadRoleMap(
+		await helper.loadRoleMap(
 			new Map<string, unknown>([
 				['Faders/1', gain],
 				['NotARoot/1', notRoot],
@@ -238,13 +238,13 @@ describe('loadRoleMap', () => {
 		expect(helper.hasPath('NotARoot/1')).toBe(false)
 	})
 
-	it('builds the class index and emits map:loaded with the filtered role map', () => {
+	it('builds the class index and emits map:loaded with the filtered role map', async () => {
 		const listener = vi.fn()
 		helper.on('map:loaded', listener)
 
 		const gain = makeObj(OcaGain, 1)
 		const mute = makeObj(OcaMute, 2)
-		helper.loadRoleMap(
+		await helper.loadRoleMap(
 			new Map<string, unknown>([
 				['Faders/Gain', gain],
 				['Faders/Mute', mute],
@@ -259,11 +259,11 @@ describe('loadRoleMap', () => {
 	})
 
 	it('migrates action/feedback IDs for role paths that survive a reload', async () => {
-		helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
 		await helper.addActionId('Faders/1', 'action-1')
 		await helper.addFeedbackId('Faders/1', 'feedback-1')
 
-		helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
 
 		expect(helper.resolveActionId('action-1')).toBe('Faders/1')
 		expect(helper.resolveFeedbackId('feedback-1')).toBe('Faders/1')
@@ -271,8 +271,34 @@ describe('loadRoleMap', () => {
 		expect(helper.getEntry('Faders/1')?.feedbackIds.has('feedback-1')).toBe(true)
 	})
 
+	it('disposes the old property sync and re-syncs the new object for a migrated path on reload', async () => {
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
+		await helper.addActionId('Faders/1', 'action-1')
+		const oldProps = helper.getEntry('Faders/1')?.properties as unknown as FakePropertySync
+		expect(oldProps).toBeDefined()
+
+		const newGain = makeObj(OcaGain, 1)
+		const { getPropertySync: newGetPropertySync } = rigOf(newGain)
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', newGain]]))
+
+		expect(oldProps.Dispose).toHaveBeenCalledTimes(1)
+		expect(newGetPropertySync).toHaveBeenCalledTimes(1)
+		expect(helper.getEntry('Faders/1')?.properties).toBeDefined()
+		expect(helper.getEntry('Faders/1')?.properties).not.toBe(oldProps)
+	})
+
+	it('disposes property sync for orphaned paths that held IDs on reload', async () => {
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
+		await helper.addActionId('Faders/1', 'action-1')
+		const oldProps = helper.getEntry('Faders/1')?.properties as unknown as FakePropertySync
+
+		await helper.loadRoleMap(new Map<string, unknown>())
+
+		expect(oldProps.Dispose).toHaveBeenCalledTimes(1)
+	})
+
 	it('emits ids:orphaned only for removed paths that actually held IDs', async () => {
-		helper.loadRoleMap(
+		await helper.loadRoleMap(
 			new Map<string, unknown>([
 				['Faders/1', makeObj(OcaGain, 1)],
 				['Faders/2', makeObj(OcaGain, 2)],
@@ -284,14 +310,14 @@ describe('loadRoleMap', () => {
 		helper.on('ids:orphaned', orphanedListener)
 
 		// Reload without Faders/2 (had an ID) or Faders/3 (never existed).
-		helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
 
 		expect(orphanedListener).toHaveBeenCalledExactlyOnceWith(['Faders/2'])
 		expect(helper.resolveActionId('action-2')).toBeUndefined()
 	})
 
-	it('does not emit ids:orphaned when no removed path held any IDs', () => {
-		helper.loadRoleMap(
+	it('does not emit ids:orphaned when no removed path held any IDs', async () => {
+		await helper.loadRoleMap(
 			new Map<string, unknown>([
 				['Faders/1', makeObj(OcaGain, 1)],
 				['Faders/2', makeObj(OcaGain, 2)],
@@ -301,9 +327,71 @@ describe('loadRoleMap', () => {
 		const orphanedListener = vi.fn()
 		helper.on('ids:orphaned', orphanedListener)
 
-		helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
 
 		expect(orphanedListener).not.toHaveBeenCalled()
+	})
+})
+
+// ---------------------------------------------------------------------------
+// OcaBlock membership-change notifications ('tree:changed')
+// ---------------------------------------------------------------------------
+
+describe('tree:changed notifications', () => {
+	let helper: OcaHelper
+
+	beforeEach(() => {
+		helper = new OcaHelper()
+	})
+
+	it('subscribes to OnMembersChanged for a registered OcaBlock and emits tree:changed with its role path when it fires', async () => {
+		const block = makeObj(OcaBlock, 1)
+		const subscribeSpy = vi.spyOn(block.OnMembersChanged, 'subscribe')
+
+		await helper.loadRoleMap(new Map<string, unknown>([['Groups/1', block]]))
+
+		expect(subscribeSpy).toHaveBeenCalledTimes(1)
+		const handler = subscribeSpy.mock.calls[0][0] as () => void
+
+		const listener = vi.fn()
+		helper.on('tree:changed', listener)
+		handler()
+
+		expect(listener).toHaveBeenCalledExactlyOnceWith('Groups/1')
+	})
+
+	it('does not treat non-block objects as having members to watch', async () => {
+		const gain = makeObj(OcaGain, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+
+		const listener = vi.fn()
+		helper.on('tree:changed', listener)
+		;(gain as unknown as { OnPropertyChanged: { emit: (args: unknown[]) => void } }).OnPropertyChanged.emit([])
+
+		expect(listener).not.toHaveBeenCalled()
+	})
+
+	it('unsubscribes the old block and subscribes the new one when a role path is reloaded with a different instance', async () => {
+		const blockV1 = makeObj(OcaBlock, 1)
+		const unsubscribeSpy = vi.spyOn(blockV1.OnMembersChanged, 'unsubscribe')
+		await helper.loadRoleMap(new Map<string, unknown>([['Groups/1', blockV1]]))
+
+		const blockV2 = makeObj(OcaBlock, 1)
+		const subscribeSpyV2 = vi.spyOn(blockV2.OnMembersChanged, 'subscribe')
+		await helper.loadRoleMap(new Map<string, unknown>([['Groups/1', blockV2]]))
+
+		expect(unsubscribeSpy).toHaveBeenCalledTimes(1)
+		expect(subscribeSpyV2).toHaveBeenCalledTimes(1)
+	})
+
+	it('unsubscribes a block that is no longer present in a reloaded map', async () => {
+		const block = makeObj(OcaBlock, 1)
+		const unsubscribeSpy = vi.spyOn(block.OnMembersChanged, 'unsubscribe')
+		await helper.loadRoleMap(new Map<string, unknown>([['Groups/1', block]]))
+
+		await helper.loadRoleMap(new Map<string, unknown>())
+
+		expect(unsubscribeSpy).toHaveBeenCalledTimes(1)
 	})
 })
 
@@ -314,9 +402,9 @@ describe('loadRoleMap', () => {
 describe('class index and registry queries', () => {
 	let helper: OcaHelper
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		helper = new OcaHelper()
-		helper.loadRoleMap(
+		await helper.loadRoleMap(
 			new Map<string, unknown>([
 				['Faders/1', makeObj(OcaGain, 1)],
 				['Faders/2', makeObj(OcaGain, 2)],
@@ -380,9 +468,9 @@ describe('class index and registry queries', () => {
 describe('action IDs', () => {
 	let helper: OcaHelper
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		helper = new OcaHelper()
-		helper.loadRoleMap(
+		await helper.loadRoleMap(
 			new Map<string, unknown>([
 				['Faders/1', makeObj(OcaGain, 1)],
 				['Faders/2', makeObj(OcaGain, 2)],
@@ -480,9 +568,9 @@ describe('action IDs', () => {
 describe('feedback IDs', () => {
 	let helper: OcaHelper
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		helper = new OcaHelper()
-		helper.loadRoleMap(
+		await helper.loadRoleMap(
 			new Map<string, unknown>([
 				['Faders/1', makeObj(OcaGain, 1)],
 				['Faders/2', makeObj(OcaGain, 2)],
@@ -545,7 +633,7 @@ describe('feedback IDs', () => {
 describe('clearAllIds', () => {
 	it('clears both action and feedback IDs for a path and disposes the property sync', async () => {
 		const helper = new OcaHelper()
-		helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', makeObj(OcaGain, 1)]]))
 
 		await helper.addActionId('Faders/1', 'a1')
 		await helper.addFeedbackId('Faders/1', 'f1')
@@ -579,7 +667,7 @@ describe('getClassProperties', () => {
 	it('describes properties, excluding ClassID and undefined values, deriving write from Set<Name> presence', async () => {
 		const helper = new OcaHelper()
 		const gain = makeObj(OcaGain, 1)
-		helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
 
 		const { propertySync } = rigOf(gain)
 		propertySync.forEach.mockImplementation((cb: (value: unknown, name: string) => void) => {
@@ -600,7 +688,7 @@ describe('getClassProperties', () => {
 	it('disposes the temporary property sync when the object has no registered action/feedback IDs', async () => {
 		const helper = new OcaHelper()
 		const gain = makeObj(OcaGain, 1)
-		helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
 		const { propertySync } = rigOf(gain)
 
 		await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
@@ -611,7 +699,7 @@ describe('getClassProperties', () => {
 	it('leaves the property sync open when the object already has registered IDs', async () => {
 		const helper = new OcaHelper()
 		const gain = makeObj(OcaGain, 1)
-		helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
 		await helper.addActionId('Faders/1', 'a1')
 		const { propertySync } = rigOf(gain)
 		propertySync.Dispose.mockClear()

@@ -6,7 +6,7 @@ Connect to AES70/OCA-compatible devices via TCP, UDP, or WebSockets. Get or set 
 
 #### How it works
 
-When the module connects, it loads the device's role map and discovers every control class it exposes. For each control class that has at least one property of a supported data type, the module automatically generates one action and one value feedback for that class.
+When the module connects, it loads the device's role map and discovers every control class it exposes. For each control class that has at least one property of a supported data type, the module automatically generates one action and one value feedback for that class. If the device dynamically changes its role map, the module will detect this event and reload the role map, updating the action and feedback definitions.
 
 #### Actions
 

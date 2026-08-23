@@ -234,6 +234,13 @@ interface OcaHelperInternalEvents {
 	 * Fired when properties of an object have changed that some feedbacks are subscribed to and need to be re-checked.  The set contains the IDs of the feedbacks that need to be checked.
 	 */
 	'property:change': [feedbackIds: Set<string>]
+	/**
+	 * Fired when an `OcaBlock`'s `ActionObjects` (members) change, indicating the
+	 * device's object tree has been restructured (objects added/removed).
+	 * Consumers should treat this as a signal to re-fetch the role map and call
+	 * `loadRoleMap()` again.
+	 */
+	'tree:changed': [rolePath: string]
 }
 
 // ---------------------------------------------------------------------------
@@ -362,6 +369,13 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 */
 	private _feedbackIndex: Map<string, string> = new Map()
 
+	/**
+	 * Live `OnMembersChanged` subscriptions for every `OcaBlock` in the current
+	 * role map, keyed by role path. Torn down and rebuilt on every
+	 * `loadRoleMap()` call so subscriptions never outlive their block.
+	 */
+	private _blockChangeSubscriptions: Map<string, { obj: OcaBlock; handler: () => void }> = new Map()
+
 	// -------------------------------------------------------------------------
 	// Constructor
 	// -------------------------------------------------------------------------
@@ -380,14 +394,32 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 *
 	 * Safe to call multiple times — a second call rebuilds all indexes.
 	 * Existing action/feedback IDs for paths that survive in the new map are
-	 * migrated; IDs for paths that no longer exist are dropped and the
-	 * `'ids:orphaned'` event fires.
+	 * migrated (and their property sync re-established); IDs for paths that no
+	 * longer exist are dropped and the `'ids:orphaned'` event fires. Every
+	 * previous entry's property subscription is disposed so reloading never
+	 * leaks a live `OnPropertyChanged` subscription against a discarded object.
 	 *
 	 * @param roleMap - The `Map<string, object>` from `get_role_map()`.
 	 */
-	public loadRoleMap(roleMap: Map<string, unknown>): void {
+	public async loadRoleMap(roleMap: Map<string, unknown>): Promise<void> {
 		// Snapshot existing ID registrations so we can migrate or orphan them
 		const previousEntries = new Map(this._objectRegistry)
+
+		// Tear down block member-change subscriptions before rebuilding — the
+		// objects backing them are about to be discarded.
+		for (const { obj, handler } of this._blockChangeSubscriptions.values()) {
+			obj.OnMembersChanged.unsubscribe(handler)
+		}
+		this._blockChangeSubscriptions = new Map()
+
+		// Dispose every previous entry's property subscription. The entry
+		// objects themselves are always replaced below (migrated paths get a
+		// fresh ObjectEntry too), so any live PropertySync/OnPropertyChanged
+		// subscription left on the old entry would otherwise leak and keep the
+		// remote device pushing updates nobody reads.
+		for (const previousEntry of previousEntries.values()) {
+			this._disposeProperties(previousEntry)
+		}
 
 		// Wipe all indexes
 		this._roleMap = new Map()
@@ -405,6 +437,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 
 		// Migrate or orphan previous ID registrations
 		const orphanedPaths: string[] = []
+		const entriesToSync: ObjectEntry[] = []
 		for (const [rolePath, previousEntry] of previousEntries) {
 			const currentEntry = this._objectRegistry.get(rolePath)
 			if (!currentEntry) {
@@ -423,7 +456,12 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 				currentEntry.feedbackIds.add(feedbackId)
 				this._feedbackIndex.set(feedbackId, rolePath)
 			}
+			if (this._hasAnyIds(currentEntry)) entriesToSync.push(currentEntry)
 		}
+
+		// Re-establish property sync/subscriptions on the new entries for any
+		// migrated action/feedback IDs (the old entries' sync was just disposed above).
+		await Promise.all(entriesToSync.map(async (entry) => this._syncProperties(entry)))
 
 		if (orphanedPaths.length > 0) {
 			this.emit('ids:orphaned', orphanedPaths)
@@ -454,6 +492,14 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 			actionIds: new Set(),
 			feedbackIds: new Set(),
 		})
+
+		// Blocks can gain/lose members at runtime (dynamic trees) — subscribe so
+		// callers can react by refreshing the role map.
+		if (obj instanceof OcaBlock) {
+			const handler = () => this.emit('tree:changed', rolePath)
+			obj.OnMembersChanged.subscribe(handler)
+			this._blockChangeSubscriptions.set(rolePath, { obj, handler })
+		}
 
 		// Emit typed event
 		this.determineClass(obj)

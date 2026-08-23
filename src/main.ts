@@ -16,6 +16,7 @@ export { UpgradeScripts }
 const FEEDBACK_THOTTLE_MS = 30
 const RECONNECT_DEBOUNCE = 10000
 const KEEPALIVE_INTERVAL = 2
+const ROLE_MAP_REFRESH_DEBOUNCE_MS = 1000
 
 export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	private config!: ModuleConfig // Setup in init()
@@ -28,6 +29,9 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.controller.signal,
 	)
 	private debouncedReconnect: DebouncedFunction<() => void> = this.createDebouncedReconnect(this.controller.signal)
+	private debouncedRefreshRoleMap: DebouncedFunction<() => void> = this.createDebouncedRoleMapRefresh(
+		this.controller.signal,
+	)
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -60,6 +64,10 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			this.feedbacksToCheck = new Set([...this.feedbacksToCheck, ...feedbackIds])
 			this.throttledCheckFeedbacksById()
 		})
+		this.ocaHelper.on('tree:changed', (rolePath) => {
+			this.log('info', `Device tree changed under "${rolePath}" — scheduling role map refresh`)
+			this.debouncedRefreshRoleMap()
+		})
 
 		void this.configUpdated(config)
 	}
@@ -77,6 +85,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.feedbacksToCheck.clear()
 		this.throttledCheckFeedbacksById = this.createThrottledFeedbackCheck(this.controller.signal)
 		this.debouncedReconnect = this.createDebouncedReconnect(this.controller.signal)
+		this.debouncedRefreshRoleMap = this.createDebouncedRoleMapRefresh(this.controller.signal)
 		void this.connect(config)
 	}
 
@@ -190,7 +199,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	private async getRoleMap(client: RemoteDevice): Promise<void> {
 		try {
 			const rollMap = await client.get_role_map()
-			this.ocaHelper.loadRoleMap(rollMap)
+			await this.ocaHelper.loadRoleMap(rollMap)
 			this.debouncedReconnect.cancel()
 		} catch (err) {
 			this.log('error', `get_role_map() failed: ${err instanceof Error ? err.message : String(err)}`)
@@ -230,6 +239,17 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				void this.connect(this.config)
 			},
 			RECONNECT_DEBOUNCE,
+			{ edges: ['trailing'], signal: signal },
+		)
+	}
+
+	private createDebouncedRoleMapRefresh(signal?: AbortSignal): DebouncedFunction<() => void> {
+		return debounce(
+			() => {
+				this.log('info', 'Refreshing role map after device tree change')
+				void this.getRoleMap(this.client)
+			},
+			ROLE_MAP_REFRESH_DEBOUNCE_MS,
 			{ edges: ['trailing'], signal: signal },
 		)
 	}
