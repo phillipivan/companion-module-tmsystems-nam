@@ -372,26 +372,46 @@ describe('tree:changed notifications', () => {
 	})
 
 	it('unsubscribes the old block and subscribes the new one when a role path is reloaded with a different instance', async () => {
+		// Uses has_subscribers() rather than spying on unsubscribe(): teardown
+		// uses the idempotent closure returned by subscribe() (so a connection
+		// close that already cleared the subscription doesn't throw), not the
+		// deprecated unsubscribe(callback) method.
 		const blockV1 = makeObj(OcaBlock, 1)
-		const unsubscribeSpy = vi.spyOn(blockV1.OnMembersChanged, 'unsubscribe')
 		await helper.loadRoleMap(new Map<string, unknown>([['Groups/1', blockV1]]))
+		expect(blockV1.OnMembersChanged.has_subscribers()).toBe(true)
 
 		const blockV2 = makeObj(OcaBlock, 1)
-		const subscribeSpyV2 = vi.spyOn(blockV2.OnMembersChanged, 'subscribe')
 		await helper.loadRoleMap(new Map<string, unknown>([['Groups/1', blockV2]]))
 
-		expect(unsubscribeSpy).toHaveBeenCalledTimes(1)
-		expect(subscribeSpyV2).toHaveBeenCalledTimes(1)
+		expect(blockV1.OnMembersChanged.has_subscribers()).toBe(false)
+		expect(blockV2.OnMembersChanged.has_subscribers()).toBe(true)
 	})
 
 	it('unsubscribes a block that is no longer present in a reloaded map', async () => {
 		const block = makeObj(OcaBlock, 1)
-		const unsubscribeSpy = vi.spyOn(block.OnMembersChanged, 'unsubscribe')
 		await helper.loadRoleMap(new Map<string, unknown>([['Groups/1', block]]))
+		expect(block.OnMembersChanged.has_subscribers()).toBe(true)
 
 		await helper.loadRoleMap(new Map<string, unknown>())
 
-		expect(unsubscribeSpy).toHaveBeenCalledTimes(1)
+		expect(block.OnMembersChanged.has_subscribers()).toBe(false)
+	})
+
+	it('tearing down a block subscription is safe even if the connection already cleared it (e.g. on close)', async () => {
+		// Regression test: a real connection close calls OnPropertyChanged's
+		// emit_error(), which silently wipes every subscriber — including
+		// OnMembersChanged's, via its registered error callback — before we
+		// ever get a chance to unsubscribe. Reloading afterwards must not
+		// throw "Subscriber does not exist."
+		const block = makeObj(OcaBlock, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Groups/1', block]]))
+		expect(block.OnMembersChanged.has_subscribers()).toBe(true)
+
+		type ErroringEvent = { emit_error: (err: unknown) => void }
+		;(block.OnPropertyChanged as unknown as ErroringEvent).emit_error(new Error('simulated connection close'))
+		expect(block.OnMembersChanged.has_subscribers()).toBe(false)
+
+		await expect(helper.loadRoleMap(new Map<string, unknown>())).resolves.toBeUndefined()
 	})
 })
 
@@ -504,6 +524,19 @@ describe('action IDs', () => {
 		expect(helper.resolveActionId('missing')).toBeUndefined()
 		expect(helper.getObjectByActionId('missing')).toBeUndefined()
 		expect(helper.hasActionId('missing')).toBe(false)
+	})
+
+	it('disposing properties is safe even if the connection already cleared the subscription (e.g. on close)', async () => {
+		// Regression test: a real connection close calls OnPropertyChanged's
+		// own emit_error(), which silently wipes its subscriber list before we
+		// ever get a chance to unsubscribe. Disposal afterwards (e.g. via a
+		// reconnect's loadRoleMap()) must not throw "Subscriber does not exist."
+		await helper.addActionId('Faders/1', 'a1')
+		const obj = helper.getObject('Faders/1') as unknown as { OnPropertyChanged: { emit_error: (err: unknown) => void } }
+
+		obj.OnPropertyChanged.emit_error(new Error('simulated connection close'))
+
+		expect(() => helper.clearActionIds('Faders/1')).not.toThrow()
 	})
 
 	it('reassigns an ID already registered to a different path, disposing the old path if emptied', async () => {

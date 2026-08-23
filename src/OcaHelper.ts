@@ -99,6 +99,7 @@ import {
 	OcaWorker,
 } from 'aes70/src/controller/ControlClasses.js'
 import { ObjectBase } from 'aes70/src/controller/object_base.js'
+import { CloseError } from 'aes70'
 import type { PropertySync, OcaRootProperties } from '../types/aes70.js'
 import { OCA_CLASS_NAMES, type OcaClassName } from './consts/aes70-constants.js'
 import { createModuleLogger, type DropdownChoice } from '@companion-module/base'
@@ -266,7 +267,13 @@ export interface ObjectEntry {
 	 * subscriptions have been disposed.
 	 */
 	properties?: PropertySync<OcaRootProperties>
-	onPropertyChanged?: () => void
+	/**
+	 * Idempotent cleanup closure returned by `OnPropertyChanged.subscribe()`.
+	 * Safe to call even if the underlying connection already cleared this
+	 * subscription (e.g. on a connection close) — unlike `.unsubscribe()`,
+	 * which throws in that case.
+	 */
+	unsubscribeProperties?: () => void
 }
 
 export type JavaScriptType = 'string' | 'number' | 'bigint' | 'boolean' | 'symbol' | 'undefined' | 'object' | 'function'
@@ -370,11 +377,15 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	private _feedbackIndex: Map<string, string> = new Map()
 
 	/**
-	 * Live `OnMembersChanged` subscriptions for every `OcaBlock` in the current
-	 * role map, keyed by role path. Torn down and rebuilt on every
-	 * `loadRoleMap()` call so subscriptions never outlive their block.
+	 * Idempotent cleanup closures (returned by `OnMembersChanged.subscribe()`)
+	 * for every `OcaBlock` in the current role map, keyed by role path. Torn
+	 * down and rebuilt on every `loadRoleMap()` call so subscriptions never
+	 * outlive their block. Using the closure rather than `.unsubscribe()`
+	 * means teardown is safe even if the connection already cleared the
+	 * subscription (e.g. on a connection close) — `.unsubscribe()` throws in
+	 * that case.
 	 */
-	private _blockChangeSubscriptions: Map<string, { obj: OcaBlock; handler: () => void }> = new Map()
+	private _blockChangeSubscriptions: Map<string, () => void> = new Map()
 
 	// -------------------------------------------------------------------------
 	// Constructor
@@ -407,8 +418,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 
 		// Tear down block member-change subscriptions before rebuilding — the
 		// objects backing them are about to be discarded.
-		for (const { obj, handler } of this._blockChangeSubscriptions.values()) {
-			obj.OnMembersChanged.unsubscribe(handler)
+		for (const unsubscribe of this._blockChangeSubscriptions.values()) {
+			unsubscribe()
 		}
 		this._blockChangeSubscriptions = new Map()
 
@@ -496,9 +507,11 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		// Blocks can gain/lose members at runtime (dynamic trees) — subscribe so
 		// callers can react by refreshing the role map.
 		if (obj instanceof OcaBlock) {
-			const handler = () => this.emit('tree:changed', rolePath)
-			obj.OnMembersChanged.subscribe(handler)
-			this._blockChangeSubscriptions.set(rolePath, { obj, handler })
+			const unsubscribe = obj.OnMembersChanged.subscribe(
+				() => this.emit('tree:changed', rolePath),
+				(err: unknown) => this._logSubscriptionError(`OnMembersChanged subscription for "${rolePath}"`, err),
+			)
+			this._blockChangeSubscriptions.set(rolePath, unsubscribe)
 		}
 
 		// Emit typed event
@@ -1221,6 +1234,23 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	}
 
 	/**
+	 * Logs a subscription failure/error-callback invocation. `CloseError` is
+	 * expected whenever the connection closes — deliberate shutdown, a
+	 * reconnect, or the device dropping the session — and every live
+	 * subscription reports one at once, so those are logged at `debug`
+	 * (surfacing the underlying cause when there is one) to keep routine
+	 * teardown out of the normal log. Anything else is a genuine, unexpected
+	 * failure and is logged at `warn`.
+	 */
+	private _logSubscriptionError(context: string, err: unknown): void {
+		if (err instanceof CloseError) {
+			this.logger.debug(`${context}: connection closed${err.error ? ` (${err.error})` : ''}`)
+			return
+		}
+		this.logger.warn(`${context}: ${err}`)
+	}
+
+	/**
 	 * Call GetPropertySync on the entry's object, await sync(), and store the
 	 * result so property values are live and subscribed.
 	 * Safe to call even if properties are already synced (no-op in that case).
@@ -1232,12 +1262,17 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 			await properties.sync()
 			entry.properties = properties
 
-			const handler = () => {
-				if (entry.feedbackIds.size === 0) return
-				this.emit('property:change', new Set(entry.feedbackIds))
-			}
-			entry.onPropertyChanged = handler
-			entry.obj.OnPropertyChanged.subscribe(handler)
+			entry.unsubscribeProperties = entry.obj.OnPropertyChanged.subscribe(
+				() => {
+					if (entry.feedbackIds.size === 0) return
+					this.emit('property:change', new Set(entry.feedbackIds))
+				},
+				(err: unknown) =>
+					this._logSubscriptionError(
+						`OnPropertyChanged subscription for "${entry.className}" (ONo ${entry.obj.ObjectNumber})`,
+						err,
+					),
+			)
 		} catch (err) {
 			this.logger.warn(`Failed to sync properties for "${entry.className}" (ONo ${entry.obj.ObjectNumber}): ${err}`)
 		}
@@ -1251,10 +1286,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		if (entry.properties === undefined) return
 		entry.properties.Dispose()
 		entry.properties = undefined
-		if (entry.onPropertyChanged) {
-			entry.obj.OnPropertyChanged.unsubscribe(entry.onPropertyChanged)
-			entry.onPropertyChanged = undefined
-		}
+		entry.unsubscribeProperties?.()
+		entry.unsubscribeProperties = undefined
 	}
 
 	private _requireEntry(rolePath: string): ObjectEntry {

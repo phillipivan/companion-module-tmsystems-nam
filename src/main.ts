@@ -192,7 +192,10 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			this.log('info', `Connected to Device:\n${JSON.stringify(product, null, 2)}`)
 			this.debouncedReconnect.cancel()
 		} catch (err) {
-			this.log('warn', `GetProduct() not supported by this device: ${err instanceof Error ? err.message : String(err)}`)
+			this.log(
+				'debug',
+				`GetProduct() not supported by this device: ${err instanceof Error ? err.message : String(err)}`,
+			)
 		}
 	}
 

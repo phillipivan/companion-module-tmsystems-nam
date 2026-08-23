@@ -378,8 +378,21 @@ export type OcaObjectSearchResultFlags = { valueOf(): number; toString(): string
 // ---------------------------------------------------------------------------
 
 export interface Event<T = void> {
-	subscribe(callback: T extends void ? () => void : (value: T) => void): void
+	/**
+	 * Returns an idempotent unsubscribe closure. Prefer calling this over
+	 * `unsubscribe(callback)` — the closure is a no-op if the subscription was
+	 * already cleared (e.g. by a connection close), whereas `unsubscribe()`
+	 * throws in that case.
+	 *
+	 * Pass `onError` — without it, a failed subscription or a later delivery
+	 * error is swallowed with nothing but a `console.warn`, invisible to the
+	 * module's own logging.
+	 */
+	subscribe(callback: T extends void ? () => void : (value: T) => void, onError?: (error: unknown) => void): () => void
+	/** @deprecated Use the closure returned from subscribe() instead — this throws if the subscription no longer exists. */
 	unsubscribe(callback: T extends void ? () => void : (value: T) => void): void
+	/** True if this event currently has at least one live subscriber. */
+	has_subscribers(): boolean
 	/** Alias with a typo kept from the original docs. */
 	Dipose(): void
 }
