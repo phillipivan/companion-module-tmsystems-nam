@@ -22,7 +22,7 @@
 		"entrypoint": "../dist/main.js"
 	},
 	"legacyIds": [],
-	"manufacturer": "generic",
+	"manufacturer": "Generic",
 	"products": ["AES70"],
 	"keywords": ["OCA", "Open Control Architecture"],
 	"bonjourQueries": {
