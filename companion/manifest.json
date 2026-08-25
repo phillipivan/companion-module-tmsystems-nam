@@ -6,7 +6,7 @@
 	"shortname": "AES70",
 	"description": "Open Control Architecture: AES70",
 	"version": "0.0.0",
-	"license": "MIT",
+	"license": "GPL-2.0-only",
 	"repository": "git+https://github.com/bitfocus/companion-module-generic-aes70.git",
 	"bugs": "https://github.com/bitfocus/companion-module-generic-aes70.git/issues",
 	"maintainers": [
