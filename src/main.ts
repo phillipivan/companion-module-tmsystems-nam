@@ -17,6 +17,7 @@ const FEEDBACK_THOTTLE_MS = 30
 const RECONNECT_DEBOUNCE = 10000
 const KEEPALIVE_INTERVAL = 2
 const ROLE_MAP_REFRESH_DEBOUNCE_MS = 1000
+const SUBSCRIPTION_PROBE_SETTLE_MS = 500
 
 export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	private config!: ModuleConfig // Setup in init()
@@ -137,9 +138,43 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 		this.client.set_keepalive_interval(KEEPALIVE_INTERVAL)
 
+		await this.primeSubscriptionSupportProbe(this.client)
+
 		await this.getDeviceInfo(this.client)
 
 		await this.getRoleMap(this.client)
+	}
+
+	/**
+	 * aes70's RemoteDevice probes AddSubscription2 ("EV2") support on the very
+	 * first subscribe() of a session, falling back to the older v1
+	 * AddSubscription if the device rejects it — but any subscribe() issued
+	 * concurrently with that first probe just awaits the same in-flight
+	 * promise with no fallback of its own, so on a device that doesn't
+	 * support AddSubscription2 its subscription is silently and permanently
+	 * dropped (a race condition in aes70's remote_device.js _doSubscribe).
+	 *
+	 * loadRoleMap() and checkAllFeedbacks()/subscribeActions() both subscribe
+	 * to many objects in a tight synchronous burst right after connecting, so
+	 * without this, most of those race the probe and lose. Firing one
+	 * throwaway subscribe here first, and giving it time to settle before any
+	 * of that bulk subscribing starts, keeps everything after it out of the
+	 * race window.
+	 */
+	private async primeSubscriptionSupportProbe(client: RemoteDevice): Promise<void> {
+		try {
+			const unsubscribe = client.DeviceManager.OnPropertyChanged.subscribe(
+				() => undefined,
+				() => undefined,
+			)
+			await new Promise((resolve) => setTimeout(resolve, SUBSCRIPTION_PROBE_SETTLE_MS))
+			unsubscribe()
+		} catch (err) {
+			this.log(
+				'debug',
+				`Priming subscription-support probe failed: ${err instanceof Error ? err.message : String(err)}`,
+			)
+		}
 	}
 
 	private async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
