@@ -15,7 +15,7 @@
 		"test": "vitest run",
 		"test:watch": "vitest"
 	},
-	"license": "GPL-2.0-only",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/bitfocus/companion-module-generic-aes70.git"
@@ -31,7 +31,7 @@
 		"ws": "^8.21.3"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^3.0.2",
+		"@companion-module/tools": "^3.1.0",
 		"@types/node": "^26.4.0",
 		"@types/ws": "^8.18.1",
 		"eslint": "^10.9.1",
