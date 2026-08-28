@@ -177,11 +177,26 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		}
 	}
 
+	/**
+	 * aes70 batches same-type PDUs into a single OCP.1 message (messageCount > 1)
+	 * up to this many bytes. That is spec-legal, but some devices only ever read
+	 * one PDU per message and then resync from the wrong stream offset, reporting
+	 * a nonsense message length and dropping the connection. A batch size of 0
+	 * flushes every PDU as its own message, which those devices accept.
+	 *
+	 * Returns `undefined` when batching is enabled so the library keeps its own
+	 * per-transport default.
+	 */
+	private batchSizeFor(config: ModuleConfig): number | undefined {
+		return config.batchCommands ? undefined : 0
+	}
+
 	private async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
 		this.log('info', `Initializing TCP connection to ${config.host}:${config.port || DEFAULT_PORT}`)
 		return TCPConnection.connect({
 			host: config.host,
 			port: config.port || DEFAULT_PORT,
+			batch: this.batchSizeFor(config),
 		})
 	}
 
@@ -190,13 +205,17 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		return UDPConnection.connect({
 			host: config.host,
 			port: config.port || DEFAULT_PORT,
+			batch: this.batchSizeFor(config),
 		})
 	}
 
 	private async initWebSocketConnection(config: ModuleConfig): Promise<WebSocketConnection> {
 		const WsPath = `ws://${config.host}:${config.port || DEFAULT_PORT}`
 		this.log('info', `Initializing WebSocket connection to ${WsPath}`)
-		return WebSocketConnection.connect({ url: WsPath }, WebSocket as unknown as WebSocketConstructor)
+		return WebSocketConnection.connect(
+			{ url: WsPath, batch: this.batchSizeFor(config) },
+			WebSocket as unknown as WebSocketConstructor,
+		)
 	}
 
 	private setupClientEventListeners(client: RemoteDevice): void {

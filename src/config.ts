@@ -7,6 +7,7 @@ export type ModuleConfig = {
 	host: string
 	port: number
 	protocol: 'tcp' | 'udp' | 'ws'
+	batchCommands?: boolean
 }
 
 export function GetConfigFields(): SomeCompanionConfigField[] {
@@ -47,6 +48,15 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			],
 			default: 'tcp',
 			isVisibleExpression: `!$(options:bonjourHost)`,
+		},
+		{
+			type: 'checkbox',
+			id: 'batchCommands',
+			label: 'Batch commands',
+			tooltip:
+				'Combine multiple commands into a single OCP.1 message (spec-legal and faster, especially while enumerating the device). Some devices only accept one command per message and will desync and drop the connection — if the device logs invalid message length errors, or the connection drops shortly after connecting, turn this off.',
+			width: 4,
+			default: true,
 		},
 	]
 }
