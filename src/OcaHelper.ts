@@ -387,6 +387,14 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 */
 	private _blockChangeSubscriptions: Map<string, () => void> = new Map()
 
+	/**
+	 * Per-class property descriptions discovered by `getClassProperties()`,
+	 * cached for the lifetime of the current role map so the device is probed
+	 * once per class rather than once per caller. Cleared by `loadRoleMap()`,
+	 * since a reload can change which object represents each class.
+	 */
+	private _classPropertiesCache: Map<OcaClassName, Promise<PropertyDescription[]>> = new Map()
+
 	// -------------------------------------------------------------------------
 	// Constructor
 	// -------------------------------------------------------------------------
@@ -438,6 +446,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		this._objectRegistry = new Map()
 		this._actionIndex = new Map()
 		this._feedbackIndex = new Map()
+		this._classPropertiesCache = new Map()
 
 		// Populate
 		for (const [rolePath, obj] of roleMap) {
@@ -911,11 +920,31 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	}
 
 	/**
-	 * Return an array of property descriptions for the given class
-	 * ```
+	 * Return an array of property descriptions for the given class.
+	 *
+	 * Discovering properties means reading every property off one representative
+	 * object, which on devices that don't implement the optional `OcaRoot` /
+	 * `OcaWorker` properties produces a burst of NotImplemented/BadMethod
+	 * responses. The result is therefore cached per class for as long as the
+	 * current role map is loaded, so repeat callers (action *and* feedback
+	 * definition building) don't re-probe the device.
 	 */
-
 	public async getClassProperties(className: OcaClassName): Promise<PropertyDescription[]> {
+		const cached = this._classPropertiesCache.get(className)
+		if (cached) return cached
+
+		const pending = this._readClassProperties(className)
+		this._classPropertiesCache.set(className, pending)
+		try {
+			return await pending
+		} catch (err) {
+			// Don't cache a failure — a later attempt may succeed.
+			this._classPropertiesCache.delete(className)
+			throw err
+		}
+	}
+
+	private async _readClassProperties(className: OcaClassName): Promise<PropertyDescription[]> {
 		const rolePath = this._classIndex.get(className)?.values().next().value
 		this.logger.debug(`Getting properties for class "${className}" using role path "${rolePath}".`)
 		const entry = this._objectRegistry.get(rolePath ?? '')

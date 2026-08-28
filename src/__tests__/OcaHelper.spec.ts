@@ -741,6 +741,65 @@ describe('getClassProperties', () => {
 
 		expect(propertySync.Dispose).not.toHaveBeenCalled()
 	})
+
+	// Discovery reads every property off a representative object, which on
+	// devices lacking the optional OcaRoot/OcaWorker properties produces a burst
+	// of NotImplemented/BadMethod responses — so it must happen once per class,
+	// not once per caller (action and feedback definitions both ask).
+	it('probes the device only once per class, serving repeat callers from cache', async () => {
+		const helper = new OcaHelper()
+		const gain = makeObj(OcaGain, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+		const { getPropertySync, propertySync } = rigOf(gain)
+
+		const first = await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
+		const second = await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
+
+		expect(getPropertySync).toHaveBeenCalledTimes(1)
+		expect(propertySync.sync).toHaveBeenCalledTimes(1)
+		expect(second).toEqual(first)
+	})
+
+	it('does not re-probe when concurrent callers ask for the same class', async () => {
+		const helper = new OcaHelper()
+		const gain = makeObj(OcaGain, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+		const { getPropertySync } = rigOf(gain)
+
+		await Promise.all([
+			helper.getClassProperties(OCA_CLASS_NAMES.OcaGain),
+			helper.getClassProperties(OCA_CLASS_NAMES.OcaGain),
+		])
+
+		expect(getPropertySync).toHaveBeenCalledTimes(1)
+	})
+
+	it('re-probes after loadRoleMap, since the representative object may have changed', async () => {
+		const helper = new OcaHelper()
+		const gainV1 = makeObj(OcaGain, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gainV1]]))
+		await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
+		expect(rigOf(gainV1).getPropertySync).toHaveBeenCalledTimes(1)
+
+		const gainV2 = makeObj(OcaGain, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gainV2]]))
+		await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
+
+		expect(rigOf(gainV2).getPropertySync).toHaveBeenCalledTimes(1)
+	})
+
+	it('does not cache a failed probe, so a later attempt can still succeed', async () => {
+		const helper = new OcaHelper()
+		const gain = makeObj(OcaGain, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+		const { getPropertySync, propertySync } = rigOf(gain)
+		propertySync.sync.mockRejectedValueOnce(new Error('device unreachable'))
+
+		await expect(helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)).rejects.toThrow(/device unreachable/)
+		await expect(helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)).resolves.toBeDefined()
+
+		expect(getPropertySync).toHaveBeenCalledTimes(2)
+	})
 })
 
 // ---------------------------------------------------------------------------
