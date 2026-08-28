@@ -255,8 +255,8 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 	private async getRoleMap(client: RemoteDevice): Promise<void> {
 		try {
-			const rollMap = await client.get_role_map()
-			await this.ocaHelper.loadRoleMap(rollMap)
+			const roleMap = await client.get_role_map()
+			await this.ocaHelper.loadRoleMap(roleMap)
 			this.debouncedReconnect.cancel()
 		} catch (err) {
 			this.log('error', `get_role_map() failed: ${err instanceof Error ? err.message : String(err)}`)
