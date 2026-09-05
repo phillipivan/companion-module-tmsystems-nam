@@ -9,3 +9,4 @@ DEBUG-*
 .DS_Store
 *.csv
 *.log
+/enums.txt
