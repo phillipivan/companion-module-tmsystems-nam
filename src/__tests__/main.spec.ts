@@ -4,10 +4,11 @@ import type * as CompanionBase from '@companion-module/base'
 import { InstanceStatus } from '@companion-module/base'
 import type * as Reconnect from '../reconnect.js'
 import ModuleInstance from '../main.js'
+import type { ModuleConfig } from '../config.js'
 import { FakeOcaDeviceRouter, OcaStatus, registerGetProduct, registerMinimalRoleMap } from './fakeOcaDevice.js'
 
 /**
- * Drives ModuleInstance's connection recovery end to end, against a fake
+ * Drives ModuleInstance's connection lifecycle end to end, against a fake
  * device over a real local WebSocket. InstanceBase is swapped for a stub,
  * since there is no Companion host to talk to, and the backoff delays are
  * shrunk so retries land within the test timeout.
@@ -51,6 +52,8 @@ interface FakeDevice {
 	refuseRoleMap: number
 	/** Drop the socket, unanswered, on this many upcoming role map walks. */
 	dropOnRoleMap: number
+	/** Hold the WebSocket handshake of upcoming connections for these delays, in arrival order. */
+	readonly handshakeDelaysMs: number[]
 	close(): Promise<void>
 }
 
@@ -58,9 +61,16 @@ async function startFakeDevice(): Promise<FakeDevice> {
 	// Answer what the fake doesn't model (the subscription probe) as a real device would
 	const router = new FakeOcaDeviceRouter({ unhandledStatus: OcaStatus.NotImplemented })
 	const sockets = new Set<WebSocket>()
+	const handshakeDelaysMs: number[] = []
 	let dropPending = false
 
-	const server = new WebSocketServer({ host: '127.0.0.1', port: 0 })
+	const server = new WebSocketServer({
+		host: '127.0.0.1',
+		port: 0,
+		verifyClient: (_info: unknown, done: (result: boolean) => void) => {
+			setTimeout(() => done(true), handshakeDelaysMs.shift() ?? 0)
+		},
+	})
 	await new Promise<void>((resolve) => server.once('listening', resolve))
 	const address = server.address()
 	if (typeof address === 'string' || address === null) throw new Error('Expected an AddressInfo.')
@@ -74,6 +84,7 @@ async function startFakeDevice(): Promise<FakeDevice> {
 		roleMapRequests: 0,
 		refuseRoleMap: 0,
 		dropOnRoleMap: 0,
+		handshakeDelaysMs,
 		close: async () => {
 			for (const ws of sockets) ws.terminate()
 			await new Promise<void>((resolve) => server.close(() => resolve()))
@@ -121,6 +132,14 @@ async function startFakeDevice(): Promise<FakeDevice> {
 	return device
 }
 
+function configFor(device: FakeDevice): ModuleConfig {
+	return { host: '127.0.0.1', port: device.port, protocol: 'ws', batchCommands: true }
+}
+
+async function sleep(ms: number): Promise<void> {
+	await new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 /** The stubbed updateStatus, reached through the stub rather than as an unbound method of ModuleInstance. */
 function updateStatusOf(instance: ModuleInstance): Mock<ModuleInstance['updateStatus']> {
 	return (instance as unknown as { updateStatus: Mock<ModuleInstance['updateStatus']> }).updateStatus
@@ -137,7 +156,7 @@ async function waitForOk(instance: ModuleInstance): Promise<void> {
 	})
 }
 
-describe('ModuleInstance connection recovery (fake local device)', () => {
+describe('ModuleInstance connection lifecycle (fake local device)', () => {
 	let device: FakeDevice | undefined
 	let instance: ModuleInstance | undefined
 
@@ -150,7 +169,7 @@ describe('ModuleInstance connection recovery (fake local device)', () => {
 
 	async function connect(fake: FakeDevice): Promise<ModuleInstance> {
 		const inst = new ModuleInstance({})
-		await inst.init({ host: '127.0.0.1', port: fake.port, protocol: 'ws', batchCommands: true })
+		await inst.init(configFor(fake))
 		return inst
 	}
 
@@ -192,10 +211,66 @@ describe('ModuleInstance connection recovery (fake local device)', () => {
 		await waitForOk(instance)
 
 		// Outlast the longest backoff delay, so a duplicate reconnect would have happened by now
-		await new Promise((resolve) => setTimeout(resolve, 400))
+		await sleep(400)
 
 		expect(device.connections).toBe(2)
 		expect(device.openConnections).toBe(1)
 		expect(device.roleMapRequests).toBe(2)
+	}, 10000)
+
+	it('closes a connection that finishes opening after a newer connect() superseded it', async () => {
+		device = await startFakeDevice()
+		// Hold the first handshake, so the attempt started second opens first
+		device.handshakeDelaysMs.push(300)
+
+		const inst = await connect(device)
+		instance = inst
+		await inst.configUpdated(configFor(device))
+		await waitForOk(inst)
+		// The held handshake has completed by now; give the superseded attempt's close time to land
+		await sleep(400)
+
+		expect(device.connections).toBe(2)
+		expect(device.openConnections).toBe(1)
+		expect(device.roleMapRequests).toBe(1)
+	}, 10000)
+
+	it('closes a connection that finishes opening after destroy()', async () => {
+		device = await startFakeDevice()
+		device.handshakeDelaysMs.push(300)
+
+		const inst = await connect(device)
+		instance = inst
+		await inst.destroy()
+		// Past the held handshake and the subscription probe, when a surviving attempt would walk the role map
+		await sleep(1000)
+
+		expect(device.connections).toBe(1)
+		expect(device.openConnections).toBe(0)
+		expect(device.roleMapRequests).toBe(0)
+	}, 10000)
+
+	it('stands down an attempt superseded after adopting its connection, leaving the newer one alone', async () => {
+		device = await startFakeDevice()
+		const inst = await connect(device)
+		instance = inst
+		// The first attempt has adopted its connection and is waiting out the subscription probe
+		await vi.waitFor(
+			() =>
+				expect(updateStatusOf(inst)).toHaveBeenCalledWith(
+					InstanceStatus.Connecting,
+					'Connection open, setting up remote device...',
+				),
+			{ timeout: 5000, interval: 5 },
+		)
+
+		await inst.configUpdated(configFor(device))
+		await waitForOk(inst)
+		// Outlast the longest backoff delay, so a reconnect caused by the stale attempt would have happened
+		await sleep(400)
+
+		expect(device.connections).toBe(2)
+		expect(device.openConnections).toBe(1)
+		expect(device.roleMapRequests).toBe(1)
 	}, 10000)
 })

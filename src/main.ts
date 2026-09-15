@@ -35,6 +35,8 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	public ocaHelper = new OcaHelper()
 	private feedbacksToCheck: Set<string> = new Set()
 	private controller = new AbortController()
+	/** Aborted when a newer connect() call supersedes the one in flight. */
+	private connectAttempt: AbortController | undefined
 	private throttledCheckFeedbacksById: ThrottledFunction<() => void> = this.createThrottledFeedbackCheck(
 		this.controller.signal,
 	)
@@ -120,7 +122,21 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		if (this.connection) this.connection.close()
 	}
 
+	/**
+	 * Only the most recent call may adopt a connection. Each call supersedes the
+	 * attempt still in flight, if any, and a superseded attempt stands down at
+	 * its next await: before adopting, it closes the connection it opened, since
+	 * closeConnection() ran before that connection existed and nothing else would
+	 * close it; after adopting, it just stops, since the newer call's
+	 * closeConnection() has already closed its connection, and carrying on would
+	 * act on this.connection, which now belongs to the newer attempt. destroy()
+	 * and configUpdated() stand it down the same way, via the instance controller.
+	 */
 	private async connect(config: ModuleConfig): Promise<void> {
+		this.connectAttempt?.abort()
+		this.connectAttempt = new AbortController()
+		const signal = AbortSignal.any([this.controller.signal, this.connectAttempt.signal])
+
 		// Clean up existing connection and listeners
 		this.closeConnection()
 
@@ -129,13 +145,14 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			return
 		}
 
+		let connection: TCPConnection | UDPConnection | WebSocketConnection
 		try {
-			if (config.protocol === 'ws') this.connection = await this.initWebSocketConnection(config)
-			else if (config.protocol === 'udp') this.connection = await this.initUdpConnection(config)
-			else this.connection = await this.initTcpConnection(config)
-
-			this.updateStatus(InstanceStatus.Connecting, 'Connection open, setting up remote device...')
+			if (config.protocol === 'ws') connection = await this.initWebSocketConnection(config)
+			else if (config.protocol === 'udp') connection = await this.initUdpConnection(config)
+			else connection = await this.initTcpConnection(config)
 		} catch (err) {
+			// A superseded attempt failing is of no consequence
+			if (signal.aborted) return
 			this.log('error', `Connection failed: ${err instanceof Error ? err.message : String(err)}`)
 			this.updateStatus(
 				InstanceStatus.ConnectionFailure,
@@ -146,17 +163,29 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			return
 		}
 
-		this.client = new RemoteDevice(this.connection)
+		if (signal.aborted) {
+			this.log('debug', 'Connection attempt was superseded while opening, closing it')
+			connection.close()
+			return
+		}
 
-		this.setupClientEventListeners(this.client)
+		this.connection = connection
+		this.updateStatus(InstanceStatus.Connecting, 'Connection open, setting up remote device...')
 
-		this.client.set_keepalive_interval(KEEPALIVE_INTERVAL)
+		const client = new RemoteDevice(connection)
+		this.client = client
 
-		await this.primeSubscriptionSupportProbe(this.client)
+		this.setupClientEventListeners(client)
 
-		await this.getDeviceInfo(this.client)
+		client.set_keepalive_interval(KEEPALIVE_INTERVAL)
 
-		await this.getRoleMap(this.client)
+		await this.primeSubscriptionSupportProbe(client)
+		if (signal.aborted) return
+
+		await this.getDeviceInfo(client, signal)
+		if (signal.aborted) return
+
+		await this.getRoleMap(client, signal)
 	}
 
 	/**
@@ -254,12 +283,14 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		})
 	}
 
-	private async getDeviceInfo(client: RemoteDevice): Promise<void> {
+	private async getDeviceInfo(client: RemoteDevice, signal: AbortSignal): Promise<void> {
 		try {
 			const product = await client.DeviceManager.GetProduct()
+			if (signal.aborted) return
 			this.log('info', `Connected to Device:\n${JSON.stringify(product, null, 2)}`)
 			this.reconnect.cancel()
 		} catch (err) {
+			if (signal.aborted) return
 			this.log(
 				'debug',
 				`GetProduct() not supported by this device: ${err instanceof Error ? err.message : String(err)}`,
@@ -273,12 +304,18 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	 * that was briefly unable to answer (booting, busy) then recovers by itself,
 	 * and a host that never will is only retried every few minutes.
 	 */
-	private async getRoleMap(client: RemoteDevice): Promise<void> {
+	private async getRoleMap(client: RemoteDevice, signal: AbortSignal): Promise<void> {
 		try {
 			const roleMap = await client.get_role_map()
+			// Superseded while walking the device: don't load a map for a connection already closed
+			if (signal.aborted) return
 			await this.ocaHelper.loadRoleMap(roleMap)
+			if (signal.aborted) return
 			this.reconnect.reset()
 		} catch (err) {
+			// Superseded: the failure belongs to a connection already closed, and closing or
+			// rescheduling from here would act on the newer attempt's connection
+			if (signal.aborted) return
 			if (this.isConnectionLost(err)) {
 				// The error/close listener has already set the status and scheduled the reconnect
 				this.log(
@@ -312,9 +349,12 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	private async refreshRoleMap(client: RemoteDevice): Promise<void> {
 		try {
 			const roleMap = await client.get_role_map()
+			// Replaced by a reconnect mid-walk, which loads its own role map
+			if (client !== this.client) return
 			await this.ocaHelper.loadRoleMap(roleMap)
 			this.roleMapRefreshRetry.reset()
 		} catch (err) {
+			if (client !== this.client) return
 			const message = err instanceof Error ? err.message : String(err)
 			if (this.isConnectionLost(err)) {
 				// The error/close listener has already scheduled the reconnect, which loads a fresh role map
