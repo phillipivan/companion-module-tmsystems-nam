@@ -114,16 +114,21 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 			options: options,
 			callback: async (feedback) => {
 				const objectId = feedback.options.objectId
-				const oldId = feedback.previousOptions?.objectId
-				if (objectId !== oldId) {
-					await self.ocaHelper.addFeedbackId(objectId, feedback.id)
-				}
 				const property = feedback.options.property
 				const sync = feedback.options.sync
 				const entry = self.ocaHelper.getEntry(objectId)
 				if (!entry) {
+					// Don't leave it registered to an object it no longer points at
+					self.ocaHelper.removeFeedbackId(feedback.id)
 					logger.warn(`No entry found for objectId ${objectId}. Aborting feedback check ${feedback.id}`)
 					return null
+				}
+				// Register whenever this feedback isn't registered to its object, not only when previousOptions
+				// says the object changed. Companion resets previousOptions each time it re-sends the feedback,
+				// which includes every setFeedbackDefinitions, so a registration dropped by a role map reload
+				// would otherwise never come back. Once registered, this is just a map lookup.
+				if (self.ocaHelper.resolveFeedbackId(feedback.id) !== objectId) {
+					await self.ocaHelper.addFeedbackId(objectId, feedback.id)
 				}
 				if (sync) {
 					let propValue: any = undefined
