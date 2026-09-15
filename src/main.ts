@@ -5,34 +5,44 @@ import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
 import { WebSocket } from 'ws'
-import { TCPConnection, UDPConnection, WebSocketConnection, RemoteDevice, type WebSocketConstructor } from 'aes70'
+import {
+	CloseError,
+	TCPConnection,
+	UDPConnection,
+	WebSocketConnection,
+	RemoteDevice,
+	type WebSocketConstructor,
+} from 'aes70'
 import { debounce, type DebouncedFunction, throttle, type ThrottledFunction } from 'es-toolkit'
 import { OcaModuleTypes } from './types.js'
 import { handleBonjourHost } from './utils.js'
 import { OcaHelper } from './OcaHelper.js'
+import { BackoffScheduler, RECONNECT_BACKOFF, ROLE_MAP_REFRESH_BACKOFF } from './reconnect.js'
 
 export { UpgradeScripts }
 
 const FEEDBACK_THOTTLE_MS = 30
-const RECONNECT_DEBOUNCE = 10000
 const KEEPALIVE_INTERVAL = 2
 const ROLE_MAP_REFRESH_DEBOUNCE_MS = 1000
 const SUBSCRIPTION_PROBE_SETTLE_MS = 500
+/** Consecutive failed connection attempts after which the log suggests checking the host is an AES70 device. */
+const NOT_AES70_HINT_AFTER_ATTEMPTS = 3
 
 export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	private config!: ModuleConfig // Setup in init()
 	private client!: RemoteDevice
-	private connection!: TCPConnection | UDPConnection | WebSocket
+	private connection!: TCPConnection | UDPConnection | WebSocketConnection
 	public ocaHelper = new OcaHelper()
 	private feedbacksToCheck: Set<string> = new Set()
 	private controller = new AbortController()
 	private throttledCheckFeedbacksById: ThrottledFunction<() => void> = this.createThrottledFeedbackCheck(
 		this.controller.signal,
 	)
-	private debouncedReconnect: DebouncedFunction<() => void> = this.createDebouncedReconnect(this.controller.signal)
+	private reconnect: BackoffScheduler = this.createReconnectScheduler(this.controller.signal)
 	private debouncedRefreshRoleMap: DebouncedFunction<() => void> = this.createDebouncedRoleMapRefresh(
 		this.controller.signal,
 	)
+	private roleMapRefreshRetry: BackoffScheduler = this.createRoleMapRefreshRetry(this.controller.signal)
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -85,8 +95,9 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.controller = new AbortController()
 		this.feedbacksToCheck.clear()
 		this.throttledCheckFeedbacksById = this.createThrottledFeedbackCheck(this.controller.signal)
-		this.debouncedReconnect = this.createDebouncedReconnect(this.controller.signal)
+		this.reconnect = this.createReconnectScheduler(this.controller.signal)
 		this.debouncedRefreshRoleMap = this.createDebouncedRoleMapRefresh(this.controller.signal)
+		this.roleMapRefreshRetry = this.createRoleMapRefreshRetry(this.controller.signal)
 		void this.connect(config)
 	}
 
@@ -102,6 +113,9 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	}
 
 	private closeConnection(): void {
+		// A role map refresh only means anything on the connection it was scheduled for
+		this.debouncedRefreshRoleMap.cancel()
+		this.roleMapRefreshRetry.reset()
 		if (this.client) this.client.removeAllEventListeners()
 		if (this.connection) this.connection.close()
 	}
@@ -128,7 +142,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				`Connection failed: ${err instanceof Error ? err.message : String(err)}`,
 			)
 
-			this.debouncedReconnect()
+			this.scheduleReconnect()
 			return
 		}
 
@@ -226,7 +240,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				`Connection error: ${error instanceof Error ? error.message : String(error)}`,
 			)
 
-			this.debouncedReconnect()
+			this.scheduleReconnect()
 		})
 
 		client.on('close', (error: unknown) => {
@@ -236,7 +250,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				`Connection closed: ${error instanceof Error ? error.message : String(error)}`,
 			)
 
-			this.debouncedReconnect()
+			this.scheduleReconnect()
 		})
 	}
 
@@ -244,7 +258,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		try {
 			const product = await client.DeviceManager.GetProduct()
 			this.log('info', `Connected to Device:\n${JSON.stringify(product, null, 2)}`)
-			this.debouncedReconnect.cancel()
+			this.reconnect.cancel()
 		} catch (err) {
 			this.log(
 				'debug',
@@ -253,12 +267,26 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		}
 	}
 
+	/**
+	 * Initial role map load on a new connection. If the device refuses it, drop
+	 * the connection and reconnect on the backoff rather than giving up: a device
+	 * that was briefly unable to answer (booting, busy) then recovers by itself,
+	 * and a host that never will is only retried every few minutes.
+	 */
 	private async getRoleMap(client: RemoteDevice): Promise<void> {
 		try {
 			const roleMap = await client.get_role_map()
 			await this.ocaHelper.loadRoleMap(roleMap)
-			this.debouncedReconnect.cancel()
+			this.reconnect.reset()
 		} catch (err) {
+			if (this.isConnectionLost(err)) {
+				// The error/close listener has already set the status and scheduled the reconnect
+				this.log(
+					'debug',
+					`get_role_map() interrupted by connection loss: ${err instanceof Error ? err.message : String(err)}`,
+				)
+				return
+			}
 			this.log('error', `get_role_map() failed: ${err instanceof Error ? err.message : String(err)}`)
 			if (err instanceof Error) {
 				this.log('warn', `Error Name: ${err.name}`)
@@ -266,13 +294,62 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				if (err.stack) this.log('debug', `Stack: ${err.stack}`)
 			}
 			this.updateStatus(
-				InstanceStatus.UnknownError,
+				InstanceStatus.ConnectionFailure,
 				`get_role_map() failed: ${err instanceof Error ? err.message : String(err)}`,
 			)
 
-			// No point keeping the connection open if we can't talk to the device
 			this.closeConnection()
-			this.log('error', `Connection closed. Reconnection will not be attempted (😞). Check device before trying again.`)
+			this.scheduleReconnect()
+		}
+	}
+
+	/**
+	 * Role map reload after the device reported a tree change. The device has
+	 * already served a role map on this connection, so a refusal here is most
+	 * likely it being busy mid-restructure: keep the current map and the
+	 * connection, and retry on the backoff.
+	 */
+	private async refreshRoleMap(client: RemoteDevice): Promise<void> {
+		try {
+			const roleMap = await client.get_role_map()
+			await this.ocaHelper.loadRoleMap(roleMap)
+			this.roleMapRefreshRetry.reset()
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err)
+			if (this.isConnectionLost(err)) {
+				// The error/close listener has already scheduled the reconnect, which loads a fresh role map
+				this.log('debug', `Role map refresh interrupted by connection loss: ${message}`)
+				return
+			}
+			const delay = this.roleMapRefreshRetry.schedule()
+			this.log(
+				'warn',
+				`Role map refresh failed: ${message}. Keeping the current role map` +
+					(delay === undefined ? '' : `, retrying in ${delay / 1000}s`),
+			)
+		}
+	}
+
+	/**
+	 * Tells a request that failed because the connection went away from one the
+	 * device answered with an error. aes70 rejects requests in flight at the
+	 * close with a CloseError, but ones issued after it fail with a plain error,
+	 * so check the connection as well.
+	 */
+	private isConnectionLost(err: unknown): boolean {
+		return err instanceof CloseError || this.connection.is_closed()
+	}
+
+	private scheduleReconnect(): void {
+		const delay = this.reconnect.schedule()
+		// An attempt is already pending, or the instance is being torn down
+		if (delay === undefined) return
+		this.log('info', `Reconnecting in ${delay / 1000}s`)
+		if (this.reconnect.attempts === NOT_AES70_HINT_AFTER_ATTEMPTS) {
+			this.log(
+				'warn',
+				`${NOT_AES70_HINT_AFTER_ATTEMPTS} consecutive connection attempts have failed. Check the device is powered and reachable, and that the host, port and protocol point at its AES70 interface.`,
+			)
 		}
 	}
 
@@ -289,14 +366,14 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		)
 	}
 
-	private createDebouncedReconnect(signal?: AbortSignal): DebouncedFunction<() => void> {
-		return debounce(
+	private createReconnectScheduler(signal: AbortSignal): BackoffScheduler {
+		return new BackoffScheduler(
 			() => {
 				this.log('info', `Attempting to reconnect...`)
 				void this.connect(this.config)
 			},
-			RECONNECT_DEBOUNCE,
-			{ edges: ['trailing'], signal: signal },
+			RECONNECT_BACKOFF,
+			signal,
 		)
 	}
 
@@ -304,10 +381,21 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		return debounce(
 			() => {
 				this.log('info', 'Refreshing role map after device tree change')
-				void this.getRoleMap(this.client)
+				void this.refreshRoleMap(this.client)
 			},
 			ROLE_MAP_REFRESH_DEBOUNCE_MS,
 			{ edges: ['trailing'], signal: signal },
+		)
+	}
+
+	private createRoleMapRefreshRetry(signal: AbortSignal): BackoffScheduler {
+		return new BackoffScheduler(
+			() => {
+				this.log('info', 'Retrying role map refresh')
+				void this.refreshRoleMap(this.client)
+			},
+			ROLE_MAP_REFRESH_BACKOFF,
+			signal,
 		)
 	}
 

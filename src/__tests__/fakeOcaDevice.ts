@@ -35,11 +35,29 @@ interface DecodedPdu {
 }
 
 export interface FakeCommandResponse {
+	/** OcaStatus of the reply. Defaults to 0 (OK); anything else is a refusal, a RemoteError client-side. */
+	readonly status?: number
 	readonly encoders: OcpEncoder[]
 	readonly values: unknown[]
 }
 
 export type FakeCommandHandler = () => FakeCommandResponse
+
+/** OcaStatus values used by the tests. */
+export const OcaStatus = {
+	OK: 0,
+	NotImplemented: 8,
+	ProcessingFailed: 10,
+} as const
+
+export interface FakeOcaDeviceRouterOptions {
+	/**
+	 * Answer commands that have no registered handler with this OcaStatus, the
+	 * way a real device answers a method it doesn't implement. Leave unset to
+	 * have an unexpected command throw, so a test fails loudly instead.
+	 */
+	readonly unhandledStatus?: number
+}
 
 /** Converts a dotted OCA class ID (e.g. '1.1.1.5') to its OCP.1 binary form. */
 export function classId(dotted: string): string {
@@ -51,6 +69,8 @@ export function classId(dotted: string): string {
 
 export class FakeOcaDeviceRouter {
 	private readonly handlers = new Map<string, FakeCommandHandler>()
+
+	constructor(private readonly options: FakeOcaDeviceRouterOptions = {}) {}
 
 	registerMethod(ono: number, level: number, index: number, handler: FakeCommandHandler): void {
 		this.handlers.set(`${ono}:${level}:${index}`, handler)
@@ -75,12 +95,16 @@ export class FakeOcaDeviceRouter {
 			const key = `${pdu.target}:${pdu.method_level}:${pdu.method_index}`
 			const handler = this.handlers.get(key)
 			if (!handler) {
-				throw new Error(`FakeOcaDeviceRouter: no handler registered for target:level:index "${key}"`)
+				if (this.options.unhandledStatus === undefined) {
+					throw new Error(`FakeOcaDeviceRouter: no handler registered for target:level:index "${key}"`)
+				}
+				replies.push(encodeMessage(new Response(pdu.handle, this.options.unhandledStatus, 0, null)))
+				continue
 			}
 
-			const { encoders, values } = handler()
-			const params = encoders.length > 0 ? new EncodedArguments(encoders, values) : null
-			const response = new Response(pdu.handle, 0, encoders.length, params)
+			const { status = OcaStatus.OK, encoders, values } = handler()
+			const params = status === OcaStatus.OK && encoders.length > 0 ? new EncodedArguments(encoders, values) : null
+			const response = new Response(pdu.handle, status, params ? encoders.length : 0, params)
 			replies.push(encodeMessage(response))
 		}
 		return replies
@@ -99,17 +123,28 @@ export interface FakeRoleMapMember {
  * leaf members, matching the walk `RemoteDevice.get_device_tree()` performs:
  * one `GetActionObjects` on the (hardcoded, ONo 100) root block, then one
  * `GetRole` per returned member. See remote_device.js / tree_to_rolemap.js.
+ *
+ * `rootStatus`, when given, is called for every root `GetActionObjects` and
+ * returns the OcaStatus to answer with, so a test can refuse the walk.
  */
-export function registerMinimalRoleMap(router: FakeOcaDeviceRouter, members: FakeRoleMapMember[]): void {
-	router.registerMethod(ROOT_BLOCK_ONO, 3, 5 /* OcaBlock.GetActionObjects */, () => ({
-		encoders: [OcaList(OcaObjectIdentification)],
-		values: [
-			members.map((m) => ({
-				ONo: m.ono,
-				ClassIdentification: { ClassID: classId(m.classIdDotted), ClassVersion: m.classVersion },
-			})),
-		],
-	}))
+export function registerMinimalRoleMap(
+	router: FakeOcaDeviceRouter,
+	members: FakeRoleMapMember[],
+	rootStatus?: () => number,
+): void {
+	router.registerMethod(ROOT_BLOCK_ONO, 3, 5 /* OcaBlock.GetActionObjects */, () => {
+		const status = rootStatus?.() ?? OcaStatus.OK
+		if (status !== OcaStatus.OK) return { status, encoders: [], values: [] }
+		return {
+			encoders: [OcaList(OcaObjectIdentification)],
+			values: [
+				members.map((m) => ({
+					ONo: m.ono,
+					ClassIdentification: { ClassID: classId(m.classIdDotted), ClassVersion: m.classVersion },
+				})),
+			],
+		}
+	})
 
 	for (const member of members) {
 		router.registerMethod(member.ono, 1, 5 /* OcaRoot.GetRole */, () => ({
