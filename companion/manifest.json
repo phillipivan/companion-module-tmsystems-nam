@@ -8,7 +8,7 @@
 	"version": "0.0.0",
 	"license": "GPL-2.0-only",
 	"repository": "git+https://github.com/bitfocus/companion-module-generic-aes70.git",
-	"bugs": "https://github.com/bitfocus/companion-module-generic-aes70.git/issues",
+	"bugs": "https://github.com/bitfocus/companion-module-generic-aes70/issues",
 	"maintainers": [
 		{
 			"name": "Phillip Ivan Pietruschka",
