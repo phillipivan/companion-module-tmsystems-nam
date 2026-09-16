@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import type { CompanionFeedbackDefinitions, CompanionFeedbackValueEvent } from '@companion-module/base'
 import { OcaAudioLevelSensor, OcaGain } from 'aes70/src/controller/ControlClasses.js'
 import { OcaSensorReadingState } from 'aes70/src/types/OcaSensorReadingState.js'
+import { makeNamFilterParametric } from './fakeControlObjects.js'
 import { OcaHelper } from '../OcaHelper.js'
 import { UpdateFeedbacks, type FeedbackSchema } from '../feedbacks.js'
 import type ModuleInstance from '../main.js'
@@ -207,5 +208,21 @@ describe('Get Property feedback enum labels', () => {
 		readingState = new (OcaSensorReadingState as unknown as new (value: number) => unknown)(200)
 
 		expect(await check(true)).toBe(200)
+	})
+})
+
+describe('Get Property feedback default property', () => {
+	it("defaults to the class's own property rather than an inherited one", async () => {
+		const helper = new OcaHelper()
+		const setFeedbackDefinitions: Mock<(definitions: CompanionFeedbackDefinitions<FeedbackSchema>) => void> = vi.fn()
+		const self = { ocaHelper: helper, setFeedbackDefinitions } as unknown as ModuleInstance
+		await helper.loadRoleMap(new Map<string, unknown>([['MIC/BQ0', makeNamFilterParametric(1)]]))
+
+		await UpdateFeedbacks(self)
+
+		const definition = setFeedbackDefinitions.mock.lastCall?.[0].get_property_OcaFilterParametric as unknown as
+			{ options: { id: string; default?: unknown }[] } | undefined
+		// ClassVersion, Lockable, Role, Enabled, Ports and Owner are all inherited and reported first
+		expect(definition?.options.find((option) => option.id === 'property')?.default).toBe('Frequency')
 	})
 })

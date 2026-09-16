@@ -6,7 +6,14 @@ import {
 	SomeCompanionFeedbackInputField,
 } from '@companion-module/base'
 import type ModuleInstance from './main.js'
-import { ocaClassNameToLabel, makeSafeJsonValue, unwrapValue, excitementEmoji, makePropChoices } from './utils.js'
+import {
+	ocaClassNameToLabel,
+	makeSafeJsonValue,
+	unwrapValue,
+	excitementEmoji,
+	makePropChoices,
+	defaultPropertyName,
+} from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 import { isAes70Enum } from './enums.js'
 
@@ -76,7 +83,8 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 			id: 'property',
 			label: 'Property',
 			choices: propertyChoices,
-			default: propertyChoices.length >= 3 ? propertyChoices[2]?.id : propertyChoices[0]?.id,
+			// Choices come from the device at runtime; this is the class's own property among them
+			default: defaultPropertyName(readableProps) ?? '',
 			disableAutoExpression: true,
 		}
 		options.push(propertyOption)

@@ -7,7 +7,7 @@ import {
 	type SomeCompanionActionInputField,
 } from '@companion-module/base'
 import type ModuleInstance from './main.js'
-import { ocaClassNameToLabel, excitementEmoji, makePropChoices } from './utils.js'
+import { ocaClassNameToLabel, excitementEmoji, makePropChoices, defaultPropertyName } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 import type { JavaScriptType, PropertyDescription } from './OcaHelper.js'
 import { enumChoices, enumExpressionDescription, isAes70Enum } from './enums.js'
@@ -165,7 +165,8 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 			id: 'property',
 			label: 'Property',
 			choices: propertyChoices,
-			default: propertyChoices[0]?.id,
+			// Choices come from the device at runtime; this is the class's own property among them
+			default: defaultPropertyName(definedProps) ?? '',
 			disableAutoExpression: true,
 		})
 		propertyOptions.forEach((prop) => options.push(prop))

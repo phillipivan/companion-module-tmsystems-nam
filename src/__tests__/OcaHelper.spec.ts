@@ -715,8 +715,8 @@ describe('getClassProperties', () => {
 		const props = await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
 
 		expect(props).toEqual([
-			{ name: 'ObjectNumber', type: 'number', read: true, write: false },
-			{ name: 'Gain', type: 'number', read: true, write: true },
+			{ name: 'ObjectNumber', type: 'number', read: true, write: false, level: 1 }, // declared on OcaRoot
+			{ name: 'Gain', type: 'number', read: true, write: true, level: 4 }, // declared on OcaGain
 		])
 	})
 

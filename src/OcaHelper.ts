@@ -289,6 +289,11 @@ export interface PropertyDescription {
 	/** Whether the property is setable. */
 	readonly write: boolean
 	/**
+	 * Class hierarchy level the property is declared at: 1 for OcaRoot properties such as
+	 * Role, 2 for OcaWorker ones such as Enabled, and so on down to the class's own.
+	 */
+	readonly level: number
+	/**
 	 * For an enum property, every member of its enum by name, e.g. `{ Muted: 1, Unmuted: 2 }`.
 	 * Read from the sampled value, so it follows whatever enums the installed aes70 defines.
 	 */
@@ -981,6 +986,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 						type: valueType,
 						read: true, //typeof objWithMethods[`Get${name}`] === 'function',
 						write: typeof objWithMethods[`Set${name}`] === 'function',
+						level: entry.obj.get_properties().find_property(name)?.level ?? 0,
 						...(isAes70Enum(value) ? { enumValues: enumValuesOf(value) } : {}),
 					})
 				}

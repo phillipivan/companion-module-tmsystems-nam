@@ -994,10 +994,22 @@ export interface PropertySync<T extends OcaRootProperties = OcaRootProperties> {
 	Dispose(): void
 }
 
+/** A property definition, as iterated by get_properties(). */
+export interface PropertyDefinition {
+	readonly name: string
+	/**
+	 * Class hierarchy level the property is declared at (its DefLevel): 1 for OcaRoot,
+	 * 2 for OcaWorker, OcaAgent or OcaManager, and so on down to the defining class.
+	 */
+	readonly level: number
+	readonly index: number
+}
+
 /** Returned by get_properties(). */
 export interface Properties {
-	forEach(callback: (value: unknown, name: string) => void): void
-	Dispose(): void
+	/** Calls back with each property definition, inherited ones first. */
+	forEach(callback: (property: PropertyDefinition) => void): void
+	find_property(name: string): PropertyDefinition | undefined
 }
 
 declare module 'aes70/src/controller/ControlClasses' {

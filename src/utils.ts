@@ -303,3 +303,17 @@ export function makePropChoices(props: PropertyDescription[]): DropdownChoice<st
 	})
 	return propertyChoices
 }
+
+/**
+ * The property to select by default: the first of those declared deepest in the class
+ * hierarchy, so a class's own properties (a gain's Gain, a filter's Frequency) win over
+ * inherited framework ones such as ClassVersion, Role or Lockable. When the sampled
+ * object implements none of its class's own properties, the next level up is used.
+ */
+export function defaultPropertyName(props: readonly PropertyDescription[]): string | undefined {
+	let deepest: PropertyDescription | undefined
+	for (const prop of props) {
+		if (deepest === undefined || prop.level > deepest.level) deepest = prop
+	}
+	return deepest?.name
+}

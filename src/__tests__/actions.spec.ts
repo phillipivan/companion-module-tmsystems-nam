@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import type { CompanionActionDefinitions } from '@companion-module/base'
 import { OcaMute } from 'aes70/src/controller/ControlClasses.js'
 import { OcaMuteState } from 'aes70/src/types/OcaMuteState.js'
+import { makeNamFilterParametric } from './fakeControlObjects.js'
 import { OcaHelper } from '../OcaHelper.js'
 import { UpdateActions, type ActionSchema } from '../actions.js'
 import type ModuleInstance from '../main.js'
@@ -80,5 +81,22 @@ describe('Set Property action learn', () => {
 
 	it('learns a primitive property as it is', async () => {
 		await expect(learn('Enabled')).resolves.toEqual({ value_Enabled: true })
+	})
+})
+
+describe('Set Property action default property', () => {
+	it("defaults to the class's own property rather than an inherited one", async () => {
+		const helper = new OcaHelper()
+		const setActionDefinitions: Mock<(definitions: CompanionActionDefinitions<ActionSchema>) => void> = vi.fn()
+		const self = { ocaHelper: helper, setActionDefinitions } as unknown as ModuleInstance
+		await helper.loadRoleMap(new Map<string, unknown>([['MIC/BQ0', makeNamFilterParametric(1)]]))
+
+		await UpdateActions(self)
+
+		const definition = setActionDefinitions.mock.lastCall?.[0].set_property_OcaFilterParametric as unknown as
+			SetPropertyDefinition | undefined
+		const property = definition?.options.find((option) => option.id === 'property') as { default?: unknown } | undefined
+		// Enabled, inherited from OcaWorker, is the first writable property the device reports
+		expect(property?.default).toBe('Frequency')
 	})
 })
