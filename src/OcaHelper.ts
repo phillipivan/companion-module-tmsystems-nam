@@ -104,6 +104,7 @@ import type { PropertySync, OcaRootProperties } from '../types/aes70.js'
 import { OCA_CLASS_NAMES, type OcaClassName } from './consts/aes70-constants.js'
 import { createModuleLogger, type DropdownChoice } from '@companion-module/base'
 import EventEmitter from 'events'
+import { enumValuesOf, isAes70Enum, type EnumValues } from './enums.js'
 
 // ---------------------------------------------------------------------------
 // Event map
@@ -287,6 +288,11 @@ export interface PropertyDescription {
 	readonly read: boolean
 	/** Whether the property is setable. */
 	readonly write: boolean
+	/**
+	 * For an enum property, every member of its enum by name, e.g. `{ Muted: 1, Unmuted: 2 }`.
+	 * Read from the sampled value, so it follows whatever enums the installed aes70 defines.
+	 */
+	readonly enumValues?: EnumValues
 }
 
 // ---------------------------------------------------------------------------
@@ -975,6 +981,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 						type: valueType,
 						read: true, //typeof objWithMethods[`Get${name}`] === 'function',
 						write: typeof objWithMethods[`Set${name}`] === 'function',
+						...(isAes70Enum(value) ? { enumValues: enumValuesOf(value) } : {}),
 					})
 				}
 			})

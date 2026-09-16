@@ -8,7 +8,7 @@ import {
 import type ModuleInstance from './main.js'
 import { ocaClassNameToLabel, makeSafeJsonValue, unwrapValue, excitementEmoji, makePropChoices } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
-import { getPropertyEnumInfo, getPropertyEnumValueLabel } from './consts/aes70-enums.js'
+import { isAes70Enum } from './enums.js'
 
 type GetPropertyFeedbackKey = `get_property_${OcaClassName}`
 
@@ -91,8 +91,7 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 		options.push(syncOption)
 		let hasEnumOption = false
 		readableProps.forEach((prop) => {
-			const enumInfo = getPropertyEnumInfo(className, prop.name)
-			if (!enumInfo) return
+			if (!prop.enumValues) return
 			hasEnumOption = true
 			options.push({
 				type: 'checkbox',
@@ -131,20 +130,19 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 					await self.ocaHelper.addFeedbackId(objectId, feedback.id)
 				}
 				if (sync) {
-					let propValue: any = undefined
+					let propValue: unknown = undefined
 					entry.properties?.forEach((value, name) => {
 						if (name === property && value !== undefined) {
 							propValue = value
 						}
 					})
-					if (propValue !== undefined) {
-						const unwrappedValue = unwrapValue(await makeSafeJsonValue(propValue, { awaitPromises: true }))
+					if (isAes70Enum(propValue)) {
+						// The member name when asked for, falling back to the number for a value outside the enum
 						const useEnum = feedback.options[`enum_${property}`]
-						if (useEnum && typeof unwrappedValue === 'number') {
-							const enumLabel = getPropertyEnumValueLabel(className, property, unwrappedValue)
-							if (enumLabel !== undefined) return enumLabel
-						}
-						return unwrappedValue
+						return useEnum && propValue.name !== undefined ? ocaClassNameToLabel(propValue.name) : propValue.valueOf()
+					}
+					if (propValue !== undefined) {
+						return unwrapValue(await makeSafeJsonValue(propValue, { awaitPromises: true }))
 					}
 
 					// If properties sync check failed

@@ -23,6 +23,8 @@ import {
 	OcaRoot,
 } from 'aes70/src/controller/ControlClasses.js'
 import { ObjectBase } from 'aes70/src/controller/object_base.js'
+import { OcaSensorReadingState } from 'aes70/src/types/OcaSensorReadingState.js'
+import { OcaLevelMeterLaw } from 'aes70/src/types/OcaLevelMeterLaw.js'
 
 // ---------------------------------------------------------------------------
 // Test helpers — build real aes70 control-class instances backed by a fake
@@ -716,6 +718,30 @@ describe('getClassProperties', () => {
 			{ name: 'ObjectNumber', type: 'number', read: true, write: false },
 			{ name: 'Gain', type: 'number', read: true, write: true },
 		])
+	})
+
+	it('records the members of enum properties, including one inherited from a base class', async () => {
+		const helper = new OcaHelper()
+		const sensor = makeObj(OcaAudioLevelSensor, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Meters/1', sensor]]))
+		rigOf(sensor).propertySync.forEach.mockImplementation((cb: (value: unknown, name: string) => void) => {
+			cb(OcaSensorReadingState.Valid, 'ReadingState') // declared on OcaSensor
+			cb(OcaLevelMeterLaw.PPM1, 'Law') // declared on OcaAudioLevelSensor
+			cb(-20, 'Reading')
+		})
+
+		const props = await helper.getClassProperties(OCA_CLASS_NAMES.OcaAudioLevelSensor)
+		const byName = new Map(props.map((prop) => [prop.name, prop]))
+
+		expect(byName.get('ReadingState')?.enumValues).toEqual({
+			Unknown: 0,
+			Valid: 1,
+			Underrange: 2,
+			Overrange: 3,
+			Error: 4,
+		})
+		expect(Object.keys(byName.get('Law')?.enumValues ?? {})).toContain('PPM1')
+		expect(byName.get('Reading')?.enumValues).toBeUndefined()
 	})
 
 	it('disposes the temporary property sync when the object has no registered action/feedback IDs', async () => {

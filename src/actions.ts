@@ -10,7 +10,7 @@ import type ModuleInstance from './main.js'
 import { ocaClassNameToLabel, excitementEmoji, makePropChoices } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 import type { JavaScriptType, PropertyDescription } from './OcaHelper.js'
-import { getPropertyEnumInfo } from './consts/aes70-enums.js'
+import { enumChoices, enumExpressionDescription, isAes70Enum } from './enums.js'
 
 type SetPropertyActionKey = `set_property_${OcaClassName}`
 
@@ -44,9 +44,7 @@ function isSupportedPropertyType(type: JavaScriptType): type is SupportedPropert
  */
 function toLearnedValue(value: unknown): boolean | string | number | undefined {
 	if (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number') return value
-	if (typeof value === 'object' && value !== null && (value as { isEnum?: unknown }).isEnum === true) {
-		return Number(value)
-	}
+	if (isAes70Enum(value)) return value.valueOf()
 	return undefined
 }
 
@@ -136,22 +134,22 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 					definedProps.push(prop)
 					break
 				case 'object': {
-					const enumInfo = getPropertyEnumInfo(className, prop.name)
-					if (enumInfo && enumInfo.choices.length > 0) {
+					const choices = prop.enumValues ? enumChoices(prop.enumValues) : []
+					if (prop.enumValues && choices.length > 0) {
 						propertyOptions.push({
 							type: 'dropdown',
 							id: inputId,
 							label,
-							default: enumInfo.choices[0]?.id ?? 0,
-							choices: enumInfo.choices,
+							default: choices[0]?.id ?? 0,
+							choices,
 							allowCustom: false,
 							isVisibleExpression: visibleExpr,
-							expressionDescription: enumInfo.expressionDescription,
+							expressionDescription: enumExpressionDescription(prop.enumValues),
 						})
 						definedProps.push(prop)
 					}
-					// If no enum mapping exists for this object-typed property, skip it —
-					// it's a struct or other complex type we can't represent as a simple input
+					// An object-typed property that isn't an enum is a struct or other complex
+					// type, which can't be represented as a simple input, so it is skipped
 					break
 				}
 				default: {

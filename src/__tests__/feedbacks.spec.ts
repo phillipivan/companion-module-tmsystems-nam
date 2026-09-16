@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import type { CompanionFeedbackDefinitions, CompanionFeedbackValueEvent } from '@companion-module/base'
-import { OcaGain } from 'aes70/src/controller/ControlClasses.js'
+import { OcaAudioLevelSensor, OcaGain } from 'aes70/src/controller/ControlClasses.js'
+import { OcaSensorReadingState } from 'aes70/src/types/OcaSensorReadingState.js'
 import { OcaHelper } from '../OcaHelper.js'
 import { UpdateFeedbacks, type FeedbackSchema } from '../feedbacks.js'
 import type ModuleInstance from '../main.js'
@@ -132,5 +133,79 @@ describe('Get Property feedback registration', () => {
 		await check(GAIN_1, GAIN_1)
 
 		expect(addFeedbackId).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('Get Property feedback enum labels', () => {
+	// ReadingState is declared on OcaSensor and reaches OcaAudioLevelSensor by inheritance
+	type EnumOptions = { objectId: string; property: string; sync: boolean; enum_ReadingState: boolean }
+	type EnumFeedbackDefinition = {
+		options: { id: string }[]
+		callback: (
+			feedback: CompanionFeedbackValueEvent<EnumOptions>,
+			context: { type: 'feedback'; signal: AbortSignal },
+		) => Promise<unknown>
+	}
+
+	let readingState: unknown
+	let setFeedbackDefinitions: Mock<(definitions: CompanionFeedbackDefinitions<FeedbackSchema>) => void>
+
+	/** A real OcaAudioLevelSensor whose stubbed property sync reports ReadingState as `readingState`. */
+	function makeLevelSensor(ono: number): OcaAudioLevelSensor {
+		const device = { send_command: vi.fn(), add_subscription: vi.fn(), remove_subscription: vi.fn() }
+		const obj = new OcaAudioLevelSensor(ono, device as unknown as ConstructorParameters<typeof OcaAudioLevelSensor>[1])
+		;(obj as unknown as { GetPropertySync: unknown }).GetPropertySync = vi.fn(() => ({
+			sync: vi.fn().mockResolvedValue(undefined),
+			forEach: vi.fn((cb: (value: unknown, name: string) => void) => {
+				cb(readingState, 'ReadingState')
+				cb(-20, 'Reading')
+			}),
+			Dispose: vi.fn(),
+		}))
+		return obj
+	}
+
+	beforeEach(async () => {
+		readingState = OcaSensorReadingState.Valid
+		const helper = new OcaHelper()
+		setFeedbackDefinitions = vi.fn()
+		const self = { ocaHelper: helper, setFeedbackDefinitions } as unknown as ModuleInstance
+		await helper.loadRoleMap(new Map<string, unknown>([['Meter1', makeLevelSensor(1)]]))
+		await UpdateFeedbacks(self)
+	})
+
+	function definition(): EnumFeedbackDefinition {
+		const built = setFeedbackDefinitions.mock.lastCall?.[0].get_property_OcaAudioLevelSensor
+		if (!built) throw new Error('No OcaAudioLevelSensor feedback was defined')
+		return built as unknown as EnumFeedbackDefinition
+	}
+
+	async function check(enumOn: boolean): Promise<unknown> {
+		return definition().callback(
+			{
+				type: 'value',
+				id: 'fb1',
+				controlId: 'bank:1:1',
+				feedbackId: 'get_property_OcaAudioLevelSensor',
+				options: { objectId: 'Meter1', property: 'ReadingState', sync: true, enum_ReadingState: enumOn },
+				previousOptions: null,
+			},
+			{ type: 'feedback', signal: new AbortController().signal },
+		)
+	}
+
+	it('offers the Enum option for an enum property inherited from a base class', () => {
+		expect(definition().options.map((option) => option.id)).toContain('enum_ReadingState')
+	})
+
+	it('returns the member name with Enum on, and the number with it off', async () => {
+		expect(await check(true)).toBe('Valid')
+		expect(await check(false)).toBe(1)
+	})
+
+	it('returns the number for a value outside the enum, even with Enum on', async () => {
+		readingState = new (OcaSensorReadingState as unknown as new (value: number) => unknown)(200)
+
+		expect(await check(true)).toBe(200)
 	})
 })
