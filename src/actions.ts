@@ -37,6 +37,19 @@ function isSupportedPropertyType(type: JavaScriptType): type is SupportedPropert
 	return type === 'boolean' || type === 'string' || type === 'number' || type == 'object'
 }
 
+/**
+ * The option value to learn from a property's current value, or `undefined` when
+ * there is no input it could be learned into. aes70 represents enum values as
+ * Enum instances, whereas the enum dropdown's choice ids are their numeric values.
+ */
+function toLearnedValue(value: unknown): boolean | string | number | undefined {
+	if (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number') return value
+	if (typeof value === 'object' && value !== null && (value as { isEnum?: unknown }).isEnum === true) {
+		return Number(value)
+	}
+	return undefined
+}
+
 function completeActionSchema(
 	partial: Partial<CompanionActionDefinitions<ActionSchema>>,
 ): CompanionActionDefinitions<ActionSchema> {
@@ -185,12 +198,7 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				// PropertySync does not support index access — iterate to find the value
 				let propValue: boolean | string | number | undefined
 				entry.properties?.forEach((value, name) => {
-					if (
-						name === property &&
-						(typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number')
-					) {
-						propValue = value
-					}
+					if (name === property) propValue = toLearnedValue(value)
 				})
 				if (propValue === undefined) {
 					logger.warn(`Property ${property} not found or has unsupported type on entry with objectId ${objectId}`)
