@@ -953,28 +953,35 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 
 		const objWithMethods = entry.obj as unknown as Record<string, unknown>
 
-		// Spin up a temporary sync just to read property structure and types
+		// Spin up a temporary sync just to read property structure and types. Always dispose it:
+		// GetPropertySync() returns a new instance on every call, separate from the entry's own
+		// sync, and aes70 counts subscribers per event, so disposing this one never unsubscribes
+		// the entry's. Leaving it open when the entry had IDs leaked one observer per property on
+		// every role map reload, and kept the device sending changes after the last ID was removed.
 		const propSync = entry.obj.GetPropertySync()
-		await propSync.sync()
-
 		const props: PropertyDescription[] = []
-		propSync.forEach((value, name) => {
-			const valueType = typeof value
-			this.logger.debug(
-				`Inspecting property "${name}" of class "${className}" with value: ${value} of type: ${valueType}`,
-			)
+		try {
+			await propSync.sync()
 
-			if (name !== 'ClassID' && valueType !== 'undefined') {
-				props.push({
-					name,
-					type: valueType,
-					read: true, //typeof objWithMethods[`Get${name}`] === 'function',
-					write: typeof objWithMethods[`Set${name}`] === 'function',
-				})
-			}
-		})
+			propSync.forEach((value, name) => {
+				const valueType = typeof value
+				this.logger.debug(
+					`Inspecting property "${name}" of class "${className}" with value: ${value} of type: ${valueType}`,
+				)
 
-		if (entry.actionIds.size === 0 && entry.feedbackIds.size === 0) propSync.Dispose()
+				if (name !== 'ClassID' && valueType !== 'undefined') {
+					props.push({
+						name,
+						type: valueType,
+						read: true, //typeof objWithMethods[`Get${name}`] === 'function',
+						write: typeof objWithMethods[`Set${name}`] === 'function',
+					})
+				}
+			})
+		} finally {
+			propSync.Dispose()
+		}
+
 		this.logger.debug(`Properties for ${className}:\n${JSON.stringify(props, null, 2)}`)
 		return props
 	}

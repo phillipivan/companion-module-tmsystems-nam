@@ -729,17 +729,41 @@ describe('getClassProperties', () => {
 		expect(propertySync.Dispose).toHaveBeenCalledTimes(1)
 	})
 
-	it('leaves the property sync open when the object already has registered IDs', async () => {
+	// On a role map reload, getClassProperties() runs after IDs have been migrated, so the
+	// representative object usually has its own live sync. Measured against a real device,
+	// leaving the temporary sync open there added one observer per property on every reload.
+	it('disposes the temporary property sync even when the object has registered IDs, leaving its own sync open', async () => {
 		const helper = new OcaHelper()
 		const gain = makeObj(OcaGain, 1)
 		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+		// Like aes70, hand out a new PropertySync on every call
+		const created: FakePropertySync[] = []
+		rigOf(gain).getPropertySync.mockImplementation(() => {
+			const sync = makeFakePropertySync()
+			created.push(sync)
+			return sync
+		})
 		await helper.addActionId('Faders/1', 'a1')
-		const { propertySync } = rigOf(gain)
-		propertySync.Dispose.mockClear()
 
 		await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
 
-		expect(propertySync.Dispose).not.toHaveBeenCalled()
+		expect(created).toHaveLength(2)
+		const [entrySync, temporarySync] = created
+		expect(temporarySync?.Dispose).toHaveBeenCalledTimes(1)
+		expect(entrySync?.Dispose).not.toHaveBeenCalled()
+		expect(helper.getEntry('Faders/1')?.properties).toBe(entrySync)
+	})
+
+	it('disposes the temporary property sync when syncing it fails', async () => {
+		const helper = new OcaHelper()
+		const gain = makeObj(OcaGain, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+		const { propertySync } = rigOf(gain)
+		propertySync.sync.mockRejectedValueOnce(new Error('connection closed'))
+
+		await expect(helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)).rejects.toThrow(/connection closed/)
+
+		expect(propertySync.Dispose).toHaveBeenCalledTimes(1)
 	})
 
 	// Discovery reads every property off a representative object, which on
