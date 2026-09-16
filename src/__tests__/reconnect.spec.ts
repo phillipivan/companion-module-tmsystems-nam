@@ -1,5 +1,86 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { BackoffScheduler } from '../reconnect.js'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
+import { BackoffScheduler, ConnectTimeoutError, connectWithTimeout } from '../reconnect.js'
+
+describe('connectWithTimeout', () => {
+	beforeEach(() => {
+		vi.useFakeTimers()
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
+	const fakeConnection = (): { close: Mock<() => void> } => ({ close: vi.fn() })
+	const never = async <T>(): Promise<T> => new Promise<T>(() => undefined)
+	const flushMicrotasks = async (): Promise<void> => {
+		for (let i = 0; i < 10; i++) await Promise.resolve()
+	}
+
+	it('resolves with the connection when it opens in time, and leaves it open', async () => {
+		const connection = fakeConnection()
+
+		await expect(connectWithTimeout(async () => connection, 1000)).resolves.toBe(connection)
+		await vi.advanceTimersByTimeAsync(2000)
+
+		expect(connection.close).not.toHaveBeenCalled()
+	})
+
+	it('rejects with a ConnectTimeoutError once the timeout passes, aborting the signal given to the transport', async () => {
+		let transportSignal: AbortSignal | undefined
+		const result = connectWithTimeout(async (signal) => {
+			transportSignal = signal
+			return never<{ close(): void }>()
+		}, 1000)
+		const rejected = expect(result).rejects.toThrow(new ConnectTimeoutError(1000))
+
+		await vi.advanceTimersByTimeAsync(1000)
+
+		await rejected
+		expect(transportSignal?.aborted).toBe(true)
+	})
+
+	it('closes a connection that opens after it gave up', async () => {
+		const connection = fakeConnection()
+		let open: ((c: typeof connection) => void) | undefined
+		const result = connectWithTimeout(async () => new Promise<typeof connection>((resolve) => (open = resolve)), 1000)
+		const rejected = expect(result).rejects.toBeInstanceOf(ConnectTimeoutError)
+		await vi.advanceTimersByTimeAsync(1000)
+		await rejected
+
+		open?.(connection)
+		await flushMicrotasks()
+
+		expect(connection.close).toHaveBeenCalledTimes(1)
+	})
+
+	it('rejects with the abort reason as soon as its signal aborts, aborting the signal given to the transport', async () => {
+		const attempt = new AbortController()
+		let transportSignal: AbortSignal | undefined
+		const result = connectWithTimeout(
+			async (signal) => {
+				transportSignal = signal
+				return never<{ close(): void }>()
+			},
+			1000,
+			attempt.signal,
+		)
+		const reason = new Error('superseded')
+
+		attempt.abort(reason)
+
+		await expect(result).rejects.toBe(reason)
+		expect(transportSignal?.aborted).toBe(true)
+	})
+
+	it('does not start connecting when its signal has already aborted', async () => {
+		const attempt = new AbortController()
+		attempt.abort(new Error('destroyed'))
+		const open = vi.fn(async () => fakeConnection())
+
+		await expect(connectWithTimeout(open, 1000, attempt.signal)).rejects.toThrow('destroyed')
+		expect(open).not.toHaveBeenCalled()
+	})
+})
 
 const options = { initialDelayMs: 100, maxDelayMs: 1000 }
 

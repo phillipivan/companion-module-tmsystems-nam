@@ -21,6 +21,81 @@ export const RECONNECT_BACKOFF: BackoffOptions = { initialDelayMs: 10_000, maxDe
 export const ROLE_MAP_REFRESH_BACKOFF: BackoffOptions = { initialDelayMs: 2_000, maxDelayMs: 60_000 }
 
 /**
+ * How long a connection may take to open before the attempt is abandoned. Without it
+ * a TCP connect to a host that has gone away sits in SYN_SENT until the OS gives up,
+ * 75s on macOS.
+ */
+export const CONNECT_TIMEOUT_MS = 5_000
+
+/**
+ * Keepalive interval requested from the device, in seconds. aes70 closes the
+ * connection once nothing has been received for three intervals.
+ */
+export const KEEPALIVE_INTERVAL_S = 2
+
+export class ConnectTimeoutError extends Error {
+	constructor(timeoutMs: number) {
+		super(`Timed out after ${timeoutMs / 1000}s`)
+		this.name = 'ConnectTimeoutError'
+	}
+}
+
+/**
+ * Open a connection, giving up once `timeoutMs` has passed or `signal` aborts,
+ * whichever comes first, and rejecting with that reason.
+ *
+ * `open` is handed a signal that aborts in either case, for the transport to act
+ * on. aes70's TCP and UDP connects take one and stop at once. Its WebSocket connect
+ * has no way to, so a connection that opens after giving up is closed here rather
+ * than leaked.
+ *
+ * Deliberately not built on AbortSignal.any(): on Node 26 a composite signal holds
+ * its sources weakly and only checks them when read, so an abort can be lost to
+ * garbage collection. See connect() in main.ts.
+ */
+export async function connectWithTimeout<T extends { close(): void }>(
+	open: (signal: AbortSignal) => Promise<T>,
+	timeoutMs: number,
+	signal?: AbortSignal,
+): Promise<T> {
+	const controller = new AbortController()
+	const onAbort = (): void => controller.abort(signal?.reason)
+	const timer = setTimeout(() => controller.abort(new ConnectTimeoutError(timeoutMs)), timeoutMs)
+	signal?.addEventListener('abort', onAbort, { once: true })
+	if (signal?.aborted) onAbort()
+
+	let pending: Promise<T> | undefined
+	let gaveUp = false
+	try {
+		return await new Promise<T>((resolve, reject) => {
+			const giveUp = (): void => {
+				gaveUp = true
+				reject(controller.signal.reason as Error)
+			}
+			if (controller.signal.aborted) {
+				giveUp()
+				return
+			}
+			controller.signal.addEventListener('abort', giveUp, { once: true })
+			pending = open(controller.signal)
+			pending.then((connection) => {
+				controller.signal.removeEventListener('abort', giveUp)
+				resolve(connection)
+			}, reject)
+		})
+	} finally {
+		clearTimeout(timer)
+		signal?.removeEventListener('abort', onAbort)
+		if (gaveUp) {
+			pending?.then(
+				(connection) => connection.close(),
+				() => undefined,
+			)
+		}
+	}
+}
+
+/**
  * Runs a callback after a delay that doubles with each attempt, up to a
  * ceiling, until `reset()` starts it over.
  *

@@ -17,21 +17,29 @@ import { debounce, type DebouncedFunction, throttle, type ThrottledFunction } fr
 import { OcaModuleTypes } from './types.js'
 import { handleBonjourHost } from './utils.js'
 import { OcaHelper } from './OcaHelper.js'
-import { BackoffScheduler, RECONNECT_BACKOFF, ROLE_MAP_REFRESH_BACKOFF } from './reconnect.js'
+import {
+	BackoffScheduler,
+	CONNECT_TIMEOUT_MS,
+	KEEPALIVE_INTERVAL_S,
+	RECONNECT_BACKOFF,
+	ROLE_MAP_REFRESH_BACKOFF,
+	connectWithTimeout,
+} from './reconnect.js'
 
 export { UpgradeScripts }
 
 const FEEDBACK_THOTTLE_MS = 30
-const KEEPALIVE_INTERVAL = 2
 const ROLE_MAP_REFRESH_DEBOUNCE_MS = 1000
 const SUBSCRIPTION_PROBE_SETTLE_MS = 500
 /** Consecutive failed connection attempts after which the log suggests checking the host is an AES70 device. */
 const NOT_AES70_HINT_AFTER_ATTEMPTS = 3
 
+type Connection = TCPConnection | UDPConnection | WebSocketConnection
+
 export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	private config!: ModuleConfig // Setup in init()
 	private client!: RemoteDevice
-	private connection!: TCPConnection | UDPConnection | WebSocketConnection
+	private connection!: Connection
 	public ocaHelper = new OcaHelper()
 	private feedbacksToCheck: Set<string> = new Set()
 	private controller = new AbortController()
@@ -87,6 +95,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	// When module gets deleted
 	public async destroy(): Promise<void> {
 		this.log('debug', `destroy ${this.id}:${this.label}`)
+		this.connectAttempt?.abort()
 		this.controller.abort()
 		this.closeConnection()
 	}
@@ -124,18 +133,24 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 	/**
 	 * Only the most recent call may adopt a connection. Each call supersedes the
-	 * attempt still in flight, if any, and a superseded attempt stands down at
-	 * its next await: before adopting, it closes the connection it opened, since
-	 * closeConnection() ran before that connection existed and nothing else would
-	 * close it; after adopting, it just stops, since the newer call's
-	 * closeConnection() has already closed its connection, and carrying on would
-	 * act on this.connection, which now belongs to the newer attempt. destroy()
-	 * and configUpdated() stand it down the same way, via the instance controller.
+	 * attempt still in flight, if any, and a superseded attempt stands down: its
+	 * signal abandons a connect still in progress, and at every later await it
+	 * stops, since the newer call's closeConnection() has already closed its
+	 * connection and carrying on would act on this.connection, which now belongs
+	 * to the newer attempt. destroy() stands it down the same way.
+	 *
+	 * The checks read the attempt's own signal, not AbortSignal.any() over it and
+	 * the instance controller. On Node 26 a composite signal only looks at its
+	 * sources when read, and holds them weakly: once aborted controllers have been
+	 * replaced and garbage collected, a composite read afterwards reports not
+	 * aborted. Against a real device, an attempt left pending through a pulled
+	 * cable was superseded, then adopted its connection when the cable came back.
 	 */
 	private async connect(config: ModuleConfig): Promise<void> {
 		this.connectAttempt?.abort()
-		this.connectAttempt = new AbortController()
-		const signal = AbortSignal.any([this.controller.signal, this.connectAttempt.signal])
+		const attempt = new AbortController()
+		this.connectAttempt = attempt
+		const signal = attempt.signal
 
 		// Clean up existing connection and listeners
 		this.closeConnection()
@@ -145,11 +160,13 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			return
 		}
 
-		let connection: TCPConnection | UDPConnection | WebSocketConnection
+		let connection: Connection
 		try {
-			if (config.protocol === 'ws') connection = await this.initWebSocketConnection(config)
-			else if (config.protocol === 'udp') connection = await this.initUdpConnection(config)
-			else connection = await this.initTcpConnection(config)
+			connection = await connectWithTimeout(
+				async (connectSignal) => this.openConnection(config, connectSignal),
+				CONNECT_TIMEOUT_MS,
+				signal,
+			)
 		} catch (err) {
 			// A superseded attempt failing is of no consequence
 			if (signal.aborted) return
@@ -177,7 +194,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 		this.setupClientEventListeners(client)
 
-		client.set_keepalive_interval(KEEPALIVE_INTERVAL)
+		client.set_keepalive_interval(KEEPALIVE_INTERVAL_S)
 
 		await this.primeSubscriptionSupportProbe(client)
 		if (signal.aborted) return
@@ -186,6 +203,17 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		if (signal.aborted) return
 
 		await this.getRoleMap(client, signal)
+	}
+
+	/**
+	 * Open a connection over the configured transport. `connectSignal` stops a TCP or
+	 * UDP connect at once; aes70's WebSocket connect cannot take one, and
+	 * connectWithTimeout() closes that connection instead if it opens too late.
+	 */
+	private async openConnection(config: ModuleConfig, connectSignal: AbortSignal): Promise<Connection> {
+		if (config.protocol === 'ws') return this.initWebSocketConnection(config)
+		if (config.protocol === 'udp') return this.initUdpConnection(config, connectSignal)
+		return this.initTcpConnection(config, connectSignal)
 	}
 
 	/**
@@ -234,21 +262,23 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		return config.batchCommands ? undefined : 0
 	}
 
-	private async initTcpConnection(config: ModuleConfig): Promise<TCPConnection> {
+	private async initTcpConnection(config: ModuleConfig, connectSignal: AbortSignal): Promise<TCPConnection> {
 		this.log('info', `Initializing TCP connection to ${config.host}:${config.port || DEFAULT_PORT}`)
 		return TCPConnection.connect({
 			host: config.host,
 			port: config.port || DEFAULT_PORT,
 			batch: this.batchSizeFor(config),
+			connectSignal,
 		})
 	}
 
-	private async initUdpConnection(config: ModuleConfig): Promise<UDPConnection> {
+	private async initUdpConnection(config: ModuleConfig, connectSignal: AbortSignal): Promise<UDPConnection> {
 		this.log('info', `Initializing UDP connection to ${config.host}:${config.port || DEFAULT_PORT}`)
 		return UDPConnection.connect({
 			host: config.host,
 			port: config.port || DEFAULT_PORT,
 			batch: this.batchSizeFor(config),
+			connectSignal,
 		})
 	}
 
@@ -262,6 +292,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	}
 
 	private setupClientEventListeners(client: RemoteDevice): void {
+		// A lapsed keepalive arrives here as "Connection has timed out.", just after 'close'
 		client.on('error', (error: unknown) => {
 			this.log('error', `Connection error: ${error instanceof Error ? error.message : String(error)}`)
 			this.updateStatus(
@@ -272,12 +303,10 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			this.scheduleReconnect()
 		})
 
-		client.on('close', (error: unknown) => {
-			this.log('warn', `Connection closed: ${error instanceof Error ? error.message : String(error)}`)
-			this.updateStatus(
-				InstanceStatus.Disconnected,
-				`Connection closed: ${error instanceof Error ? error.message : String(error)}`,
-			)
+		// aes70 emits 'close' without an argument
+		client.on('close', () => {
+			this.log('warn', 'Connection closed')
+			this.updateStatus(InstanceStatus.Disconnected, 'Connection closed')
 
 			this.scheduleReconnect()
 		})

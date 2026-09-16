@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, afterEach, type Mock } from 'vitest'
+import v8 from 'node:v8'
+import vm from 'node:vm'
 import { WebSocketServer, type WebSocket } from 'ws'
 import type * as CompanionBase from '@companion-module/base'
 import { InstanceStatus } from '@companion-module/base'
@@ -10,8 +12,8 @@ import { FakeOcaDeviceRouter, OcaStatus, registerGetProduct, registerMinimalRole
 /**
  * Drives ModuleInstance's connection lifecycle end to end, against a fake
  * device over a real local WebSocket. InstanceBase is swapped for a stub,
- * since there is no Companion host to talk to, and the backoff delays are
- * shrunk so retries land within the test timeout.
+ * since there is no Companion host to talk to, and the connection timings are
+ * shrunk so retries and timeouts land within the test timeout.
  */
 
 vi.mock('@companion-module/base', async (importOriginal) => {
@@ -37,6 +39,9 @@ vi.mock('../reconnect.js', async (importOriginal) => {
 		...actual,
 		RECONNECT_BACKOFF: { initialDelayMs: 50, maxDelayMs: 200 },
 		ROLE_MAP_REFRESH_BACKOFF: { initialDelayMs: 50, maxDelayMs: 200 },
+		CONNECT_TIMEOUT_MS: 2000,
+		// aes70 closes the connection after three silent intervals, 1.5s here
+		KEEPALIVE_INTERVAL_S: 0.5,
 	}
 })
 
@@ -54,6 +59,8 @@ interface FakeDevice {
 	dropOnRoleMap: number
 	/** Hold the WebSocket handshake of upcoming connections for these delays, in arrival order. */
 	readonly handshakeDelaysMs: number[]
+	/** While true, answer nothing, keepalives included, but keep connections open. */
+	silent: boolean
 	close(): Promise<void>
 }
 
@@ -85,6 +92,7 @@ async function startFakeDevice(): Promise<FakeDevice> {
 		refuseRoleMap: 0,
 		dropOnRoleMap: 0,
 		handshakeDelaysMs,
+		silent: false,
 		close: async () => {
 			for (const ws of sockets) ws.terminate()
 			await new Promise<void>((resolve) => server.close(() => resolve()))
@@ -118,6 +126,7 @@ async function startFakeDevice(): Promise<FakeDevice> {
 		sockets.add(ws)
 		ws.on('close', () => sockets.delete(ws))
 		ws.on('message', (data: Buffer) => {
+			if (device.silent) return
 			const buf = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer
 			const replies = router.handle(buf)
 			if (dropPending) {
@@ -143,6 +152,11 @@ async function sleep(ms: number): Promise<void> {
 /** The stubbed updateStatus, reached through the stub rather than as an unbound method of ModuleInstance. */
 function updateStatusOf(instance: ModuleInstance): Mock<ModuleInstance['updateStatus']> {
 	return (instance as unknown as { updateStatus: Mock<ModuleInstance['updateStatus']> }).updateStatus
+}
+
+/** The stubbed log, reached the same way. */
+function logOf(instance: ModuleInstance): Mock<ModuleInstance['log']> {
+	return (instance as unknown as { log: Mock<ModuleInstance['log']> }).log
 }
 
 function statusesOf(instance: ModuleInstance): InstanceStatus[] {
@@ -234,6 +248,71 @@ describe('ModuleInstance connection lifecycle (fake local device)', () => {
 		expect(device.openConnections).toBe(1)
 		expect(device.roleMapRequests).toBe(1)
 	}, 10000)
+
+	it('closes a superseded connection even if garbage collection runs before it finishes opening', async () => {
+		// Node 26's AbortSignal.any() holds its sources weakly and only checks them when read, so a
+		// composite over controllers that were aborted, replaced and collected reads as not aborted.
+		// Seen against a real device: an attempt pending through a cable pull adopted its connection.
+		v8.setFlagsFromString('--expose-gc')
+		const gc = vm.runInNewContext('gc') as () => void
+
+		device = await startFakeDevice()
+		device.handshakeDelaysMs.push(600)
+
+		const inst = await connect(device)
+		instance = inst
+		await inst.configUpdated(configFor(device))
+		// The superseding controllers are now unreferenced; collect them while the first handshake is held
+		await sleep(200)
+		gc()
+		gc()
+		await waitForOk(inst)
+		await sleep(700)
+
+		expect(device.connections).toBe(2)
+		expect(device.openConnections).toBe(1)
+		expect(device.roleMapRequests).toBe(1)
+	}, 10000)
+
+	it('abandons a connection that does not open within the connect timeout, and closes it if it opens later', async () => {
+		device = await startFakeDevice()
+		// Longer than the 2s connect timeout set above
+		device.handshakeDelaysMs.push(3000)
+
+		const inst = await connect(device)
+		instance = inst
+		await waitForOk(inst)
+		// The abandoned handshake completes after the retry has connected
+		await vi.waitFor(() => expect(device?.connections).toBe(2), { timeout: 5000, interval: 20 })
+		await sleep(300)
+
+		expect(updateStatusOf(inst)).toHaveBeenCalledWith(
+			InstanceStatus.ConnectionFailure,
+			'Connection failed: Timed out after 2s',
+		)
+		expect(device.openConnections).toBe(1)
+		expect(device.roleMapRequests).toBe(1)
+	}, 10000)
+
+	it('logs the close and its reason when the device stops responding, then recovers', async () => {
+		device = await startFakeDevice()
+		const inst = await connect(device)
+		instance = inst
+		await waitForOk(inst)
+
+		device.silent = true
+		await vi.waitFor(() => expect(statusesOf(inst)).toContain(InstanceStatus.Disconnected), {
+			timeout: 8000,
+			interval: 20,
+		})
+		device.silent = false
+
+		const messages = logOf(inst).mock.calls.map(([, message]) => message)
+		expect(messages).toContain('Connection closed')
+		expect(messages).toContain('Connection error: Connection has timed out.')
+		expect(messages).not.toContain('Connection closed: undefined')
+		await waitForOk(inst)
+	}, 15000)
 
 	it('closes a connection that finishes opening after destroy()', async () => {
 		device = await startFakeDevice()
