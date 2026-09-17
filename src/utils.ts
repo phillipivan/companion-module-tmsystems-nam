@@ -159,9 +159,17 @@ export async function makeSafeJsonValue(data: unknown, options: MakeSafeJsonOpti
 			return [...new Uint8Array(value)]
 		}
 
-		// Typed arrays / DataView
-		if (ArrayBuffer.isView(value)) {
+		// A DataView has no element type, so its bytes
+		if (value instanceof DataView) {
 			return Array.from(new Uint8Array(value.buffer, value.byteOffset, value.byteLength))
+		}
+
+		// Typed arrays: their elements, so a Float32Array reads as numbers rather than raw bytes.
+		// BigInt64Array and BigUint64Array elements become strings, like any other bigint.
+		if (ArrayBuffer.isView(value)) {
+			return Array.from(value as unknown as ArrayLike<number | bigint>, (element) =>
+				typeof element === 'bigint' ? element.toString() : element,
+			)
 		}
 
 		// Set
