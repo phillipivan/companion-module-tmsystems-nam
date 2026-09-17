@@ -100,3 +100,78 @@ describe('Set Property action default property', () => {
 		expect(property?.default).toBe('Frequency')
 	})
 })
+
+describe('Set Property action value inputs', () => {
+	type Definition = {
+		options: { id: string; choices?: { id: string | number }[] }[]
+		skipUnsubscribeOnOptionsChange?: boolean
+	}
+
+	let helper: OcaHelper
+	let setActionDefinitions: Mock<(definitions: CompanionActionDefinitions<ActionSchema>) => void>
+	let self: ModuleInstance
+
+	beforeEach(() => {
+		helper = new OcaHelper()
+		setActionDefinitions = vi.fn()
+		self = { ocaHelper: helper, setActionDefinitions } as unknown as ModuleInstance
+	})
+
+	async function buildFilterDefinition(): Promise<Definition> {
+		await UpdateActions(self)
+		const built = setActionDefinitions.mock.lastCall?.[0].set_property_OcaFilterParametric
+		if (!built) throw new Error('No OcaFilterParametric action was defined')
+		return built
+	}
+
+	const optionIds = (definition: Definition): string[] => definition.options.map((option) => option.id)
+	const propertyChoiceIds = (definition: Definition): (string | number)[] | undefined =>
+		definition.options.find((option) => option.id === 'property')?.choices?.map((choice) => choice.id)
+
+	it('declares a value input for every settable property of the class, but offers only implemented ones', async () => {
+		await helper.loadRoleMap(new Map<string, unknown>([['MIC/BQ0', makeNamFilterParametric(1)]]))
+
+		const definition = await buildFilterDefinition()
+
+		// From aes70's class definition, including Label, Latency and ShapeParameter, which the NAM does not implement
+		expect(optionIds(definition)).toEqual([
+			'objectId',
+			'property',
+			'value_Enabled',
+			'value_Label',
+			'value_Latency',
+			'value_Frequency',
+			'value_Shape',
+			'value_WidthParameter',
+			'value_ShapeParameter',
+		])
+		expect(propertyChoiceIds(definition)).toEqual(['Enabled', 'Frequency', 'Shape', 'WidthParameter'])
+	})
+
+	// Companion stores a default for every option when an action is created and nothing for options added
+	// afterwards, so discovery must only ever add choices, never inputs
+	it('keeps the same value inputs when a registration discovers more properties, adding only choices', async () => {
+		await helper.loadRoleMap(
+			new Map<string, unknown>([
+				['MIC/BQ0', makeNamFilterParametric(1)],
+				['AMP/BQ0', makeNamFilterParametric(2, [['Label', 'Low cut']])],
+			]),
+		)
+		const before = await buildFilterDefinition()
+
+		await helper.addActionId('AMP/BQ0', 'a1')
+		const after = await buildFilterDefinition()
+
+		expect(optionIds(after)).toEqual(optionIds(before))
+		expect(propertyChoiceIds(before)).not.toContain('Label')
+		expect(propertyChoiceIds(after)).toEqual(['Enabled', 'Label', 'Frequency', 'Shape', 'WidthParameter'])
+	})
+
+	// Every definition rebuild makes Companion re-send every action. Unsubscribing first would drop an
+	// object's only registration and read all of its properties from the device again.
+	it('does not unsubscribe an action that Companion re-sends', async () => {
+		await helper.loadRoleMap(new Map<string, unknown>([['MIC/BQ0', makeNamFilterParametric(1)]]))
+
+		expect((await buildFilterDefinition()).skipUnsubscribeOnOptionsChange).toBe(true)
+	})
+})

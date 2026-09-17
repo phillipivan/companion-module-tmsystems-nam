@@ -24,8 +24,15 @@ const NAM_FILTER_PARAMETRIC_PROPERTIES: readonly [name: string, value: unknown][
  * A real OcaFilterParametric against an inert device, with GetPropertySync stubbed to
  * report the properties the NAM reported, so definitions are built from a realistic mix
  * of inherited and class properties without any network I/O.
+ *
+ * `extra` adds properties to what it reports, to model another object of the class that
+ * implements optional properties the NAM's did not.
  */
-export function makeNamFilterParametric(ono: number): OcaFilterParametric {
+export function makeNamFilterParametric(
+	ono: number,
+	extra: readonly [name: string, value: unknown][] = [],
+): OcaFilterParametric {
+	const reported = [...NAM_FILTER_PARAMETRIC_PROPERTIES, ...extra]
 	const device = {
 		send_command: (): undefined => undefined,
 		add_subscription: (): undefined => undefined,
@@ -35,7 +42,7 @@ export function makeNamFilterParametric(ono: number): OcaFilterParametric {
 	;(obj as unknown as { GetPropertySync: unknown }).GetPropertySync = () => ({
 		sync: async (): Promise<void> => undefined,
 		forEach: (cb: (value: unknown, name: string) => void): void => {
-			for (const [name, value] of NAM_FILTER_PARAMETRIC_PROPERTIES) cb(value, name)
+			for (const [name, value] of reported) cb(value, name)
 		},
 		Dispose: (): undefined => undefined,
 	})

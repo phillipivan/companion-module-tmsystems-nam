@@ -1003,6 +1003,8 @@ export interface PropertyDefinition {
 	 */
 	readonly level: number
 	readonly index: number
+	/** The property's OCP.1 encoders; the first encodes its value. */
+	readonly type?: readonly unknown[]
 }
 
 /** Returned by get_properties(). */

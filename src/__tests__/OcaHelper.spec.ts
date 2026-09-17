@@ -720,6 +720,89 @@ describe('getClassProperties', () => {
 		])
 	})
 
+	// Objects of one class can implement different optional properties, so the representative
+	// alone can miss some. A registered object's property sync reads everything it implements.
+	it('grows with the properties of an object registered later, reporting the discovery once', async () => {
+		const helper = new OcaHelper()
+		const first = makeObj(OcaGain, 1)
+		const second = makeObj(OcaGain, 2)
+		await helper.loadRoleMap(
+			new Map<string, unknown>([
+				['Gains/1', first],
+				['Gains/2', second],
+			]),
+		)
+		rigOf(first).propertySync.forEach.mockImplementation((cb: (value: unknown, name: string) => void) => {
+			cb(-3, 'Gain')
+		})
+		rigOf(second).propertySync.forEach.mockImplementation((cb: (value: unknown, name: string) => void) => {
+			cb(true, 'Enabled')
+			cb(-6, 'Gain')
+		})
+		expect((await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)).map((prop) => prop.name)).toEqual(['Gain'])
+		const discovered = vi.fn()
+		helper.on('properties:discovered', discovered)
+
+		await helper.addFeedbackId('Gains/2', 'f1')
+
+		expect(discovered).toHaveBeenCalledExactlyOnceWith(OCA_CLASS_NAMES.OcaGain)
+		// Enabled is declared on OcaWorker, so it sorts ahead of Gain
+		expect((await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)).map((prop) => prop.name)).toEqual([
+			'Enabled',
+			'Gain',
+		])
+	})
+
+	it('does not report a registered object that implements nothing new', async () => {
+		const helper = new OcaHelper()
+		const first = makeObj(OcaGain, 1)
+		const second = makeObj(OcaGain, 2)
+		await helper.loadRoleMap(
+			new Map<string, unknown>([
+				['Gains/1', first],
+				['Gains/2', second],
+			]),
+		)
+		for (const obj of [first, second]) {
+			rigOf(obj).propertySync.forEach.mockImplementation((cb: (value: unknown, name: string) => void) => {
+				cb(-3, 'Gain')
+			})
+		}
+		await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
+		const discovered = vi.fn()
+		helper.on('properties:discovered', discovered)
+
+		await helper.addFeedbackId('Gains/2', 'f1')
+
+		expect(discovered).not.toHaveBeenCalled()
+	})
+
+	it('relearns discovered properties on reload, from the registrations it migrates', async () => {
+		const helper = new OcaHelper()
+		const first = makeObj(OcaGain, 1)
+		const second = makeObj(OcaGain, 2)
+		const roleMap = new Map<string, unknown>([
+			['Gains/1', first],
+			['Gains/2', second],
+		])
+		await helper.loadRoleMap(roleMap)
+		rigOf(first).propertySync.forEach.mockImplementation((cb: (value: unknown, name: string) => void) => {
+			cb(-3, 'Gain')
+		})
+		rigOf(second).propertySync.forEach.mockImplementation((cb: (value: unknown, name: string) => void) => {
+			cb(true, 'Enabled')
+			cb(-6, 'Gain')
+		})
+		await helper.addFeedbackId('Gains/2', 'f1')
+
+		await helper.loadRoleMap(roleMap)
+
+		expect((await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)).map((prop) => prop.name)).toEqual([
+			'Enabled',
+			'Gain',
+		])
+	})
+
 	it('records the members of enum properties, including one inherited from a base class', async () => {
 		const helper = new OcaHelper()
 		const sensor = makeObj(OcaAudioLevelSensor, 1)

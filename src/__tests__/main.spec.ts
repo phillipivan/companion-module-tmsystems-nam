@@ -314,6 +314,27 @@ describe('ModuleInstance connection lifecycle (fake local device)', () => {
 		await waitForOk(inst)
 	}, 15000)
 
+	it('rebuilds action and feedback definitions once for a burst of property discoveries', async () => {
+		device = await startFakeDevice()
+		const inst = await connect(device)
+		instance = inst
+		await waitForOk(inst)
+		const stub = inst as unknown as { setActionDefinitions: Mock; setFeedbackDefinitions: Mock }
+		// Let the definitions set on connect land before counting
+		await sleep(700)
+		const actionDefinitionsSet = stub.setActionDefinitions.mock.calls.length
+		const feedbackDefinitionsSet = stub.setFeedbackDefinitions.mock.calls.length
+
+		// Saved buttons registering after connect report discoveries in a burst
+		inst.ocaHelper.emit('properties:discovered', 'OcaGain')
+		inst.ocaHelper.emit('properties:discovered', 'OcaMute')
+		inst.ocaHelper.emit('properties:discovered', 'OcaGain')
+		await sleep(900)
+
+		expect(stub.setActionDefinitions).toHaveBeenCalledTimes(actionDefinitionsSet + 1)
+		expect(stub.setFeedbackDefinitions).toHaveBeenCalledTimes(feedbackDefinitionsSet + 1)
+	}, 10000)
+
 	it('closes a connection that finishes opening after destroy()', async () => {
 		device = await startFakeDevice()
 		device.handshakeDelaysMs.push(300)

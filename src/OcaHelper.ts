@@ -243,6 +243,11 @@ interface OcaHelperInternalEvents {
 	 * `loadRoleMap()` again.
 	 */
 	'tree:changed': [rolePath: string]
+	/**
+	 * Fired when a registered object implements properties its class was not yet
+	 * known to have, so definitions built from `getClassProperties()` are out of date.
+	 */
+	'properties:discovered': [className: OcaClassName]
 }
 
 // ---------------------------------------------------------------------------
@@ -399,12 +404,20 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	private _blockChangeSubscriptions: Map<string, () => void> = new Map()
 
 	/**
-	 * Per-class property descriptions discovered by `getClassProperties()`,
-	 * cached for the lifetime of the current role map so the device is probed
-	 * once per class rather than once per caller. Cleared by `loadRoleMap()`,
-	 * since a reload can change which object represents each class.
+	 * The representative-object probe per class, cached for the lifetime of the
+	 * current role map so the device is probed once per class rather than once
+	 * per caller. Cleared by `loadRoleMap()`, since a reload can change which
+	 * object represents each class.
 	 */
-	private _classPropertiesCache: Map<OcaClassName, Promise<PropertyDescription[]>> = new Map()
+	private _classProbes: Map<OcaClassName, Promise<void>> = new Map()
+
+	/**
+	 * Per class, the properties known to be implemented, by name: the probed
+	 * object's, plus any found on objects registered since. Cleared by
+	 * `loadRoleMap()`; migrated registrations re-sync during the reload, which
+	 * relearns theirs before `'map:loaded'`.
+	 */
+	private _classProperties: Map<OcaClassName, Map<string, PropertyDescription>> = new Map()
 
 	// -------------------------------------------------------------------------
 	// Constructor
@@ -457,7 +470,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		this._objectRegistry = new Map()
 		this._actionIndex = new Map()
 		this._feedbackIndex = new Map()
-		this._classPropertiesCache = new Map()
+		this._classProbes = new Map()
+		this._classProperties = new Map()
 
 		// Populate
 		for (const [rolePath, obj] of roleMap) {
@@ -931,38 +945,43 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	}
 
 	/**
-	 * Return an array of property descriptions for the given class.
+	 * Return the properties known to be implemented by objects of the given class, in
+	 * aes70's declaration order, inherited ones first.
 	 *
-	 * Discovering properties means reading every property off one representative
-	 * object, which on devices that don't implement the optional `OcaRoot` /
-	 * `OcaWorker` properties produces a burst of NotImplemented/BadMethod
-	 * responses. The result is therefore cached per class for as long as the
-	 * current role map is loaded, so repeat callers (action *and* feedback
-	 * definition building) don't re-probe the device.
+	 * This starts from one representative object, whose properties are all read once per
+	 * class for as long as the current role map is loaded. On devices that don't implement
+	 * the optional `OcaRoot` / `OcaWorker` properties that read is a burst of
+	 * NotImplemented/BadMethod responses, so action and feedback definition building share
+	 * it rather than each probing the device.
+	 *
+	 * Objects of one class can implement different optional properties, so the
+	 * representative alone can miss some. The set therefore also grows as other objects of
+	 * the class are registered: their property sync already reads everything they
+	 * implement, and anything new is added and reported with `'properties:discovered'`.
+	 * Only objects actually in use are ever read beyond the first.
 	 */
 	public async getClassProperties(className: OcaClassName): Promise<PropertyDescription[]> {
-		const cached = this._classPropertiesCache.get(className)
-		if (cached) return cached
-
-		const pending = this._readClassProperties(className)
-		this._classPropertiesCache.set(className, pending)
+		let probe = this._classProbes.get(className)
+		if (!probe) {
+			probe = this._probeClass(className)
+			this._classProbes.set(className, probe)
+		}
 		try {
-			return await pending
+			await probe
 		} catch (err) {
 			// Don't cache a failure — a later attempt may succeed.
-			this._classPropertiesCache.delete(className)
+			if (this._classProbes.get(className) === probe) this._classProbes.delete(className)
 			throw err
 		}
+		return this._knownClassProperties(className)
 	}
 
-	private async _readClassProperties(className: OcaClassName): Promise<PropertyDescription[]> {
+	private async _probeClass(className: OcaClassName): Promise<void> {
 		const rolePath = this._classIndex.get(className)?.values().next().value
 		this.logger.debug(`Getting properties for class "${className}" using role path "${rolePath}".`)
 		const entry = this._objectRegistry.get(rolePath ?? '')
 
-		if (!entry) return []
-
-		const objWithMethods = entry.obj as unknown as Record<string, unknown>
+		if (!entry) return
 
 		// Spin up a temporary sync just to read property structure and types. Always dispose it:
 		// GetPropertySync() returns a new instance on every call, separate from the entry's own
@@ -970,33 +989,69 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		// the entry's. Leaving it open when the entry had IDs leaked one observer per property on
 		// every role map reload, and kept the device sending changes after the last ID was removed.
 		const propSync = entry.obj.GetPropertySync()
-		const props: PropertyDescription[] = []
 		try {
 			await propSync.sync()
-
-			propSync.forEach((value, name) => {
-				const valueType = typeof value
-				this.logger.debug(
-					`Inspecting property "${name}" of class "${className}" with value: ${value} of type: ${valueType}`,
-				)
-
-				if (name !== 'ClassID' && valueType !== 'undefined') {
-					props.push({
-						name,
-						type: valueType,
-						read: true, //typeof objWithMethods[`Get${name}`] === 'function',
-						write: typeof objWithMethods[`Set${name}`] === 'function',
-						level: entry.obj.get_properties().find_property(name)?.level ?? 0,
-						...(isAes70Enum(value) ? { enumValues: enumValuesOf(value) } : {}),
-					})
-				}
-			})
+			this._recordProperties(entry, this._describeProperties(entry, propSync))
 		} finally {
 			propSync.Dispose()
 		}
 
-		this.logger.debug(`Properties for ${className}:\n${JSON.stringify(props, null, 2)}`)
+		this.logger.debug(`Properties for ${className}:\n${JSON.stringify(this._knownClassProperties(className), null, 2)}`)
+	}
+
+	/** Describe every property a synced object implements, meaning every one it returned a value for. */
+	private _describeProperties(entry: ObjectEntry, sync: PropertySync<OcaRootProperties>): PropertyDescription[] {
+		const objWithMethods = entry.obj as unknown as Record<string, unknown>
+		const props: PropertyDescription[] = []
+
+		sync.forEach((value, name) => {
+			const valueType = typeof value
+			this.logger.debug(
+				`Inspecting property "${name}" of class "${entry.className}" with value: ${value} of type: ${valueType}`,
+			)
+
+			if (name !== 'ClassID' && valueType !== 'undefined') {
+				props.push({
+					name,
+					type: valueType,
+					read: true, //typeof objWithMethods[`Get${name}`] === 'function',
+					write: typeof objWithMethods[`Set${name}`] === 'function',
+					level: entry.obj.get_properties().find_property(name)?.level ?? 0,
+					...(isAes70Enum(value) ? { enumValues: enumValuesOf(value) } : {}),
+				})
+			}
+		})
+
 		return props
+	}
+
+	/** Add any of `props` not yet known for the entry's class. Returns true when anything was added. */
+	private _recordProperties(entry: ObjectEntry, props: readonly PropertyDescription[]): boolean {
+		let known = this._classProperties.get(entry.className)
+		if (!known) {
+			known = new Map()
+			this._classProperties.set(entry.className, known)
+		}
+
+		let added = false
+		for (const prop of props) {
+			if (known.has(prop.name)) continue
+			known.set(prop.name, prop)
+			added = true
+		}
+		return added
+	}
+
+	/** The class's known properties in aes70's declaration order: by level, then by index within it. */
+	private _knownClassProperties(className: OcaClassName): PropertyDescription[] {
+		const known = this._classProperties.get(className)
+		if (!known) return []
+
+		const samplePath = this._classIndex.get(className)?.values().next().value
+		const sample = this._objectRegistry.get(samplePath ?? '')
+		const indexOf = (name: string): number => sample?.obj.get_properties().find_property(name)?.index ?? 0
+
+		return Array.from(known.values()).sort((a, b) => a.level - b.level || indexOf(a.name) - indexOf(b.name))
 	}
 
 	// -------------------------------------------------------------------------
@@ -1310,6 +1365,11 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 			const properties = entry.obj.GetPropertySync()
 			await properties.sync()
 			entry.properties = properties
+
+			// A registered object can implement properties its class's representative doesn't
+			if (this._recordProperties(entry, this._describeProperties(entry, properties))) {
+				this.emit('properties:discovered', entry.className)
+			}
 
 			entry.unsubscribeProperties = entry.obj.OnPropertyChanged.subscribe(
 				() => {

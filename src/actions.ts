@@ -9,8 +9,8 @@ import {
 import type ModuleInstance from './main.js'
 import { ocaClassNameToLabel, excitementEmoji, makePropChoices, defaultPropertyName } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
-import type { JavaScriptType, PropertyDescription } from './OcaHelper.js'
 import { enumChoices, enumExpressionDescription, isAes70Enum } from './enums.js'
+import { settablePropertiesOf, type SettableProperty } from './aes70Properties.js'
 
 type SetPropertyActionKey = `set_property_${OcaClassName}`
 
@@ -31,12 +31,6 @@ export type ActionSchema = {
 	[K in SetPropertyActionKey]: SetPropertyAction
 }
 
-export type SupportedPropertyType = 'string' | 'number' | 'boolean' | 'object'
-
-function isSupportedPropertyType(type: JavaScriptType): type is SupportedPropertyType {
-	return type === 'boolean' || type === 'string' || type === 'number' || type == 'object'
-}
-
 /**
  * The option value to learn from a property's current value, or `undefined` when
  * there is no input it could be learned into. aes70 represents enum values as
@@ -46,6 +40,47 @@ function toLearnedValue(value: unknown): boolean | string | number | undefined {
 	if (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number') return value
 	if (isAes70Enum(value)) return value.valueOf()
 	return undefined
+}
+
+/** The value input for a settable property, visible only while that property is selected. */
+function valueInputFor(prop: SettableProperty): SomeCompanionActionInputField<keyof SetPropertyOptions> {
+	const id = `value_${prop.name}` as const
+	const label = ocaClassNameToLabel(prop.name)
+	const isVisibleExpression = `$(options:property) == '${prop.name}'`
+
+	switch (prop.kind) {
+		case 'boolean':
+			return { type: 'checkbox', id, label, default: true, isVisibleExpression }
+		case 'string':
+			return { type: 'textinput', id, label, default: '', useVariables: true, isVisibleExpression }
+		case 'number':
+			return {
+				type: 'number',
+				id,
+				label,
+				default: 0,
+				min: -Number.MAX_VALUE,
+				max: Number.MAX_VALUE,
+				isVisibleExpression,
+			}
+		case 'enum': {
+			const choices = enumChoices(prop.enumValues)
+			return {
+				type: 'dropdown',
+				id,
+				label,
+				default: choices[0]?.id ?? 0,
+				choices,
+				allowCustom: false,
+				isVisibleExpression,
+				expressionDescription: enumExpressionDescription(prop.enumValues),
+			}
+		}
+		default: {
+			const _exhaustive: never = prop
+			throw new Error(`Unhandled property kind: ${JSON.stringify(_exhaustive)}`)
+		}
+	}
 }
 
 function completeActionSchema(
@@ -67,19 +102,25 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 
 	for (const className of classes) {
 		const objectChoices = self.ocaHelper.getChoicesByClass(className)
-		const properties = await self.ocaHelper.getClassProperties(className)
-		const writableProps = properties.filter(
-			(p): p is PropertyDescription & { type: SupportedPropertyType } => p.write && isSupportedPropertyType(p.type),
-		)
-		if (writableProps.length === 0) {
-			logger.debug(
-				`Skipping action definition for class ${className} since it has no writable properties of a supported type`,
-			)
+		const [samplePath] = self.ocaHelper.getByClass(className)
+		const sample = samplePath === undefined ? undefined : self.ocaHelper.getEntry(samplePath)
+		if (!sample) continue
+
+		// Value inputs follow aes70's class definition, so they stay the same however many properties are
+		// discovered on the device, and every action has a stored value for each of them from creation
+		const settable = settablePropertiesOf(sample.obj)
+		const settableNames = new Set(settable.map((prop) => prop.name))
+		// The Property dropdown offers only what objects of the class are known to implement
+		const offered = (await self.ocaHelper.getClassProperties(className)).filter((prop) => settableNames.has(prop.name))
+		if (offered.length === 0) {
+			logger.debug(`Skipping action definition for class ${className}: no settable properties known to be implemented`)
 			continue
 		}
 		logger.debug(
-			`Class ${className} has ${objectChoices.length} objects and ${writableProps.length} writable properties of supported types`,
+			`Class ${className} has ${objectChoices.length} objects, and ${offered.length} of its ${settable.length} settable properties are known to be implemented`,
 		)
+
+		const propertyChoices: DropdownChoice<string>[] = makePropChoices(offered)
 		const options: SomeCompanionActionInputField<keyof SetPropertyOptions>[] = [
 			{
 				type: 'dropdown',
@@ -90,91 +131,26 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				allowCustom: false,
 				allowInvalidValues: false,
 			},
+			{
+				type: 'dropdown',
+				id: 'property',
+				label: 'Property',
+				choices: propertyChoices,
+				// Choices come from the device at runtime; this is the class's own property among them
+				default: defaultPropertyName(offered) ?? '',
+				disableAutoExpression: true,
+			},
+			...settable.map(valueInputFor),
 		]
-		const propertyOptions: SomeCompanionActionInputField<keyof SetPropertyOptions>[] = []
-		const definedProps: (PropertyDescription & {
-			type: SupportedPropertyType
-		})[] = []
-		writableProps.forEach((prop) => {
-			const inputId = `value_${prop.name}` as const
-			const label = ocaClassNameToLabel(prop.name)
-			const visibleExpr = `$(options:property) == '${prop.name}'`
-			switch (prop.type) {
-				case 'boolean':
-					propertyOptions.push({
-						type: 'checkbox',
-						id: inputId,
-						label,
-						default: true,
-						isVisibleExpression: visibleExpr,
-					})
-					definedProps.push(prop)
-					break
-				case 'string':
-					propertyOptions.push({
-						type: 'textinput',
-						id: inputId,
-						label,
-						default: '',
-						useVariables: true,
-						isVisibleExpression: visibleExpr,
-					})
-					definedProps.push(prop)
-					break
-				case 'number':
-					propertyOptions.push({
-						type: 'number',
-						id: inputId,
-						label,
-						default: 0,
-						min: -Number.MAX_VALUE,
-						max: Number.MAX_VALUE,
-						isVisibleExpression: visibleExpr,
-					})
-					definedProps.push(prop)
-					break
-				case 'object': {
-					const choices = prop.enumValues ? enumChoices(prop.enumValues) : []
-					if (prop.enumValues && choices.length > 0) {
-						propertyOptions.push({
-							type: 'dropdown',
-							id: inputId,
-							label,
-							default: choices[0]?.id ?? 0,
-							choices,
-							allowCustom: false,
-							isVisibleExpression: visibleExpr,
-							expressionDescription: enumExpressionDescription(prop.enumValues),
-						})
-						definedProps.push(prop)
-					}
-					// An object-typed property that isn't an enum is a struct or other complex
-					// type, which can't be represented as a simple input, so it is skipped
-					break
-				}
-				default: {
-					const _exhaustive: never = prop.type
-					throw new Error(`Unhandled property type: ${_exhaustive}`)
-				}
-			}
-		})
 
-		const propertyChoices: DropdownChoice<string>[] = makePropChoices(definedProps)
-		options.push({
-			type: 'dropdown',
-			id: 'property',
-			label: 'Property',
-			choices: propertyChoices,
-			// Choices come from the device at runtime; this is the class's own property among them
-			default: defaultPropertyName(definedProps) ?? '',
-			disableAutoExpression: true,
-		})
-		propertyOptions.forEach((prop) => options.push(prop))
 		const actionDefinition: CompanionActionDefinition<SetPropertyActionSchema> = {
 			name: `${ocaClassNameToLabel(className)} - Set Property`,
 			options: options,
 			optionsToMonitorForSubscribe: ['objectId'],
-			skipUnsubscribeOnOptionsChange: false,
+			// Companion re-sends every action whenever definitions change, which they do as properties are
+			// discovered. Unsubscribing first would drop an object's only registration and read all of its
+			// properties from the device again each time. addActionId moves a registration when the object changes.
+			skipUnsubscribeOnOptionsChange: true,
 			hasResult: false,
 			subscribe: async (action) => {
 				const objectId = action.options.objectId

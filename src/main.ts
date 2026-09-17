@@ -31,6 +31,8 @@ export { UpgradeScripts }
 const FEEDBACK_THOTTLE_MS = 30
 const ROLE_MAP_REFRESH_DEBOUNCE_MS = 1000
 const SUBSCRIPTION_PROBE_SETTLE_MS = 500
+/** Coalesces a burst of property discoveries, such as saved buttons registering after connect, into one rebuild. */
+const DEFINITIONS_REBUILD_DEBOUNCE_MS = 500
 /** Consecutive failed connection attempts after which the log suggests checking the host is an AES70 device. */
 const NOT_AES70_HINT_AFTER_ATTEMPTS = 3
 
@@ -53,6 +55,9 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.controller.signal,
 	)
 	private roleMapRefreshRetry: BackoffScheduler = this.createRoleMapRefreshRetry(this.controller.signal)
+	private debouncedRebuildDefinitions: DebouncedFunction<() => void> = this.createDebouncedDefinitionsRebuild(
+		this.controller.signal,
+	)
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -89,6 +94,10 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			this.log('info', `Device tree changed under "${rolePath}" — scheduling role map refresh`)
 			this.debouncedRefreshRoleMap()
 		})
+		this.ocaHelper.on('properties:discovered', (className) => {
+			this.log('debug', `Found more implemented properties on ${className} objects — scheduling a definitions rebuild`)
+			this.debouncedRebuildDefinitions()
+		})
 
 		void this.configUpdated(config)
 	}
@@ -109,11 +118,15 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.reconnect = this.createReconnectScheduler(this.controller.signal)
 		this.debouncedRefreshRoleMap = this.createDebouncedRoleMapRefresh(this.controller.signal)
 		this.roleMapRefreshRetry = this.createRoleMapRefreshRetry(this.controller.signal)
+		this.debouncedRebuildDefinitions = this.createDebouncedDefinitionsRebuild(this.controller.signal)
 		void this.connect(config)
 	}
 
 	private async updateCompanionBits(): Promise<void> {
 		this.log('debug', 'Updating Companion bits')
+		// These definitions include everything discovered so far, such as migrated registrations
+		// re-syncing during the role map load, so a rebuild scheduled for those is redundant
+		this.debouncedRebuildDefinitions.cancel()
 		await this.updateActions()
 		await this.updateFeedbacks()
 		this.updateVariableDefinitions()
@@ -123,9 +136,21 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.checkAllFeedbacks()
 	}
 
+	/**
+	 * Rebuild action and feedback definitions after registered objects turned out to implement
+	 * more properties. Companion re-sends every action and feedback on a definition change, which
+	 * re-registers and rechecks them, so nothing more is needed here.
+	 */
+	private async rebuildDefinitions(): Promise<void> {
+		this.log('debug', 'Rebuilding action and feedback definitions with newly discovered properties')
+		await this.updateActions()
+		await this.updateFeedbacks()
+	}
+
 	private closeConnection(): void {
-		// A role map refresh only means anything on the connection it was scheduled for
+		// A role map refresh or definitions rebuild only means anything on the connection it was scheduled for
 		this.debouncedRefreshRoleMap.cancel()
+		this.debouncedRebuildDefinitions.cancel()
 		this.roleMapRefreshRetry.reset()
 		if (this.client) this.client.removeAllEventListeners()
 		if (this.connection) this.connection.close()
@@ -453,6 +478,16 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 				void this.refreshRoleMap(this.client)
 			},
 			ROLE_MAP_REFRESH_DEBOUNCE_MS,
+			{ edges: ['trailing'], signal: signal },
+		)
+	}
+
+	private createDebouncedDefinitionsRebuild(signal?: AbortSignal): DebouncedFunction<() => void> {
+		return debounce(
+			() => {
+				void this.rebuildDefinitions()
+			},
+			DEFINITIONS_REBUILD_DEBOUNCE_MS,
 			{ edges: ['trailing'], signal: signal },
 		)
 	}

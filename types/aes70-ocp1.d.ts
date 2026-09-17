@@ -66,6 +66,54 @@ declare module 'aes70/src/OCP1/OcaString.js' {
 	export const OcaString: OcpEncoder
 }
 
+// Primitive encoders, also compared by identity in src/aes70Properties.ts to type
+// action value inputs from aes70's class definitions.
+
+declare module 'aes70/src/OCP1/OcaBoolean.js' {
+	import type { OcpEncoder } from 'aes70/src/OCP1/encoded_arguments.js'
+	export const OcaBoolean: OcpEncoder
+}
+
+declare module 'aes70/src/OCP1/OcaInt8.js' {
+	import type { OcpEncoder } from 'aes70/src/OCP1/encoded_arguments.js'
+	export const OcaInt8: OcpEncoder
+}
+
+declare module 'aes70/src/OCP1/OcaInt16.js' {
+	import type { OcpEncoder } from 'aes70/src/OCP1/encoded_arguments.js'
+	export const OcaInt16: OcpEncoder
+}
+
+declare module 'aes70/src/OCP1/OcaInt32.js' {
+	import type { OcpEncoder } from 'aes70/src/OCP1/encoded_arguments.js'
+	export const OcaInt32: OcpEncoder
+}
+
+declare module 'aes70/src/OCP1/OcaUint8.js' {
+	import type { OcpEncoder } from 'aes70/src/OCP1/encoded_arguments.js'
+	export const OcaUint8: OcpEncoder
+}
+
+declare module 'aes70/src/OCP1/OcaUint16.js' {
+	import type { OcpEncoder } from 'aes70/src/OCP1/encoded_arguments.js'
+	export const OcaUint16: OcpEncoder
+}
+
+declare module 'aes70/src/OCP1/OcaUint32.js' {
+	import type { OcpEncoder } from 'aes70/src/OCP1/encoded_arguments.js'
+	export const OcaUint32: OcpEncoder
+}
+
+declare module 'aes70/src/OCP1/OcaFloat32.js' {
+	import type { OcpEncoder } from 'aes70/src/OCP1/encoded_arguments.js'
+	export const OcaFloat32: OcpEncoder
+}
+
+declare module 'aes70/src/OCP1/OcaFloat64.js' {
+	import type { OcpEncoder } from 'aes70/src/OCP1/encoded_arguments.js'
+	export const OcaFloat64: OcpEncoder
+}
+
 declare module 'aes70/src/OCP1/OcaProduct.js' {
 	import type { OcpEncoder } from 'aes70/src/OCP1/encoded_arguments.js'
 	export const OcaProduct: OcpEncoder
