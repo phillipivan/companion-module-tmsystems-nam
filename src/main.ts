@@ -17,6 +17,7 @@ import { debounce, type DebouncedFunction, throttle, type ThrottledFunction } fr
 import { OcaModuleTypes } from './types.js'
 import { handleBonjourHost } from './utils.js'
 import { OcaHelper } from './OcaHelper.js'
+import { readDeviceInfo, type DeviceInfo } from './deviceInfo.js'
 import {
 	BackoffScheduler,
 	CONNECT_TIMEOUT_MS,
@@ -42,6 +43,8 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	private client!: RemoteDevice
 	private connection!: Connection
 	public ocaHelper = new OcaHelper()
+	/** The identity the connected device returned; each field present is also a variable. */
+	public deviceInfo: DeviceInfo = {}
 	private feedbacksToCheck: Set<string> = new Set()
 	private controller = new AbortController()
 	/** Aborted when a newer connect() call supersedes the one in flight. */
@@ -110,6 +113,9 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 	public async configUpdated(config: ModuleConfig): Promise<void> {
 		this.config = handleBonjourHost(config)
+		// The host may now be a different device, so its variables wait for the next connect
+		this.deviceInfo = {}
+		this.updateVariableDefinitions()
 		this.controller.abort()
 		this.controller = new AbortController()
 		this.feedbacksToCheck.clear()
@@ -126,8 +132,8 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		// These definitions include everything discovered so far, such as migrated registrations
 		// re-syncing during the role map load, so a rebuild scheduled for those is redundant
 		this.debouncedRebuildDefinitions.cancel()
+		// Variables are defined when the device info is read, before the role map
 		if (!(await this.buildDefinitions())) return
-		this.updateVariableDefinitions()
 
 		// Make sure all role paths are registered
 		this.subscribeActions()
@@ -323,19 +329,29 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		})
 	}
 
+	/**
+	 * Read what the device says about itself, and offer each returned field as a variable.
+	 * Every device manager getter is optional in AES70, so a device may return any subset,
+	 * or nothing at all.
+	 */
 	private async getDeviceInfo(client: RemoteDevice, signal: AbortSignal): Promise<void> {
+		let info: DeviceInfo
 		try {
-			const product = await client.DeviceManager.GetProduct()
-			if (signal.aborted) return
-			this.log('info', `Connected to Device:\n${JSON.stringify(product, null, 2)}`)
-			this.reconnect.cancel()
-		} catch (err) {
-			if (signal.aborted) return
-			this.log(
-				'debug',
-				`GetProduct() not supported by this device: ${err instanceof Error ? err.message : String(err)}`,
-			)
+			info = await readDeviceInfo(client.DeviceManager, signal)
+		} catch {
+			// Only rejects once superseded
+			return
 		}
+		if (signal.aborted) return
+
+		if (Object.keys(info).length > 0) {
+			this.log('info', `Connected to device: ${JSON.stringify(info)}`)
+			this.reconnect.cancel()
+		} else {
+			this.log('debug', 'The device returned no information about itself')
+		}
+		this.deviceInfo = info
+		this.updateVariableDefinitions()
 	}
 
 	/**

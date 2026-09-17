@@ -26,6 +26,7 @@ vi.mock('@companion-module/base', async (importOriginal) => {
 		setActionDefinitions = vi.fn()
 		setFeedbackDefinitions = vi.fn()
 		setVariableDefinitions = vi.fn()
+		setVariableValues = vi.fn()
 		subscribeActions = vi.fn()
 		checkAllFeedbacks = vi.fn()
 		checkFeedbacksById = vi.fn()
@@ -194,6 +195,27 @@ describe('ModuleInstance connection lifecycle (fake local device)', () => {
 		await inst.init(configFor(fake))
 		return inst
 	}
+
+	it('defines variables only for the device information the device returns', async () => {
+		// The fake device answers GetProduct, and refuses every other device manager getter
+		device = await startFakeDevice()
+		const inst = await connect(device)
+		instance = inst
+		await waitForOk(inst)
+		const stub = inst as unknown as { setVariableDefinitions: Mock; setVariableValues: Mock }
+
+		expect(Object.keys(stub.setVariableDefinitions.mock.lastCall?.[0] as object)).toEqual([
+			'product_name',
+			'product_model_id',
+			'product_revision_level',
+			'product_brand_name',
+			'product_uuid',
+			'product_description',
+		])
+		expect(stub.setVariableValues).toHaveBeenLastCalledWith(
+			expect.objectContaining({ product_name: 'Fake Device', product_model_id: 'FAKE-1' }),
+		)
+	}, 10000)
 
 	it('reconnects after the device refuses the initial role map, rather than giving up', async () => {
 		device = await startFakeDevice()
