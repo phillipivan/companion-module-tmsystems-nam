@@ -127,8 +127,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		// These definitions include everything discovered so far, such as migrated registrations
 		// re-syncing during the role map load, so a rebuild scheduled for those is redundant
 		this.debouncedRebuildDefinitions.cancel()
-		await this.updateActions()
-		await this.updateFeedbacks()
+		if (!(await this.buildDefinitions())) return
 		this.updateVariableDefinitions()
 
 		// Make sure all role paths are registered
@@ -143,8 +142,29 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	 */
 	private async rebuildDefinitions(): Promise<void> {
 		this.log('debug', 'Rebuilding action and feedback definitions with newly discovered properties')
-		await this.updateActions()
-		await this.updateFeedbacks()
+		await this.buildDefinitions()
+	}
+
+	/**
+	 * Set action and feedback definitions, returning false if they couldn't be built. Building
+	 * reads properties from the device, which fails if the connection closes meanwhile. Callers
+	 * start this without awaiting it, so a failure is handled here rather than left unhandled.
+	 */
+	private async buildDefinitions(): Promise<boolean> {
+		try {
+			await this.updateActions()
+			await this.updateFeedbacks()
+			return true
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err)
+			if (this.isConnectionLost(err)) {
+				// The reconnect builds them again once its role map loads
+				this.log('debug', `Definitions not built, the connection closed while reading properties: ${message}`)
+			} else {
+				this.log('error', `Failed to build action and feedback definitions: ${message}`)
+			}
+			return false
+		}
 	}
 
 	private closeConnection(): void {
@@ -154,6 +174,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.roleMapRefreshRetry.reset()
 		if (this.client) this.client.removeAllEventListeners()
 		if (this.connection) this.connection.close()
+		this.ocaHelper.connectionClosed()
 	}
 
 	/**
@@ -330,6 +351,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 		// aes70 emits 'close' without an argument
 		client.on('close', () => {
+			this.ocaHelper.connectionClosed()
 			this.log('warn', 'Connection closed')
 			this.updateStatus(InstanceStatus.Disconnected, 'Connection closed')
 

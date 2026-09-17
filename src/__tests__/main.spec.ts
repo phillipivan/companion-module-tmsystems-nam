@@ -300,12 +300,17 @@ describe('ModuleInstance connection lifecycle (fake local device)', () => {
 		instance = inst
 		await waitForOk(inst)
 
+		const connectionClosed = vi.spyOn(inst.ocaHelper, 'connectionClosed')
+
 		device.silent = true
 		await vi.waitFor(() => expect(statusesOf(inst)).toContain(InstanceStatus.Disconnected), {
 			timeout: 8000,
 			interval: 20,
 		})
 		device.silent = false
+
+		// So property syncs cut short by the close stop being waited on
+		expect(connectionClosed).toHaveBeenCalled()
 
 		const messages = logOf(inst).mock.calls.map(([, message]) => message)
 		expect(messages).toContain('Connection closed')
@@ -333,6 +338,33 @@ describe('ModuleInstance connection lifecycle (fake local device)', () => {
 
 		expect(stub.setActionDefinitions).toHaveBeenCalledTimes(actionDefinitionsSet + 1)
 		expect(stub.setFeedbackDefinitions).toHaveBeenCalledTimes(feedbackDefinitionsSet + 1)
+	}, 10000)
+
+	it('logs a failed definitions build rather than leaving the rejection unhandled', async () => {
+		device = await startFakeDevice()
+		const inst = await connect(device)
+		instance = inst
+		await waitForOk(inst)
+		await sleep(700)
+		const unhandled = vi.fn()
+		process.on('unhandledRejection', unhandled)
+		try {
+			// Building definitions reads properties from the device, which can fail
+			vi.spyOn(inst as unknown as { updateActions: () => Promise<void> }, 'updateActions').mockRejectedValue(
+				new Error('device refused a property read'),
+			)
+
+			inst.ocaHelper.emit('properties:discovered', 'OcaGain')
+			await sleep(900)
+
+			expect(logOf(inst)).toHaveBeenCalledWith(
+				'error',
+				'Failed to build action and feedback definitions: device refused a property read',
+			)
+			expect(unhandled).not.toHaveBeenCalled()
+		} finally {
+			process.off('unhandledRejection', unhandled)
+		}
 	}, 10000)
 
 	it('closes a connection that finishes opening after destroy()', async () => {

@@ -137,6 +137,55 @@ describe('Get Property feedback registration', () => {
 	})
 })
 
+describe('Get Property feedback check abort', () => {
+	// Companion aborts a check's signal when it queues another check of the same feedback, and won't start
+	// that one until this one settles. A check stuck waiting on registration would otherwise never update again.
+	it('stops waiting on registration when Companion aborts the check', async () => {
+		const helper = new OcaHelper()
+		const setFeedbackDefinitions: Mock<(definitions: CompanionFeedbackDefinitions<FeedbackSchema>) => void> = vi.fn()
+		const self = { ocaHelper: helper, setFeedbackDefinitions } as unknown as ModuleInstance
+		const gain = makeGain(1)
+		// The class probe's sync finishes; the registration's never does, as after the connection closes mid-sync
+		let syncs = 0
+		;(gain as unknown as { GetPropertySync: unknown }).GetPropertySync = () => {
+			syncs++
+			const first = syncs === 1
+			return {
+				sync: async (): Promise<void> => (first ? undefined : new Promise<void>(() => undefined)),
+				forEach: (cb: (value: unknown, name: string) => void): void => cb(GAIN_VALUE, 'Gain'),
+				Dispose: (): undefined => undefined,
+			}
+		}
+		await helper.loadRoleMap(new Map<string, unknown>([['Gain1', gain]]))
+		await UpdateFeedbacks(self)
+		const definition = setFeedbackDefinitions.mock.lastCall?.[0].get_property_OcaGain
+		if (!definition) throw new Error('No OcaGain feedback was defined')
+		const controller = new AbortController()
+
+		const checking = (definition as unknown as { callback: ValueFeedbackCallback }).callback(
+			{
+				type: 'value',
+				id: 'fb1',
+				controlId: 'bank:1:1',
+				feedbackId: 'get_property_OcaGain',
+				options: GAIN_1,
+				previousOptions: null,
+			},
+			{ type: 'feedback', signal: controller.signal },
+		)
+		controller.abort(new Error('recheck queued'))
+
+		const outcome = await Promise.race([
+			checking.then(
+				() => 'finished',
+				() => 'gave way',
+			),
+			new Promise((resolve) => setTimeout(() => resolve('still waiting'), 200)),
+		])
+		expect(outcome).toBe('gave way')
+	})
+})
+
 describe('Get Property feedback enum labels', () => {
 	// ReadingState is declared on OcaSensor and reaches OcaAudioLevelSensor by inheritance
 	type EnumOptions = { objectId: string; property: string; sync: boolean; enum_ReadingState: boolean }

@@ -119,7 +119,7 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 			name: `${ocaClassNameToLabel(className)} - Get Property`,
 			type: 'value',
 			options: options,
-			callback: async (feedback) => {
+			callback: async (feedback, context) => {
 				const objectId = feedback.options.objectId
 				const property = feedback.options.property
 				const sync = feedback.options.sync
@@ -135,7 +135,8 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 				// which includes every setFeedbackDefinitions, so a registration dropped by a role map reload
 				// would otherwise never come back. Once registered, this is just a map lookup.
 				if (self.ocaHelper.resolveFeedbackId(feedback.id) !== objectId) {
-					await self.ocaHelper.addFeedbackId(objectId, feedback.id)
+					// Companion aborts this check when it queues another, and won't start that one until this settles
+					await self.ocaHelper.addFeedbackId(objectId, feedback.id, context.signal)
 				}
 				if (sync) {
 					let propValue: unknown = undefined

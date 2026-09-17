@@ -936,6 +936,97 @@ describe('getClassProperties', () => {
 })
 
 // ---------------------------------------------------------------------------
+// Connection closing mid-sync
+// ---------------------------------------------------------------------------
+
+describe('connection closing mid-sync', () => {
+	// aes70's PropertySync.sync() never settles once the connection closes part way through:
+	// the reads left pending fail with a CloseError, which it ignores
+	const neverSettling = async (): Promise<void> => new Promise<void>(() => undefined)
+
+	/** True if `promise` settles within `ms`, false if it is still pending. */
+	async function settlesWithin(promise: Promise<unknown>, ms: number): Promise<boolean> {
+		return Promise.race([
+			promise.then(
+				() => true,
+				() => true,
+			),
+			new Promise<boolean>((resolve) => setTimeout(() => resolve(false), ms)),
+		])
+	}
+
+	it('finishes a registration waiting on a sync once the connection closes, leaving it without properties', async () => {
+		const helper = new OcaHelper()
+		const gain = makeObj(OcaGain, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+		const { propertySync } = rigOf(gain)
+		propertySync.sync.mockReturnValueOnce(neverSettling())
+
+		const registering = helper.addFeedbackId('Faders/1', 'f1')
+		helper.connectionClosed()
+
+		expect(await settlesWithin(registering, 200)).toBe(true)
+		expect(helper.getEntry('Faders/1')?.properties).toBeUndefined()
+		expect(propertySync.Dispose).toHaveBeenCalled()
+	})
+
+	it('rejects a class probe waiting on a sync once the connection closes, so the next call probes again', async () => {
+		const helper = new OcaHelper()
+		const gain = makeObj(OcaGain, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+		rigOf(gain).propertySync.sync.mockReturnValueOnce(neverSettling())
+
+		const probing = helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
+		helper.connectionClosed()
+
+		expect(await settlesWithin(probing, 200)).toBe(true)
+		await expect(probing).rejects.toMatchObject({ name: 'aes70.CloseError' })
+		await expect(helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)).resolves.toEqual([])
+		expect(rigOf(gain).getPropertySync).toHaveBeenCalledTimes(2)
+	})
+
+	it('finishes loading a role map whose migrated registrations were re-syncing when the connection closed', async () => {
+		const helper = new OcaHelper()
+		const gain = makeObj(OcaGain, 1)
+		const roleMap = new Map<string, unknown>([['Faders/1', gain]])
+		await helper.loadRoleMap(roleMap)
+		await helper.addFeedbackId('Faders/1', 'f1')
+		rigOf(gain).propertySync.sync.mockReturnValueOnce(neverSettling())
+		const loaded = vi.fn()
+		helper.on('map:loaded', loaded)
+
+		const reloading = helper.loadRoleMap(roleMap)
+		helper.connectionClosed()
+
+		expect(await settlesWithin(reloading, 200)).toBe(true)
+		expect(loaded).toHaveBeenCalledTimes(1)
+	})
+
+	// Companion aborts a feedback check's signal when it queues another check, and won't start that one
+	// until this one settles, so a check stuck waiting on a sync would otherwise never update again
+	it("stops waiting on a registration when the caller's signal aborts, while the sync carries on for others", async () => {
+		const helper = new OcaHelper()
+		const gain = makeObj(OcaGain, 1)
+		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+		let finishSync: (() => void) | undefined
+		rigOf(gain).propertySync.sync.mockReturnValueOnce(new Promise<void>((resolve) => (finishSync = resolve)))
+		const controller = new AbortController()
+
+		const registering = helper.addFeedbackId('Faders/1', 'f1', controller.signal)
+		const outcome = registering.then(
+			() => 'registered',
+			(err: unknown) => err,
+		)
+		controller.abort(new Error('recheck queued'))
+
+		expect(await settlesWithin(registering, 200)).toBe(true)
+		expect(await outcome).toMatchObject({ message: 'recheck queued' })
+		finishSync?.()
+		await vi.waitFor(() => expect(helper.getEntry('Faders/1')?.properties).toBeDefined())
+	})
+})
+
+// ---------------------------------------------------------------------------
 // Static type guards
 // ---------------------------------------------------------------------------
 

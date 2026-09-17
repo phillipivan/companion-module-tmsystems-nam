@@ -105,6 +105,7 @@ import { OCA_CLASS_NAMES, type OcaClassName } from './consts/aes70-constants.js'
 import { createModuleLogger, type DropdownChoice } from '@companion-module/base'
 import EventEmitter from 'events'
 import { enumValuesOf, isAes70Enum, type EnumValues } from './enums.js'
+import { abortable } from './utils.js'
 
 // ---------------------------------------------------------------------------
 // Event map
@@ -419,12 +420,34 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 */
 	private _classProperties: Map<OcaClassName, Map<string, PropertyDescription>> = new Map()
 
+	/**
+	 * Aborted by `connectionClosed()` and replaced straight away, so work started
+	 * afterwards waits on the next connection's instead. Held as a plain controller:
+	 * property syncs race against its signal with an abort listener.
+	 */
+	private _connectionController = new AbortController()
+
 	// -------------------------------------------------------------------------
 	// Constructor
 	// -------------------------------------------------------------------------
 
 	constructor() {
 		super()
+	}
+
+	/**
+	 * Stop waiting on property syncs for the connection the loaded objects belong to.
+	 * Call when that connection closes.
+	 *
+	 * aes70's `PropertySync.sync()` never settles if the connection closes part way
+	 * through: it only finishes a property on a value or a `RemoteError`, and the
+	 * reads left pending fail with a `CloseError` instead. Without this, whatever
+	 * awaits such a sync waits forever. Registrations waiting on one now finish
+	 * without properties, and a pending class probe rejects, so it isn't cached.
+	 */
+	public connectionClosed(): void {
+		this._connectionController.abort(new CloseError())
+		this._connectionController = new AbortController()
 	}
 
 	// -------------------------------------------------------------------------
@@ -990,7 +1013,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		// every role map reload, and kept the device sending changes after the last ID was removed.
 		const propSync = entry.obj.GetPropertySync()
 		try {
-			await propSync.sync()
+			await abortable(propSync.sync(), this._connectionController.signal)
 			this._recordProperties(entry, this._describeProperties(entry, propSync))
 		} finally {
 			propSync.Dispose()
@@ -1134,7 +1157,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 * @param rolePath - Role path as returned by `get_role_map`.
 	 * @param actionId - Opaque identifier string.
 	 */
-	public async addActionId(rolePath: string, actionId: string): Promise<void> {
+	public async addActionId(rolePath: string, actionId: string, signal?: AbortSignal): Promise<void> {
 		const entry = this._requireEntry(rolePath)
 		const isFirst = !this._hasAnyIds(entry)
 
@@ -1151,7 +1174,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		entry.actionIds.add(actionId)
 		this._actionIndex.set(actionId, rolePath)
 
-		if (isFirst) await this._syncProperties(entry)
+		// Stops waiting when `signal` aborts, but the sync carries on for other registrations
+		if (isFirst) await abortable(this._syncProperties(entry), signal)
 	}
 
 	/**
@@ -1234,7 +1258,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 * @param rolePath   - Role path as returned by `get_role_map`.
 	 * @param feedbackId - Opaque identifier string.
 	 */
-	public async addFeedbackId(rolePath: string, feedbackId: string): Promise<void> {
+	public async addFeedbackId(rolePath: string, feedbackId: string, signal?: AbortSignal): Promise<void> {
 		const entry = this._requireEntry(rolePath)
 		const isFirst = !this._hasAnyIds(entry)
 
@@ -1251,7 +1275,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		entry.feedbackIds.add(feedbackId)
 		this._feedbackIndex.set(feedbackId, rolePath)
 
-		if (isFirst) await this._syncProperties(entry)
+		// Stops waiting when `signal` aborts, but the sync carries on for other registrations
+		if (isFirst) await abortable(this._syncProperties(entry), signal)
 	}
 
 	/**
@@ -1361,9 +1386,22 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 */
 	private async _syncProperties(entry: ObjectEntry): Promise<void> {
 		if (entry.properties !== undefined) return
+		const properties = entry.obj.GetPropertySync()
 		try {
-			const properties = entry.obj.GetPropertySync()
-			await properties.sync()
+			// Never settles by itself if the connection closes mid-sync; see connectionClosed()
+			await abortable(properties.sync(), this._connectionController.signal)
+		} catch (err) {
+			properties.Dispose()
+			if (err instanceof CloseError) {
+				this.logger.debug(
+					`Gave up syncing properties for "${entry.className}" (ONo ${entry.obj.ObjectNumber}): the connection closed`,
+				)
+			} else {
+				this.logger.warn(`Failed to sync properties for "${entry.className}" (ONo ${entry.obj.ObjectNumber}): ${err}`)
+			}
+			return
+		}
+		try {
 			entry.properties = properties
 
 			// A registered object can implement properties its class's representative doesn't

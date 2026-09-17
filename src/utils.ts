@@ -310,6 +310,33 @@ export function makePropChoices(props: PropertyDescription[]): DropdownChoice<st
  * inherited framework ones such as ClassVersion, Role or Lockable. When the sampled
  * object implements none of its class's own properties, the next level up is used.
  */
+/**
+ * Settles as `promise` does, or rejects with `signal`'s reason as soon as it aborts,
+ * whichever comes first. It only stops the wait: whatever `promise` stands for carries on.
+ *
+ * Races against the signal with an abort listener rather than by reading `.aborted`
+ * later, which also keeps it clear of Node 26's lazily evaluated AbortSignal.any().
+ */
+export async function abortable<T>(promise: Promise<T>, signal: AbortSignal | undefined): Promise<T> {
+	if (!signal) return promise
+	if (signal.aborted) {
+		// The abandoned promise may still reject; nothing is waiting on it any more
+		promise.catch(() => undefined)
+		throw signal.reason
+	}
+
+	let onAbort: (() => void) | undefined
+	const aborted = new Promise<never>((_, reject) => {
+		onAbort = () => reject(signal.reason as Error)
+		signal.addEventListener('abort', onAbort, { once: true })
+	})
+	try {
+		return await Promise.race([promise, aborted])
+	} finally {
+		if (onAbort) signal.removeEventListener('abort', onAbort)
+	}
+}
+
 export function defaultPropertyName(props: readonly PropertyDescription[]): string | undefined {
 	let deepest: PropertyDescription | undefined
 	for (const prop of props) {
