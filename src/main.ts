@@ -30,7 +30,6 @@ export { UpgradeScripts }
 
 const FEEDBACK_THOTTLE_MS = 30
 const ROLE_MAP_REFRESH_DEBOUNCE_MS = 1000
-const SUBSCRIPTION_PROBE_SETTLE_MS = 500
 /** Coalesces a burst of property discoveries, such as saved buttons registering after connect, into one rebuild. */
 const DEFINITIONS_REBUILD_DEBOUNCE_MS = 500
 /** Consecutive failed connection attempts after which the log suggests checking the host is an AES70 device. */
@@ -242,9 +241,6 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 		client.set_keepalive_interval(KEEPALIVE_INTERVAL_S)
 
-		await this.primeSubscriptionSupportProbe(client)
-		if (signal.aborted) return
-
 		await this.getDeviceInfo(client, signal)
 		if (signal.aborted) return
 
@@ -260,38 +256,6 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		if (config.protocol === 'ws') return this.initWebSocketConnection(config)
 		if (config.protocol === 'udp') return this.initUdpConnection(config, connectSignal)
 		return this.initTcpConnection(config, connectSignal)
-	}
-
-	/**
-	 * aes70's RemoteDevice probes AddSubscription2 ("EV2") support on the very
-	 * first subscribe() of a session, falling back to the older v1
-	 * AddSubscription if the device rejects it — but any subscribe() issued
-	 * concurrently with that first probe just awaits the same in-flight
-	 * promise with no fallback of its own, so on a device that doesn't
-	 * support AddSubscription2 its subscription is silently and permanently
-	 * dropped (a race condition in aes70's remote_device.js _doSubscribe).
-	 *
-	 * loadRoleMap() and checkAllFeedbacks()/subscribeActions() both subscribe
-	 * to many objects in a tight synchronous burst right after connecting, so
-	 * without this, most of those race the probe and lose. Firing one
-	 * throwaway subscribe here first, and giving it time to settle before any
-	 * of that bulk subscribing starts, keeps everything after it out of the
-	 * race window.
-	 */
-	private async primeSubscriptionSupportProbe(client: RemoteDevice): Promise<void> {
-		try {
-			const unsubscribe = client.DeviceManager.OnPropertyChanged.subscribe(
-				() => undefined,
-				() => undefined,
-			)
-			await new Promise((resolve) => setTimeout(resolve, SUBSCRIPTION_PROBE_SETTLE_MS))
-			unsubscribe()
-		} catch (err) {
-			this.log(
-				'debug',
-				`Priming subscription-support probe failed: ${err instanceof Error ? err.message : String(err)}`,
-			)
-		}
 	}
 
 	/**

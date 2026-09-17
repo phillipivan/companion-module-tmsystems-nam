@@ -61,11 +61,13 @@ interface FakeDevice {
 	readonly handshakeDelaysMs: number[]
 	/** While true, answer nothing, keepalives included, but keep connections open. */
 	silent: boolean
+	/** Hold each reply to a message received while this is set, for this long. */
+	replyDelayMs: number
 	close(): Promise<void>
 }
 
 async function startFakeDevice(): Promise<FakeDevice> {
-	// Answer what the fake doesn't model (the subscription probe) as a real device would
+	// Answer anything the fake doesn't model as a real device would: NotImplemented
 	const router = new FakeOcaDeviceRouter({ unhandledStatus: OcaStatus.NotImplemented })
 	const sockets = new Set<WebSocket>()
 	const handshakeDelaysMs: number[] = []
@@ -93,6 +95,7 @@ async function startFakeDevice(): Promise<FakeDevice> {
 		dropOnRoleMap: 0,
 		handshakeDelaysMs,
 		silent: false,
+		replyDelayMs: 0,
 		close: async () => {
 			for (const ws of sockets) ws.terminate()
 			await new Promise<void>((resolve) => server.close(() => resolve()))
@@ -134,7 +137,12 @@ async function startFakeDevice(): Promise<FakeDevice> {
 				ws.terminate()
 				return
 			}
-			for (const reply of replies) ws.send(Buffer.from(reply))
+			const send = (): void => {
+				if (ws.readyState !== ws.OPEN) return
+				for (const reply of replies) ws.send(Buffer.from(reply))
+			}
+			if (device.replyDelayMs > 0) setTimeout(send, device.replyDelayMs)
+			else send()
 		})
 	})
 
@@ -374,7 +382,7 @@ describe('ModuleInstance connection lifecycle (fake local device)', () => {
 		const inst = await connect(device)
 		instance = inst
 		await inst.destroy()
-		// Past the held handshake and the subscription probe, when a surviving attempt would walk the role map
+		// Well past the held handshake, when a surviving attempt would already have walked the role map
 		await sleep(1000)
 
 		expect(device.connections).toBe(1)
@@ -384,9 +392,11 @@ describe('ModuleInstance connection lifecycle (fake local device)', () => {
 
 	it('stands down an attempt superseded after adopting its connection, leaving the newer one alone', async () => {
 		device = await startFakeDevice()
+		// Hold the device's replies, so the first attempt is still setting up the connection it adopted
+		device.replyDelayMs = 300
 		const inst = await connect(device)
 		instance = inst
-		// The first attempt has adopted its connection and is waiting out the subscription probe
+		// The first attempt has adopted its connection and is waiting on the device
 		await vi.waitFor(
 			() =>
 				expect(updateStatusOf(inst)).toHaveBeenCalledWith(
@@ -397,6 +407,8 @@ describe('ModuleInstance connection lifecycle (fake local device)', () => {
 		)
 
 		await inst.configUpdated(configFor(device))
+		// The newer attempt's messages arrive after this, so only the first attempt's replies were held
+		device.replyDelayMs = 0
 		await waitForOk(inst)
 		// Outlast the longest backoff delay, so a reconnect caused by the stale attempt would have happened
 		await sleep(400)
