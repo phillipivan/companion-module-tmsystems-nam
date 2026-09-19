@@ -4,6 +4,7 @@ import { UpdateVariableDefinitions } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
+import { UpdatePresets } from './presets.js'
 import { WebSocket } from 'ws'
 import {
 	CloseError,
@@ -151,7 +152,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 	}
 
 	/**
-	 * Set action and feedback definitions, returning false if they couldn't be built. Building
+	 * Set action, feedback and preset definitions, returning false if they couldn't be built. Building
 	 * reads properties from the device, which fails if the connection closes meanwhile. Callers
 	 * start this without awaiting it, so a failure is handled here rather than left unhandled.
 	 */
@@ -159,6 +160,7 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		try {
 			await this.updateActions()
 			await this.updateFeedbacks()
+			await this.updatePresets()
 			return true
 		} catch (err) {
 			const message = err instanceof Error ? err.message : String(err)
@@ -516,6 +518,10 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 	private async updateFeedbacks(): Promise<void> {
 		await UpdateFeedbacks(this)
+	}
+
+	private async updatePresets(): Promise<void> {
+		await UpdatePresets(this)
 	}
 
 	private updateVariableDefinitions(): void {
