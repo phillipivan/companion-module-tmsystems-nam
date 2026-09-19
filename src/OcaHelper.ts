@@ -421,6 +421,13 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	private _classProperties: Map<OcaClassName, Map<string, PropertyDescription>> = new Map()
 
 	/**
+	 * The object and property each action (`action:<id>`) or feedback (`feedback:<id>`)
+	 * was last checked against by `warnIfPropertyMissing`, so each selection is warned
+	 * about once rather than on every check.
+	 */
+	private _propertyChecks: Map<string, string> = new Map()
+
+	/**
 	 * Aborted by `connectionClosed()` and replaced straight away, so work started
 	 * afterwards waits on the next connection's instead. Held as a plain controller:
 	 * property syncs race against its signal with an abort listener.
@@ -1104,6 +1111,42 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	}
 
 	/**
+	 * Whether the object at `rolePath` returned a value for `property` when its properties
+	 * were synced, or `undefined` while it isn't synced: nothing is registered to it, or its
+	 * sync is still running or failed.
+	 */
+	public implementsProperty(rolePath: string, property: string): boolean | undefined {
+		const properties = this._objectRegistry.get(rolePath)?.properties
+		if (!properties) return undefined
+		let implemented = false
+		properties.forEach((value, name) => {
+			if (name === property && value !== undefined) implemented = true
+		})
+		return implemented
+	}
+
+	/**
+	 * Warn when an action or feedback uses a property its object didn't return a value for,
+	 * which usually means the object doesn't implement it. The Property dropdown offers every
+	 * property found on any object of the class, including optional ones only some objects have.
+	 *
+	 * Warns once per action or feedback until it points at another object or property. Says
+	 * nothing while the object isn't synced, since there is nothing to go on yet.
+	 */
+	public warnIfPropertyMissing(kind: 'action' | 'feedback', id: string, rolePath: string, property: string): void {
+		const implemented = this.implementsProperty(rolePath, property)
+		if (implemented === undefined) return
+		const key = `${kind}:${id}`
+		const checked = `${rolePath}\n${property}`
+		if (this._propertyChecks.get(key) === checked) return
+		this._propertyChecks.set(key, checked)
+		if (implemented) return
+		this.logger.warn(
+			`"${rolePath}" (${this.getClassName(rolePath)}) returned no value for property "${property}", so probably doesn't implement it. The ${kind} ${id} using it will fail.`,
+		)
+	}
+
+	/**
 	 * Retrieve a control object by role path with a specific type, using one of
 	 * the static type-guard methods as the guard function.
 	 * Returns `undefined` if the path is not registered or the guard does not match.
@@ -1184,6 +1227,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 * If this was the last ID on the entry, property subscriptions are disposed.
 	 */
 	public removeActionId(actionId: string): boolean {
+		this._propertyChecks.delete(`action:${actionId}`)
 		const rolePath = this._actionIndex.get(actionId)
 		if (rolePath === undefined) return false
 		this._actionIndex.delete(actionId)
@@ -1206,7 +1250,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	public clearActionIds(rolePath: string): void {
 		const entry = this._objectRegistry.get(rolePath)
 		if (!entry) return
-		for (const id of entry.actionIds) this._actionIndex.delete(id)
+		for (const id of entry.actionIds) this._forgetActionId(id)
 		entry.actionIds.clear()
 		if (!this._hasAnyIds(entry)) this._disposeProperties(entry)
 	}
@@ -1285,6 +1329,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 * If this was the last ID on the entry, property subscriptions are disposed.
 	 */
 	public removeFeedbackId(feedbackId: string): boolean {
+		this._propertyChecks.delete(`feedback:${feedbackId}`)
 		const rolePath = this._feedbackIndex.get(feedbackId)
 		if (rolePath === undefined) return false
 		this._feedbackIndex.delete(feedbackId)
@@ -1307,7 +1352,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	public clearFeedbackIds(rolePath: string): void {
 		const entry = this._objectRegistry.get(rolePath)
 		if (!entry) return
-		for (const id of entry.feedbackIds) this._feedbackIndex.delete(id)
+		for (const id of entry.feedbackIds) this._forgetFeedbackId(id)
 		entry.feedbackIds.clear()
 		if (!this._hasAnyIds(entry)) this._disposeProperties(entry)
 	}
@@ -1346,9 +1391,9 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	public clearAllIds(rolePath: string): void {
 		const entry = this._objectRegistry.get(rolePath)
 		if (!entry) return
-		for (const id of entry.actionIds) this._actionIndex.delete(id)
+		for (const id of entry.actionIds) this._forgetActionId(id)
 		entry.actionIds.clear()
-		for (const id of entry.feedbackIds) this._feedbackIndex.delete(id)
+		for (const id of entry.feedbackIds) this._forgetFeedbackId(id)
 		entry.feedbackIds.clear()
 		this._disposeProperties(entry)
 	}
@@ -1356,6 +1401,18 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	// -------------------------------------------------------------------------
 	// Internal helpers
 	// -------------------------------------------------------------------------
+
+	/** Drop an action ID from the reverse index, along with its property check. */
+	private _forgetActionId(actionId: string): void {
+		this._actionIndex.delete(actionId)
+		this._propertyChecks.delete(`action:${actionId}`)
+	}
+
+	/** Drop a feedback ID from the reverse index, along with its property check. */
+	private _forgetFeedbackId(feedbackId: string): void {
+		this._feedbackIndex.delete(feedbackId)
+		this._propertyChecks.delete(`feedback:${feedbackId}`)
+	}
 
 	/** True when the entry has at least one action ID or feedback ID. */
 	private _hasAnyIds(entry: ObjectEntry): boolean {

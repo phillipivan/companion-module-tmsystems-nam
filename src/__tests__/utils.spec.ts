@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { Arguments } from 'aes70/src/controller/arguments.js'
 import { OcaModelDescription } from 'aes70/src/types/OcaModelDescription.js'
 import { OcaMuteState } from 'aes70/src/types/OcaMuteState.js'
+import { OcaStatus } from 'aes70/src/types/OcaStatus.js'
+import { RemoteError } from 'aes70/src/controller/remote_error.js'
 import type { PropertyDescription } from '../OcaHelper.js'
 import type { ModuleConfig } from '../config.js'
 import {
@@ -9,6 +11,7 @@ import {
 	defaultPropertyName,
 	excitementEmoji,
 	handleBonjourHost,
+	isNotImplemented,
 	makePropChoices,
 	makeSafeJsonValue,
 	ocaClassNameToLabel,
@@ -301,5 +304,14 @@ describe('defaultPropertyName', () => {
 
 	it('has no default when there are no properties', () => {
 		expect(defaultPropertyName([])).toBeUndefined()
+	})
+})
+
+describe('isNotImplemented', () => {
+	it('is true only for a device refusing a call as not implemented', () => {
+		expect(isNotImplemented(new RemoteError(OcaStatus.NotImplemented, undefined))).toBe(true)
+		expect(isNotImplemented(new RemoteError(OcaStatus.DeviceError, undefined))).toBe(false)
+		expect(isNotImplemented(new Error('Call failed with OcaStatus NotImplemented'))).toBe(false)
+		expect(isNotImplemented(undefined)).toBe(false)
 	})
 })

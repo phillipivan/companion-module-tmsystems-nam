@@ -7,7 +7,13 @@ import {
 	type SomeCompanionActionInputField,
 } from '@companion-module/base'
 import type ModuleInstance from './main.js'
-import { ocaClassNameToLabel, excitementEmoji, makePropChoices, defaultPropertyName } from './utils.js'
+import {
+	ocaClassNameToLabel,
+	excitementEmoji,
+	makePropChoices,
+	defaultPropertyName,
+	isNotImplemented,
+} from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 import { enumChoices, enumExpressionDescription, isAes70Enum } from './enums.js'
 import { settablePropertiesOf, type SettableProperty } from './aes70Properties.js'
@@ -156,6 +162,7 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				const objectId = action.options.objectId
 				if (objectId) {
 					await self.ocaHelper.addActionId(objectId, action.id)
+					self.ocaHelper.warnIfPropertyMissing('action', action.id, objectId, action.options.property)
 				}
 			},
 			unsubscribe: (action) => {
@@ -195,7 +202,16 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				if (typeof setter !== 'function') {
 					throw new Error(`No setter '${setterName}' found on object at '${objectId}'. Aborting action ${action.id}`)
 				}
-				await (setter as (v: boolean | string | number) => Promise<void>).call(entry.obj, value)
+				try {
+					await (setter as (v: boolean | string | number) => Promise<void>).call(entry.obj, value)
+				} catch (err) {
+					if (isNotImplemented(err)) {
+						throw new Error(`'${objectId}' does not implement property '${property}'. Aborting action ${action.id}`, {
+							cause: err,
+						})
+					}
+					throw err
+				}
 			},
 		}
 		actionDefinitions[`set_property_${className}`] = actionDefinition

@@ -1,7 +1,10 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import type { CompanionFeedbackDefinitions, CompanionFeedbackValueEvent } from '@companion-module/base'
 import { OcaAudioLevelSensor, OcaGain } from 'aes70/src/controller/ControlClasses.js'
 import { OcaSensorReadingState } from 'aes70/src/types/OcaSensorReadingState.js'
+import { OcaStatus } from 'aes70/src/types/OcaStatus.js'
+import { RemoteError } from 'aes70/src/controller/remote_error.js'
+import { captureLogs, type CapturedLogs } from './captureLogs.js'
 import { makeNamFilterParametric } from './fakeControlObjects.js'
 import { OcaHelper } from '../OcaHelper.js'
 import { UpdateFeedbacks, type FeedbackSchema } from '../feedbacks.js'
@@ -273,5 +276,72 @@ describe('Get Property feedback default property', () => {
 			{ options: { id: string; default?: unknown }[] } | undefined
 		// ClassVersion, Lockable, Role, Enabled, Ports and Owner are all inherited and reported first
 		expect(definition?.options.find((option) => option.id === 'property')?.default).toBe('Frequency')
+	})
+})
+
+describe('Get Property feedback on an object without the property', () => {
+	let helper: OcaHelper
+	let setFeedbackDefinitions: Mock<(definitions: CompanionFeedbackDefinitions<FeedbackSchema>) => void>
+	let logs: CapturedLogs
+
+	/** Label is optional: only AMP/BQ0 implements it, so the dropdown offers it for MIC/BQ0 too. */
+	beforeEach(async () => {
+		logs = captureLogs()
+		helper = new OcaHelper()
+		setFeedbackDefinitions = vi.fn()
+		const self = { ocaHelper: helper, setFeedbackDefinitions } as unknown as ModuleInstance
+		await helper.loadRoleMap(
+			new Map<string, unknown>([
+				['MIC/BQ0', makeNamFilterParametric(1)],
+				['AMP/BQ0', makeNamFilterParametric(2, [['Label', 'Low cut']])],
+			]),
+		)
+		await UpdateFeedbacks(self)
+	})
+
+	afterEach(() => {
+		logs.restore()
+	})
+
+	async function check(options: GetPropertyOptions): Promise<unknown> {
+		const definition = setFeedbackDefinitions.mock.lastCall?.[0].get_property_OcaFilterParametric
+		if (!definition) throw new Error('No OcaFilterParametric feedback was defined')
+		return (definition as unknown as { callback: ValueFeedbackCallback }).callback(
+			{
+				type: 'value',
+				id: 'fb1',
+				controlId: 'bank:1:1',
+				feedbackId: 'get_property_OcaFilterParametric',
+				options,
+				previousOptions: null,
+			},
+			{ type: 'feedback', signal: new AbortController().signal },
+		)
+	}
+
+	/** Make the object's getter reject the way aes70 does when the device refuses the call. */
+	function refuse(rolePath: string, getterName: string, error: Error): void {
+		;(helper.getObject(rolePath) as unknown as Record<string, unknown>)[getterName] = vi.fn().mockRejectedValue(error)
+	}
+
+	it('warns once however often it is checked, and names the object and property when the device refuses', async () => {
+		refuse('MIC/BQ0', 'GetLabel', new RemoteError(OcaStatus.NotImplemented, undefined))
+		const options = { objectId: 'MIC/BQ0', property: 'Label', sync: true }
+
+		const failure = "'MIC/BQ0' does not implement property 'Label'. Aborting feedback check fb1"
+		await expect(check(options)).rejects.toThrow(failure)
+		await expect(check(options)).rejects.toThrow(failure)
+
+		expect(logs.warnings()).toEqual([
+			'"MIC/BQ0" (OcaFilterParametric) returned no value for property "Label", so probably doesn\'t implement it. The feedback fb1 using it will fail.',
+		])
+	})
+
+	it('passes any other device error through as it is', async () => {
+		const error = new RemoteError(OcaStatus.DeviceError, undefined)
+		refuse('MIC/BQ0', 'GetFrequency', error)
+
+		await expect(check({ objectId: 'MIC/BQ0', property: 'Frequency', sync: false })).rejects.toBe(error)
+		expect(logs.warnings()).toEqual([])
 	})
 })

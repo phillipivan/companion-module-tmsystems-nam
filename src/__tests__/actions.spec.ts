@@ -1,7 +1,10 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import type { CompanionActionDefinitions } from '@companion-module/base'
 import { OcaMute } from 'aes70/src/controller/ControlClasses.js'
 import { OcaMuteState } from 'aes70/src/types/OcaMuteState.js'
+import { OcaStatus } from 'aes70/src/types/OcaStatus.js'
+import { RemoteError } from 'aes70/src/controller/remote_error.js'
+import { captureLogs, type CapturedLogs } from './captureLogs.js'
 import { makeNamFilterParametric } from './fakeControlObjects.js'
 import { OcaHelper } from '../OcaHelper.js'
 import { UpdateActions, type ActionSchema } from '../actions.js'
@@ -173,5 +176,82 @@ describe('Set Property action value inputs', () => {
 		await helper.loadRoleMap(new Map<string, unknown>([['MIC/BQ0', makeNamFilterParametric(1)]]))
 
 		expect((await buildFilterDefinition()).skipUnsubscribeOnOptionsChange).toBe(true)
+	})
+})
+
+describe('Set Property action on an object without the property', () => {
+	type ActionEvent = { id: string; controlId: string; actionId: string; options: Record<string, unknown> }
+	type Definition = {
+		subscribe: (action: ActionEvent, context: object) => Promise<void>
+		callback: (action: ActionEvent, context: { signal: AbortSignal }) => Promise<void>
+	}
+
+	let helper: OcaHelper
+	let definition: Definition
+	let logs: CapturedLogs
+
+	/** Label is optional: only AMP/BQ0 implements it, so the dropdown offers it for MIC/BQ0 too. */
+	beforeEach(async () => {
+		logs = captureLogs()
+		helper = new OcaHelper()
+		const setActionDefinitions: Mock<(definitions: CompanionActionDefinitions<ActionSchema>) => void> = vi.fn()
+		const self = { ocaHelper: helper, setActionDefinitions } as unknown as ModuleInstance
+		await helper.loadRoleMap(
+			new Map<string, unknown>([
+				['MIC/BQ0', makeNamFilterParametric(1)],
+				['AMP/BQ0', makeNamFilterParametric(2, [['Label', 'Low cut']])],
+			]),
+		)
+		await UpdateActions(self)
+		const built = setActionDefinitions.mock.lastCall?.[0].set_property_OcaFilterParametric
+		if (!built) throw new Error('No OcaFilterParametric action was defined')
+		definition = built as unknown as Definition
+	})
+
+	afterEach(() => {
+		logs.restore()
+	})
+
+	const action = (id: string, options: Record<string, unknown>): ActionEvent => ({
+		id,
+		controlId: 'bank:1:1',
+		actionId: 'set_property_OcaFilterParametric',
+		options,
+	})
+
+	/** Make the object's setter reject the way aes70 does when the device refuses the call. */
+	function refuse(rolePath: string, setterName: string, error: Error): void {
+		;(helper.getObject(rolePath) as unknown as Record<string, unknown>)[setterName] = vi.fn().mockRejectedValue(error)
+	}
+
+	it('warns when subscribed to an object that returned no value for the selected property', async () => {
+		await definition.subscribe(action('a1', { objectId: 'AMP/BQ0', property: 'Label' }), {})
+		expect(logs.warnings()).toEqual([])
+
+		await definition.subscribe(action('a2', { objectId: 'MIC/BQ0', property: 'Label' }), {})
+		expect(logs.warnings()).toEqual([
+			'"MIC/BQ0" (OcaFilterParametric) returned no value for property "Label", so probably doesn\'t implement it. The action a2 using it will fail.',
+		])
+	})
+
+	it('names the object and property when the device says the object does not implement it', async () => {
+		refuse('MIC/BQ0', 'SetLabel', new RemoteError(OcaStatus.NotImplemented, undefined))
+
+		await expect(
+			definition.callback(action('a1', { objectId: 'MIC/BQ0', property: 'Label', value_Label: 'Low cut' }), {
+				signal: new AbortController().signal,
+			}),
+		).rejects.toThrow("'MIC/BQ0' does not implement property 'Label'. Aborting action a1")
+	})
+
+	it('passes any other device error through as it is', async () => {
+		const error = new RemoteError(OcaStatus.ParameterOutOfRange, undefined)
+		refuse('MIC/BQ0', 'SetFrequency', error)
+
+		await expect(
+			definition.callback(action('a1', { objectId: 'MIC/BQ0', property: 'Frequency', value_Frequency: 1e9 }), {
+				signal: new AbortController().signal,
+			}),
+		).rejects.toBe(error)
 	})
 })

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { OcaHelper } from '../OcaHelper.js'
 import { OCA_CLASS_NAMES } from '../consts/aes70-constants.js'
 import {
@@ -25,6 +25,7 @@ import {
 import { ObjectBase } from 'aes70/src/controller/object_base.js'
 import { OcaSensorReadingState } from 'aes70/src/types/OcaSensorReadingState.js'
 import { OcaLevelMeterLaw } from 'aes70/src/types/OcaLevelMeterLaw.js'
+import { captureLogs, type CapturedLogs } from './captureLogs.js'
 
 // ---------------------------------------------------------------------------
 // Test helpers — build real aes70 control-class instances backed by a fake
@@ -686,6 +687,107 @@ describe('clearAllIds', () => {
 	it('is a no-op for an unregistered path', () => {
 		const helper = new OcaHelper()
 		expect(() => helper.clearAllIds('Nope')).not.toThrow()
+	})
+})
+
+// ---------------------------------------------------------------------------
+// Missing property warnings
+// ---------------------------------------------------------------------------
+
+describe('missing property warnings', () => {
+	let helper: OcaHelper
+	let logs: CapturedLogs
+
+	/**
+	 * An OcaGain whose sync reports Gain but no value for Label, which is what aes70's
+	 * PropertySync does for a property whose getter the device refused.
+	 */
+	function makeGainWithoutLabel(ono: number): OcaGain {
+		const obj = makeObj(OcaGain, ono)
+		rigOf(obj).propertySync.forEach.mockImplementation((cb: (value: unknown, name: string) => void) => {
+			cb(-6, 'Gain')
+			cb(undefined, 'Label')
+		})
+		return obj
+	}
+
+	beforeEach(async () => {
+		logs = captureLogs()
+		helper = new OcaHelper()
+		await helper.loadRoleMap(
+			new Map<string, unknown>([
+				['Faders/1', makeGainWithoutLabel(1)],
+				['Faders/2', makeGainWithoutLabel(2)],
+			]),
+		)
+	})
+
+	afterEach(() => {
+		logs.restore()
+	})
+
+	it('implementsProperty says whether the synced object returned a value, and nothing before it is synced', async () => {
+		expect(helper.implementsProperty('Faders/1', 'Gain')).toBeUndefined()
+		expect(helper.implementsProperty('Nope', 'Gain')).toBeUndefined()
+
+		await helper.addActionId('Faders/1', 'a1')
+
+		expect(helper.implementsProperty('Faders/1', 'Gain')).toBe(true)
+		expect(helper.implementsProperty('Faders/1', 'Label')).toBe(false)
+		expect(helper.implementsProperty('Faders/1', 'NotAProperty')).toBe(false)
+	})
+
+	it('warns once for an action using a property its object returned no value for', async () => {
+		await helper.addActionId('Faders/1', 'a1')
+
+		helper.warnIfPropertyMissing('action', 'a1', 'Faders/1', 'Label')
+		helper.warnIfPropertyMissing('action', 'a1', 'Faders/1', 'Label')
+
+		expect(logs.warnings()).toEqual([
+			'"Faders/1" (OcaGain) returned no value for property "Label", so probably doesn\'t implement it. The action a1 using it will fail.',
+		])
+	})
+
+	it('says nothing for a property the object implements, or until the object is synced', async () => {
+		helper.warnIfPropertyMissing('action', 'a1', 'Faders/1', 'Label')
+		expect(logs.warnings()).toEqual([])
+
+		await helper.addActionId('Faders/1', 'a1')
+		helper.warnIfPropertyMissing('action', 'a1', 'Faders/1', 'Gain')
+		expect(logs.warnings()).toEqual([])
+
+		// Checking before the sync didn't count as having warned
+		helper.warnIfPropertyMissing('action', 'a1', 'Faders/1', 'Label')
+		expect(logs.warnings()).toHaveLength(1)
+	})
+
+	it('warns again when pointed at another object or property and back, or when removed and re-added', async () => {
+		await helper.addActionId('Faders/1', 'a1')
+		await helper.addActionId('Faders/2', 'a2')
+
+		helper.warnIfPropertyMissing('action', 'a1', 'Faders/1', 'Label')
+		helper.warnIfPropertyMissing('action', 'a1', 'Faders/1', 'Gain')
+		helper.warnIfPropertyMissing('action', 'a1', 'Faders/1', 'Label')
+		helper.warnIfPropertyMissing('action', 'a1', 'Faders/2', 'Label')
+		expect(logs.warnings()).toHaveLength(3)
+
+		helper.removeActionId('a1')
+		await helper.addActionId('Faders/2', 'a1')
+		helper.warnIfPropertyMissing('action', 'a1', 'Faders/2', 'Label')
+		expect(logs.warnings()).toHaveLength(4)
+	})
+
+	it('keeps an action and a feedback with the same id apart', async () => {
+		await helper.addActionId('Faders/1', 'x')
+		await helper.addFeedbackId('Faders/1', 'x')
+
+		helper.warnIfPropertyMissing('action', 'x', 'Faders/1', 'Label')
+		helper.warnIfPropertyMissing('feedback', 'x', 'Faders/1', 'Label')
+
+		expect(logs.warnings()).toEqual([
+			expect.stringContaining('The action x using it will fail.'),
+			expect.stringContaining('The feedback x using it will fail.'),
+		])
 	})
 })
 

@@ -20,7 +20,8 @@ const customConfig = [
 		},
 	},
 	{
-		files: ['src/**/*.spec.ts'],
+		// Tests and their helpers, none of which are built into dist
+		files: ['src/**/*.spec.ts', 'src/**/__tests__/*.ts'],
 		rules: {
 			'n/no-unpublished-import': 'off',
 		},

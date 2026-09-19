@@ -13,6 +13,7 @@ import {
 	excitementEmoji,
 	makePropChoices,
 	defaultPropertyName,
+	isNotImplemented,
 } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 import { isAes70Enum } from './enums.js'
@@ -138,6 +139,7 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 					// Companion aborts this check when it queues another, and won't start that one until this settles
 					await self.ocaHelper.addFeedbackId(objectId, feedback.id, context.signal)
 				}
+				self.ocaHelper.warnIfPropertyMissing('feedback', feedback.id, objectId, property)
 				if (sync) {
 					let propValue: unknown = undefined
 					entry.properties?.forEach((value, name) => {
@@ -166,7 +168,20 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 					)
 					return null
 				}
-				const result = await (getter as () => Promise<unknown>).call(entry.obj)
+				let result: unknown
+				try {
+					result = await (getter as () => Promise<unknown>).call(entry.obj)
+				} catch (err) {
+					if (isNotImplemented(err)) {
+						throw new Error(
+							`'${objectId}' does not implement property '${property}'. Aborting feedback check ${feedback.id}`,
+							{
+								cause: err,
+							},
+						)
+					}
+					throw err
+				}
 				const safeValue = await makeSafeJsonValue(result, { awaitPromises: true })
 				if (sync) {
 					const unwrappedValue = unwrapValue(safeValue)

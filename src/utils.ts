@@ -2,6 +2,8 @@ import { DEFAULT_PORT, ModuleConfig } from './config.js'
 import { createModuleLogger } from '@companion-module/base'
 import type { DropdownChoice, JsonValue, JsonObject } from '@companion-module/base'
 import type { PropertyDescription } from './OcaHelper.js'
+import { RemoteError } from 'aes70/src/controller/remote_error.js'
+import { OcaStatus } from 'aes70/src/types/OcaStatus.js'
 
 const utilsLogger = createModuleLogger('Generic OCA Utils')
 
@@ -351,4 +353,9 @@ export function defaultPropertyName(props: readonly PropertyDescription[]): stri
 		if (deepest === undefined || prop.level > deepest.level) deepest = prop
 	}
 	return deepest?.name
+}
+
+/** True when `err` is the device refusing a call because the object doesn't implement it. */
+export function isNotImplemented(err: unknown): boolean {
+	return err instanceof RemoteError && err.status === OcaStatus.NotImplemented
 }
