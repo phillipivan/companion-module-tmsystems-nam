@@ -1,6 +1,7 @@
 import {
 	combineRgb,
 	createModuleLogger,
+	type CompanionGraphicsElementValue,
 	type CompanionLayeredButtonPresetDefinition,
 	type CompanionPresetDefinitions,
 	type CompanionPresetFeedbackStyleOverride,
@@ -107,7 +108,7 @@ const LABEL_ID = 'label'
 const LABEL_FONT_SIZE = 22
 
 /** White `text` on black. */
-function labelElements(text: string): SomeButtonGraphicsElement[] {
+function labelElements(text: CompanionGraphicsElementValue<string>): SomeButtonGraphicsElement[] {
 	return [
 		{ type: 'box', id: BACKGROUND_ID, name: 'Background', color: combineRgb(0, 0, 0) },
 		{
@@ -188,6 +189,7 @@ export type RotaryClassName =
 	| typeof OCA_CLASS_NAMES.OcaGain
 	| typeof OCA_CLASS_NAMES.OcaPanBalance
 	| typeof OCA_CLASS_NAMES.OcaDelay
+	| typeof OCA_CLASS_NAMES.OcaDelayExtended
 	| typeof OCA_CLASS_NAMES.OcaFrequencyActuator
 	| typeof OCA_CLASS_NAMES.OcaSwitch
 	| typeof OCA_CLASS_NAMES.OcaInt8Actuator
@@ -207,80 +209,111 @@ export interface RotaryClass {
 	readonly className: RotaryClassName
 	/** The number property stepped. */
 	readonly property: string
+	/** The `step_size` a dial starts with. */
+	readonly stepSize: number
+	/** Whether holding the dial divides the step by FINE_STEP_DIVISOR. */
+	readonly fine: boolean
 }
-
-export const ROTARY_CLASSES: readonly RotaryClass[] = [
-	{ className: OCA_CLASS_NAMES.OcaGain, property: 'Gain' },
-	{ className: OCA_CLASS_NAMES.OcaPanBalance, property: 'Position' },
-	{ className: OCA_CLASS_NAMES.OcaDelay, property: 'DelayTime' },
-	{ className: OCA_CLASS_NAMES.OcaFrequencyActuator, property: 'Frequency' },
-	{ className: OCA_CLASS_NAMES.OcaSwitch, property: 'Position' },
-	{ className: OCA_CLASS_NAMES.OcaInt8Actuator, property: 'Setting' },
-	{ className: OCA_CLASS_NAMES.OcaInt16Actuator, property: 'Setting' },
-	{ className: OCA_CLASS_NAMES.OcaInt32Actuator, property: 'Setting' },
-	{ className: OCA_CLASS_NAMES.OcaUint8Actuator, property: 'Setting' },
-	{ className: OCA_CLASS_NAMES.OcaUint16Actuator, property: 'Setting' },
-	{ className: OCA_CLASS_NAMES.OcaUint32Actuator, property: 'Setting' },
-	{ className: OCA_CLASS_NAMES.OcaFloat32Actuator, property: 'Setting' },
-	{ className: OCA_CLASS_NAMES.OcaFloat64Actuator, property: 'Setting' },
-]
-
-/** The `step_size` a rotary starts with. */
-const ROTARY_STEP_SIZE = 1
 
 /** What `step_size` is divided by while the dial is held, for fine control. */
 const FINE_STEP_DIVISOR = 10
 
+/** A step of 1, or a tenth of that while held. */
+const DEFAULT_STEPS = { stepSize: 1, fine: true } as const
+
+/**
+ * A step of 10, so the fine step is still a whole number. A fractional step would be truncated when
+ * aes70 encodes the integer, so a step_size that isn't a multiple of 10 makes fine mode uneven.
+ */
+const INTEGER_STEPS = { stepSize: FINE_STEP_DIVISOR, fine: true } as const
+
+export const ROTARY_CLASSES: readonly RotaryClass[] = [
+	{ className: OCA_CLASS_NAMES.OcaGain, property: 'Gain', ...DEFAULT_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaPanBalance, property: 'Position', ...DEFAULT_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaDelay, property: 'DelayTime', ...DEFAULT_STEPS },
+	// Its own DelayValue is a value and unit, which actions can't set; DelayTime is inherited from OcaDelay
+	{ className: OCA_CLASS_NAMES.OcaDelayExtended, property: 'DelayTime', ...DEFAULT_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaFrequencyActuator, property: 'Frequency', ...INTEGER_STEPS },
+	// Positions are whole numbers, one step apart
+	{ className: OCA_CLASS_NAMES.OcaSwitch, property: 'Position', stepSize: 1, fine: false },
+	{ className: OCA_CLASS_NAMES.OcaInt8Actuator, property: 'Setting', ...INTEGER_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaInt16Actuator, property: 'Setting', ...INTEGER_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaInt32Actuator, property: 'Setting', ...INTEGER_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaUint8Actuator, property: 'Setting', ...INTEGER_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaUint16Actuator, property: 'Setting', ...INTEGER_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaUint32Actuator, property: 'Setting', ...INTEGER_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaFloat32Actuator, property: 'Setting', ...DEFAULT_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaFloat64Actuator, property: 'Setting', ...DEFAULT_STEPS },
+]
+
+/** A rotary's label shows its value to at most this many decimal places, hiding float32 noise such as -2.4000000953674316. */
+const VALUE_DECIMAL_PLACES = 3
+
+/**
+ * `text` as literal text in an expression's template literal. Companion reads template text raw,
+ * without escapes, so text holding a character that would end or interpolate it goes in as a
+ * quoted string instead.
+ */
+function templateText(text: string): string {
+	return /[`$\\]/.test(text) ? '${' + JSON.stringify(text) + '}' : text
+}
+
+/**
+ * An expression for a rotary's label: the object's role path, `(Rotary)`, then `value` once it is
+ * known. Companion's renderer turns the two characters `\n` into a line break, which is how a
+ * raw template literal gets one.
+ */
+function rotaryLabel(rolePath: string, value: string): string {
+	const scale = 10 ** VALUE_DECIMAL_PLACES
+	const shown = `isNumber(${value}) ? round(${value} * ${scale}) / ${scale} : ''`
+	return '`' + templateText(rolePath) + '\\n (Rotary)\\n${' + shown + '}`'
+}
+
 /**
  * A dial for the object at `rolePath` that subtracts `step_size` from the property on a left turn
- * and adds it on a right turn, within the property's limits. While the dial is held, a turn steps
- * by a tenth of `step_size`.
+ * and adds it on a right turn, within the property's limits. For a class with fine mode, a turn
+ * while the dial is held steps by a tenth of `step_size`.
  *
  * Holding switches by the button's pressed state, `$(this:active)`, rather than by button steps: a
  * preset can't change step on press, since Companion only auto-progresses on release and presets
  * can't use its Set current step action.
  *
- * `value` holds the current value, from the property sync. `range` holds the getter's result, which
- * the Get Property feedback returns without sync as `{ values: [value, min, max] }`. The clamp also
- * keeps an integer from wrapping round: aes70 encodes -1 as a Uint16 as 65535. Until both are known,
- * a turn's value isn't a number, so Companion skips the action rather than sending anything.
+ * `range` holds the getter's result, which the Get Property feedback returns without sync as
+ * `{ values: [value, min, max] }`: every class in ROTARY_CLASSES has a getter returning its limits
+ * after the value. Value and limits come from the same read, rechecked whenever the property changes.
+ * The clamp also keeps an integer from wrapping round: aes70 encodes -1 as a Uint16 as 65535. Until
+ * the read arrives, a turn's value isn't a number, so Companion skips the action rather than sending anything.
  */
 function rotaryPreset(rotary: RotaryClass, rolePath: string): CompanionLayeredButtonPresetDefinition<OcaModuleTypes> {
 	const { className, property } = rotary
-	const value = '$(local:value)'
-	const step = `($(this:active) ? $(local:step_size) / ${FINE_STEP_DIVISOR} : $(local:step_size))`
-	const limits = '$(local:range).values'
+	const [value, min, max] = [0, 1, 2].map((index) => `$(local:range).values[${index}]`)
+	const step = rotary.fine
+		? `($(this:active) ? $(local:step_size) / ${FINE_STEP_DIVISOR} : $(local:step_size))`
+		: '$(local:step_size)'
 	const setTo = (expression: string): SomePresetActionEntry<OcaModuleTypes> => ({
 		actionId: `set_property_${className}`,
 		options: { objectId: rolePath, property, [`value_${property}`]: { isExpression: true, value: expression } },
 	})
-	const feedbackOptions = { objectId: rolePath, property }
 	return {
 		type: 'layered',
 		name: `${ocaClassNameToLabel(className)} - ${rolePath}`,
-		elements: labelElements(`${rolePath}\n (Rotary)`),
+		elements: labelElements({ isExpression: true, value: rotaryLabel(rolePath, value) }),
 		steps: [
 			{
 				down: [],
 				up: [],
-				rotate_left: [setTo(`max(${limits}[1], ${value} - ${step})`)],
-				rotate_right: [setTo(`min(${limits}[2], ${value} + ${step})`)],
+				rotate_left: [setTo(`max(${min}, ${value} - ${step})`)],
+				rotate_right: [setTo(`min(${max}, ${value} + ${step})`)],
 			},
 		],
 		feedbacks: [],
 		localVariables: [
-			{ variableType: 'simple', variableName: 'step_size', startupValue: ROTARY_STEP_SIZE },
-			{
-				variableType: 'feedback',
-				variableName: 'value',
-				feedbackId: `get_property_${className}`,
-				options: { ...feedbackOptions, sync: true },
-			},
+			{ variableType: 'simple', variableName: 'step_size', startupValue: rotary.stepSize },
 			{
 				variableType: 'feedback',
 				variableName: 'range',
 				feedbackId: `get_property_${className}`,
-				options: { ...feedbackOptions, sync: false },
+				options: { objectId: rolePath, property, sync: false },
 			},
 		],
 	}

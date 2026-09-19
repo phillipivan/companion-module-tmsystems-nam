@@ -16,6 +16,12 @@ import {
 	type OcaRoot,
 } from 'aes70/src/controller/ControlClasses.js'
 import { Arguments } from 'aes70/src/controller/arguments.js'
+import { OcaInt8 } from 'aes70/src/OCP1/OcaInt8.js'
+import { OcaInt16 } from 'aes70/src/OCP1/OcaInt16.js'
+import { OcaInt32 } from 'aes70/src/OCP1/OcaInt32.js'
+import { OcaUint8 } from 'aes70/src/OCP1/OcaUint8.js'
+import { OcaUint16 } from 'aes70/src/OCP1/OcaUint16.js'
+import { OcaUint32 } from 'aes70/src/OCP1/OcaUint32.js'
 import { OcaMuteState } from 'aes70/src/types/OcaMuteState.js'
 import { OcaPolarityState } from 'aes70/src/types/OcaPolarityState.js'
 import { OcaHelper } from '../OcaHelper.js'
@@ -343,22 +349,34 @@ describe('presets', () => {
 			name: 'Gain - MIC/GAIN',
 			elements: [
 				{ type: 'box', id: 'background', name: 'Background', color: 0x000000 },
-				{ type: 'text', id: 'label', name: 'Label', text: 'MIC/GAIN\n (Rotary)', fontsize: 22, color: 0xffffff },
+				{
+					type: 'text',
+					id: 'label',
+					name: 'Label',
+					// The two characters \n, which Companion's renderer turns into a line break; the value once known
+					text: {
+						isExpression: true,
+						value:
+							"`MIC/GAIN\\n (Rotary)\\n${isNumber($(local:range).values[0]) ? round($(local:range).values[0] * 1000) / 1000 : ''}`",
+					},
+					fontsize: 22,
+					color: 0xffffff,
+				},
 			],
 			steps: [
 				{
 					down: [],
 					up: [],
-					// range holds [value, min, max]; a value that isn't known yet gives NaN, which Companion won't send.
+					// range holds [value, min, max]; until it is known the result is NaN, which Companion won't send.
 					// A tenth of step_size while the dial is held.
 					rotate_left: [
 						setGain(
-							'max($(local:range).values[1], $(local:value) - ($(this:active) ? $(local:step_size) / 10 : $(local:step_size)))',
+							'max($(local:range).values[1], $(local:range).values[0] - ($(this:active) ? $(local:step_size) / 10 : $(local:step_size)))',
 						),
 					],
 					rotate_right: [
 						setGain(
-							'min($(local:range).values[2], $(local:value) + ($(this:active) ? $(local:step_size) / 10 : $(local:step_size)))',
+							'min($(local:range).values[2], $(local:range).values[0] + ($(this:active) ? $(local:step_size) / 10 : $(local:step_size)))',
 						),
 					],
 				},
@@ -366,12 +384,6 @@ describe('presets', () => {
 			feedbacks: [],
 			localVariables: [
 				{ variableType: 'simple', variableName: 'step_size', startupValue: 1 },
-				{
-					variableType: 'feedback',
-					variableName: 'value',
-					feedbackId: 'get_property_OcaGain',
-					options: { objectId: 'MIC/GAIN', property: 'Gain', sync: true },
-				},
 				{
 					variableType: 'feedback',
 					variableName: 'range',
@@ -382,8 +394,19 @@ describe('presets', () => {
 		})
 	})
 
+	// Companion reads template literal text raw, so these would otherwise end the literal or interpolate
+	it("puts a role path that would break the label's template literal in as a quoted string", async () => {
+		const { presets } = await define([['we`ird$(x)', gain(1)]])
+		const preset = presets['rotary_OcaGain_we`ird$(x)']
+		if (preset?.type !== 'layered') throw new Error('No layered gain preset')
+
+		expect(preset.elements[1]).toMatchObject({
+			text: { isExpression: true, value: expect.stringMatching(/^`\$\{"we`ird\$\(x\)"\}\\n \(Rotary\)\\n\$\{/) },
+		})
+	})
+
 	// The limits expressions index into this shape, so it is pinned here as well as wherever the feedback is tested
-	it("gets a rotary's limits from the Get Property feedback without sync, as { values: [value, min, max] }", async () => {
+	it("gets a rotary's value and limits from the Get Property feedback without sync, as { values: [value, min, max] }", async () => {
 		const { presets } = await define([['MIC/GAIN', gain(1)]])
 		const preset = presets['rotary_OcaGain_MIC/GAIN']
 		if (preset?.type !== 'layered') throw new Error('No layered gain preset')
@@ -402,6 +425,44 @@ describe('presets', () => {
 		)
 
 		expect(result).toEqual({ values: [0, -2.4000000953674316, 41.5] })
+	})
+
+	it('steps a switch a whole position per detent, with no fine mode', async () => {
+		const { presets } = await define([['SDCARD/PLAY', switchObject(1)]])
+		const preset = presets['rotary_OcaSwitch_SDCARD/PLAY']
+		if (preset?.type !== 'layered') throw new Error('No layered switch preset')
+
+		const turnValues = preset.steps.flatMap((step) =>
+			[...(step.rotate_left ?? []), ...(step.rotate_right ?? [])].map(
+				(action) => (action as PresetEntry).options.value_Position,
+			),
+		)
+		expect(turnValues).toEqual([
+			{ isExpression: true, value: 'max($(local:range).values[1], $(local:range).values[0] - $(local:step_size))' },
+			{ isExpression: true, value: 'min($(local:range).values[2], $(local:range).values[0] + $(local:step_size))' },
+		])
+		expect(preset.localVariables?.[0]).toEqual({ variableType: 'simple', variableName: 'step_size', startupValue: 1 })
+	})
+
+	// aes70 truncates a fractional integer when it encodes it, so a fine step below 1 would be uneven
+	it('starts every integer dial with fine mode at a step of 10 or a multiple, so the fine step is whole', () => {
+		const integerEncoders = new Set<unknown>([OcaInt8, OcaInt16, OcaInt32, OcaUint8, OcaUint16, OcaUint32])
+		const checked: string[] = []
+		for (const [i, rotary] of ROTARY_CLASSES.entries()) {
+			const obj = makeObject(ControlClasses[rotary.className], i + 1, [])
+			const encoder = obj.get_properties().find_property(rotary.property)?.type?.[0]
+			if (!integerEncoders.has(encoder) || !rotary.fine) continue
+			expect(rotary.stepSize % 10, rotary.className).toBe(0)
+			checked.push(rotary.className)
+		}
+		expect(checked).toEqual([
+			'OcaInt8Actuator',
+			'OcaInt16Actuator',
+			'OcaInt32Actuator',
+			'OcaUint8Actuator',
+			'OcaUint16Actuator',
+			'OcaUint32Actuator',
+		])
 	})
 
 	it('gives every rotary class a group whose presets its action and feedback can serve', async () => {
