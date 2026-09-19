@@ -5,34 +5,34 @@ import type {
 	CompanionPresetDefinitions,
 	CompanionPresetSection,
 } from '@companion-module/base'
+import * as ControlClasses from 'aes70/src/controller/ControlClasses.js'
 import {
 	OcaBooleanActuator,
 	OcaGain,
 	OcaIdentificationActuator,
 	OcaMute,
 	OcaPolarity,
+	OcaSwitch,
+	type OcaRoot,
 } from 'aes70/src/controller/ControlClasses.js'
+import { Arguments } from 'aes70/src/controller/arguments.js'
 import { OcaMuteState } from 'aes70/src/types/OcaMuteState.js'
 import { OcaPolarityState } from 'aes70/src/types/OcaPolarityState.js'
 import { OcaHelper } from '../OcaHelper.js'
 import { UpdateActions, type ActionSchema } from '../actions.js'
 import { UpdateFeedbacks, type FeedbackSchema } from '../feedbacks.js'
-import { UpdatePresets } from '../presets.js'
+import { ROTARY_CLASSES, UpdatePresets } from '../presets.js'
+import { makeNamFilterParametric } from './fakeControlObjects.js'
 import type { OcaModuleTypes } from '../types.js'
 import type ModuleInstance from '../main.js'
 
-type ControlClass =
-	typeof OcaMute | typeof OcaPolarity | typeof OcaBooleanActuator | typeof OcaIdentificationActuator | typeof OcaGain
+type ControlClass = new (ono: number, device: ConstructorParameters<typeof OcaMute>[1]) => OcaRoot
 
 /**
  * A real aes70 object against an inert device, with GetPropertySync stubbed to report
  * `reported`, so class probes resolve without any network I/O.
  */
-function makeObject(
-	Cls: ControlClass,
-	ono: number,
-	reported: [name: string, value: unknown][],
-): InstanceType<ControlClass> {
+function makeObject(Cls: ControlClass, ono: number, reported: [name: string, value: unknown][]): OcaRoot {
 	const device = { send_command: vi.fn(), add_subscription: vi.fn(), remove_subscription: vi.fn() }
 	const obj = new Cls(ono, device as unknown as ConstructorParameters<ControlClass>[1])
 	;(obj as unknown as { GetPropertySync: unknown }).GetPropertySync = () => ({
@@ -45,33 +45,38 @@ function makeObject(
 	return obj
 }
 
-const mute = (ono: number): InstanceType<ControlClass> =>
+const mute = (ono: number): OcaRoot =>
 	makeObject(OcaMute, ono, [
 		['Enabled', true],
 		['State', OcaMuteState.Unmuted],
 	])
-const polarity = (ono: number): InstanceType<ControlClass> =>
+const polarity = (ono: number): OcaRoot =>
 	makeObject(OcaPolarity, ono, [
 		['Enabled', true],
 		['State', OcaPolarityState.NonInverted],
 	])
-const booleanActuator = (ono: number): InstanceType<ControlClass> =>
+const booleanActuator = (ono: number): OcaRoot =>
 	makeObject(OcaBooleanActuator, ono, [
 		['Enabled', true],
 		['Setting', false],
 	])
-const identification = (ono: number): InstanceType<ControlClass> =>
+const identification = (ono: number): OcaRoot =>
 	makeObject(OcaIdentificationActuator, ono, [
 		['Enabled', true],
 		['Active', false],
 	])
-const gain = (ono: number): InstanceType<ControlClass> =>
+const gain = (ono: number): OcaRoot =>
 	makeObject(OcaGain, ono, [
 		['Enabled', true],
 		['Gain', 0],
 	])
+const switchObject = (ono: number): OcaRoot =>
+	makeObject(OcaSwitch, ono, [
+		['Enabled', true],
+		['Position', 1],
+	])
 
-describe('toggle presets', () => {
+describe('presets', () => {
 	let helper: OcaHelper
 	let self: ModuleInstance
 	let setPresetDefinitions: Mock<
@@ -94,7 +99,7 @@ describe('toggle presets', () => {
 	})
 
 	/** Load a role map and define everything, in the order the module does. */
-	async function define(roleMap: [path: string, obj: InstanceType<ControlClass>][]): Promise<{
+	async function define(roleMap: [path: string, obj: OcaRoot][]): Promise<{
 		structure: CompanionPresetSection<OcaModuleTypes>[]
 		presets: CompanionPresetDefinitions<OcaModuleTypes>
 	}> {
@@ -115,6 +120,8 @@ describe('toggle presets', () => {
 			['AMP/CH0/MUTE', mute(4)],
 			['MIC/PH', booleanActuator(5)],
 			['IDENTIFY', identification(6)],
+			['SDCARD/PLAY', switchObject(7)],
+			['MIC/BQ0', makeNamFilterParametric(8)],
 		])
 
 		expect(structure).toEqual([
@@ -148,6 +155,14 @@ describe('toggle presets', () => {
 					},
 				],
 			},
+			{
+				id: 'rotaries',
+				name: 'Rotaries',
+				definitions: [
+					{ id: 'rotary_OcaGain', type: 'simple', name: 'Gain', presets: ['rotary_OcaGain_MIC/GAIN'] },
+					{ id: 'rotary_OcaSwitch', type: 'simple', name: 'Switch', presets: ['rotary_OcaSwitch_SDCARD/PLAY'] },
+				],
+			},
 		])
 		expect(Object.keys(presets)).toEqual([
 			'toggle_OcaMute_AMP/CH1/MUTE',
@@ -155,6 +170,8 @@ describe('toggle presets', () => {
 			'toggle_OcaPolarity_AMP/CH0/POLARITY',
 			'toggle_OcaBooleanActuator_MIC/PH',
 			'toggle_OcaIdentificationActuator_IDENTIFY',
+			'rotary_OcaGain_MIC/GAIN',
+			'rotary_OcaSwitch_SDCARD/PLAY',
 		])
 	})
 
@@ -314,6 +331,106 @@ describe('toggle presets', () => {
 		])
 	})
 
+	it('steps a gain down and up by step_size within its limits, on a dial labelled with its object', async () => {
+		const { presets } = await define([['MIC/GAIN', gain(1)]])
+
+		const setGain = (value: string): unknown => ({
+			actionId: 'set_property_OcaGain',
+			options: { objectId: 'MIC/GAIN', property: 'Gain', value_Gain: { isExpression: true, value } },
+		})
+		expect(presets['rotary_OcaGain_MIC/GAIN']).toEqual({
+			type: 'layered',
+			name: 'Gain - MIC/GAIN',
+			elements: [
+				{ type: 'box', id: 'background', name: 'Background', color: 0x000000 },
+				{ type: 'text', id: 'label', name: 'Label', text: 'MIC/GAIN\n (Rotary)', fontsize: 22, color: 0xffffff },
+			],
+			steps: [
+				{
+					down: [],
+					up: [],
+					// range holds [value, min, max]; a value that isn't known yet gives NaN, which Companion won't send.
+					// A tenth of step_size while the dial is held.
+					rotate_left: [
+						setGain(
+							'max($(local:range).values[1], $(local:value) - ($(this:active) ? $(local:step_size) / 10 : $(local:step_size)))',
+						),
+					],
+					rotate_right: [
+						setGain(
+							'min($(local:range).values[2], $(local:value) + ($(this:active) ? $(local:step_size) / 10 : $(local:step_size)))',
+						),
+					],
+				},
+			],
+			feedbacks: [],
+			localVariables: [
+				{ variableType: 'simple', variableName: 'step_size', startupValue: 1 },
+				{
+					variableType: 'feedback',
+					variableName: 'value',
+					feedbackId: 'get_property_OcaGain',
+					options: { objectId: 'MIC/GAIN', property: 'Gain', sync: true },
+				},
+				{
+					variableType: 'feedback',
+					variableName: 'range',
+					feedbackId: 'get_property_OcaGain',
+					options: { objectId: 'MIC/GAIN', property: 'Gain', sync: false },
+				},
+			],
+		})
+	})
+
+	// The limits expressions index into this shape, so it is pinned here as well as wherever the feedback is tested
+	it("gets a rotary's limits from the Get Property feedback without sync, as { values: [value, min, max] }", async () => {
+		const { presets } = await define([['MIC/GAIN', gain(1)]])
+		const preset = presets['rotary_OcaGain_MIC/GAIN']
+		if (preset?.type !== 'layered') throw new Error('No layered gain preset')
+		const range = preset.localVariables?.find((variable) => variable.variableName === 'range') as PresetEntry
+		// The getter's reply as aes70 decodes it, from the NAM's MIC/GAIN on 2026-09-19
+		;(helper.getObject('MIC/GAIN') as unknown as { GetGain: unknown }).GetGain = vi
+			.fn()
+			.mockResolvedValue(new Arguments([0, -2.4000000953674316, 41.5]))
+
+		const feedback = setFeedbackDefinitions.mock.lastCall?.[0].get_property_OcaGain as unknown as {
+			callback: (event: unknown, context: unknown) => Promise<unknown>
+		}
+		const result = await feedback.callback(
+			{ type: 'value', id: 'fb1', controlId: 'bank:1:1', feedbackId: range.feedbackId, options: range.options },
+			{ type: 'feedback', signal: new AbortController().signal },
+		)
+
+		expect(result).toEqual({ values: [0, -2.4000000953674316, 41.5] })
+	})
+
+	it('gives every rotary class a group whose presets its action and feedback can serve', async () => {
+		const roleMap = ROTARY_CLASSES.map(({ className, property }, i): [string, OcaRoot] => [
+			`${className}/1`,
+			makeObject(ControlClasses[className] as unknown as ControlClass, i + 1, [
+				['Enabled', true],
+				[property, 0],
+			]),
+		])
+		const { structure, presets } = await define(roleMap)
+		const actions = setActionDefinitions.mock.lastCall?.[0] as unknown as Record<string, DefinitionShape>
+		const feedbacks = setFeedbackDefinitions.mock.lastCall?.[0] as unknown as Record<string, DefinitionShape>
+
+		// A property name aes70 doesn't have would leave its class without a group
+		expect(structure.find((section) => section.id === 'rotaries')?.definitions).toEqual(
+			ROTARY_CLASSES.map(({ className }) => expect.objectContaining({ id: `rotary_${className}` })),
+		)
+		for (const preset of Object.values(presets)) {
+			if (preset?.type !== 'layered') throw new Error('Expected layered presets')
+			const turns = preset.steps.flatMap((step) => [...(step.rotate_left ?? []), ...(step.rotate_right ?? [])])
+			expect(turns).toHaveLength(2)
+			for (const action of turns as PresetEntry[]) expectOptionsOffered(actions[action.actionId ?? ''], action.options)
+			for (const variable of (preset.localVariables ?? []) as PresetEntry[]) {
+				if (variable.feedbackId) expectOptionsOffered(feedbacks[variable.feedbackId], variable.options)
+			}
+		}
+	})
+
 	// A preset option the definition doesn't have is dropped or fails validation when the button runs
 	it('only sets options, properties and values that the referenced action and feedback offer', async () => {
 		const { presets } = await define([
@@ -321,18 +438,26 @@ describe('toggle presets', () => {
 			['AMP/CH0/POLARITY', polarity(2)],
 			['MIC/PH', booleanActuator(3)],
 			['IDENTIFY', identification(4)],
+			['MIC/GAIN', gain(5)],
+			['SDCARD/PLAY', switchObject(6)],
 		])
-		expect(Object.keys(presets)).toHaveLength(4)
+		expect(Object.keys(presets)).toHaveLength(6)
 		const actions = setActionDefinitions.mock.lastCall?.[0] as unknown as Record<string, DefinitionShape>
 		const feedbacks = setFeedbackDefinitions.mock.lastCall?.[0] as unknown as Record<string, DefinitionShape>
 
 		for (const preset of Object.values(presets)) {
 			if (preset?.type !== 'layered') throw new Error('Expected layered presets')
-			for (const action of preset.steps.flatMap((step) => step.down) as PresetEntry[]) {
+			const presetActions = preset.steps.flatMap((step) => [
+				...step.down,
+				...(step.rotate_left ?? []),
+				...(step.rotate_right ?? []),
+			])
+			for (const action of presetActions as PresetEntry[]) {
 				expectOptionsOffered(actions[action.actionId ?? ''], action.options)
 			}
 			for (const variable of (preset.localVariables ?? []) as PresetEntry[]) {
-				expectOptionsOffered(feedbacks[variable.feedbackId ?? ''], variable.options)
+				// A simple local variable, such as step_size, has no feedback
+				if (variable.feedbackId) expectOptionsOffered(feedbacks[variable.feedbackId], variable.options)
 			}
 		}
 	})
@@ -366,7 +491,7 @@ describe('toggle presets', () => {
 	})
 
 	it('defines no sections when the device has none of the classes', async () => {
-		const { structure, presets } = await define([['MIC/GAIN', gain(1)]])
+		const { structure, presets } = await define([['MIC/BQ0', makeNamFilterParametric(1)]])
 
 		expect(structure).toEqual([])
 		expect(presets).toEqual({})
