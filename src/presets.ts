@@ -106,6 +106,10 @@ export const TOGGLE_CLASSES: readonly ToggleClass[] = [
 const BACKGROUND_ID = 'background'
 const LABEL_ID = 'label'
 const METER_ID = 'meter'
+const DIAL_ID = 'dial'
+
+/** The dial arc's colour, dark enough to stay behind the label rather than compete with it. */
+const DIAL_COLOR = combineRgb(0, 153, 0)
 
 /** In Companion's text element units, used as given. A simple preset's `size` is in older units and gets scaled. */
 const LABEL_FONT_SIZE = 22
@@ -229,6 +233,13 @@ export interface RotaryClass {
 	 * max as its number of positions, one past the last.
 	 */
 	readonly names?: string
+	/** Whether the button draws a dial arc behind its text, showing where the value sits in its range. */
+	readonly dial?: boolean
+	/**
+	 * The unit shown after the value on the button, where the class has one its objects always report in.
+	 * Left out where the value is bare, such as a switch position, or where the device chooses the unit.
+	 */
+	readonly unit?: string
 }
 
 /** What `step_size` is divided by while the dial is held, for fine control. */
@@ -244,7 +255,7 @@ const DEFAULT_STEPS = { stepSize: 1, fine: true } as const
 const INTEGER_STEPS = { stepSize: FINE_STEP_DIVISOR, fine: true } as const
 
 export const ROTARY_CLASSES: readonly RotaryClass[] = [
-	{ className: OCA_CLASS_NAMES.OcaGain, property: 'Gain', ...DEFAULT_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaGain, property: 'Gain', ...DEFAULT_STEPS, dial: true, unit: 'dB' },
 	{ className: OCA_CLASS_NAMES.OcaPanBalance, property: 'Position', ...DEFAULT_STEPS },
 	{ className: OCA_CLASS_NAMES.OcaDelay, property: 'DelayTime', ...DEFAULT_STEPS },
 	// Its own DelayValue is a value and unit, which actions can't set; DelayTime is inherited from OcaDelay
@@ -274,6 +285,22 @@ function templateText(text: string): string {
 	return /[`$\\]/.test(text) ? '${' + JSON.stringify(text) + '}' : text
 }
 
+/** A dial arc showing where `value` sits between `min` and `max`, for a button to draw behind its text. */
+function dialElement(value: string, min: string, max: string): SomeButtonGraphicsElement<CompositeElementSchema> {
+	return {
+		type: 'composite',
+		id: DIAL_ID,
+		name: 'Value Dial',
+		elementId: CompositeElementId.Dial,
+		options: {
+			level: { isExpression: true, value },
+			min: { isExpression: true, value: min },
+			max: { isExpression: true, value: max },
+			color: DIAL_COLOR,
+		},
+	}
+}
+
 /** An expression rounding `value` to `places` decimal places. Callers guard it with `isNumber`. */
 function rounded(value: string, places: number): string {
 	const scale = 10 ** places
@@ -281,12 +308,25 @@ function rounded(value: string, places: number): string {
 }
 
 /**
+ * An expression showing `value` to `places` decimal places, followed by `unit` where there is one, and
+ * showing nothing at all until the value is a number.
+ *
+ * The unit is joined on in a nested template literal, since Companion's `+` adds numbers rather than
+ * joining strings. Keeping it inside the guard means an unread value leaves the line empty rather than
+ * showing a bare unit or "$NA dB".
+ */
+function numberWithUnit(value: string, places: number, unit?: string): string {
+	const shown = unit === undefined ? rounded(value, places) : '`${' + rounded(value, places) + '} ' + unit + '`'
+	return `isNumber(${value}) ? ${shown} : ''`
+}
+
+/**
  * An expression for a rotary's label: the object's role path, `(Rotary)`, then `value` once it is
  * known. Companion's renderer turns the two characters `\n` into a line break, which is how a
  * raw template literal gets one.
  */
-function rotaryLabel(rolePath: string, value: string, names?: string): string {
-	const number = `isNumber(${value}) ? ${rounded(value, VALUE_DECIMAL_PLACES)} : ''`
+function rotaryLabel(rolePath: string, value: string, names?: string, unit?: string): string {
+	const number = numberWithUnit(value, VALUE_DECIMAL_PLACES, unit)
 	// Only an array holding that name: a variable not known yet can read as the string $NA, which indexing picks apart
 	const shown = names ? `arrayIncludes(${names}, ${names}[${value}]) ? ${names}[${value}] : ${number}` : number
 	return '`' + templateText(rolePath) + '\\n (Rotary)\\n${' + shown + '}`'
@@ -326,10 +366,13 @@ function rotaryPreset(
 		actionId: `set_property_${className}`,
 		options: { objectId: rolePath, property, [`value_${property}`]: { isExpression: true, value: expression } },
 	})
+	const elements = labelElements({ isExpression: true, value: rotaryLabel(rolePath, value, names, rotary.unit) })
+	// Between the background and the label, so the arc is drawn behind the text
+	if (rotary.dial) elements.splice(1, 0, dialElement(value, min, max))
 	return {
 		type: 'layered',
 		name: `${ocaClassNameToLabel(className)} - ${rolePath}`,
-		elements: labelElements({ isExpression: true, value: rotaryLabel(rolePath, value, names) }),
+		elements,
 		steps: [
 			{
 				down: [],
@@ -384,17 +427,15 @@ export const METER_CLASSES: readonly MeterClass[] = [
  */
 const METER_DECIMAL_PLACES = 1
 
+/** Both sensor classes are defined as reading in dB, so the unit is the class's rather than the device's. */
+const METER_UNIT = 'dB'
+
 /** The button's local variable, holding the getter's reading and limits together. */
 const METER_LEVEL_VARIABLE = 'level'
 
-/**
- * An expression for a meter's label: the object's role path, then its reading in dB below, once it is known.
- * The unit hangs off the reading in a nested template literal, since Companion's `+` adds numbers rather
- * than joining strings, and a reading that hasn't arrived leaves the line empty rather than reading "$NA dB".
- */
+/** An expression for a meter's label: the object's role path, then its reading below, once it is known. */
 function meterLabel(rolePath: string, value: string): string {
-	const reading = '`${' + rounded(value, METER_DECIMAL_PLACES) + '} dB`'
-	return '`' + templateText(rolePath) + '\\n${isNumber(' + value + ') ? ' + reading + " : ''}`"
+	return '`' + templateText(rolePath) + '\\n${' + numberWithUnit(value, METER_DECIMAL_PLACES, METER_UNIT) + '}`'
 }
 
 /**

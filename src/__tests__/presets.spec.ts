@@ -384,15 +384,29 @@ describe('presets', () => {
 			name: 'Gain - MIC/GAIN',
 			elements: [
 				{ type: 'box', id: 'background', name: 'Background', color: 0x000000 },
+				// Between the background and the label, so the arc is drawn behind the text
+				{
+					type: 'composite',
+					id: 'dial',
+					name: 'Value Dial',
+					elementId: 'dial',
+					options: {
+						level: { isExpression: true, value: '$(local:range).values[0]' },
+						min: { isExpression: true, value: '$(local:range).values[1]' },
+						max: { isExpression: true, value: '$(local:range).values[2]' },
+						color: 0x009900,
+					},
+				},
 				{
 					type: 'text',
 					id: 'label',
 					name: 'Label',
-					// The two characters \n, which Companion's renderer turns into a line break; the value once known
+					// The two characters \n, which Companion's renderer turns into a line break; the value once
+					// known, with the class's unit after it
 					text: {
 						isExpression: true,
 						value:
-							"`MIC/GAIN\\n (Rotary)\\n${isNumber($(local:range).values[0]) ? round($(local:range).values[0] * 1000) / 1000 : ''}`",
+							"`MIC/GAIN\\n (Rotary)\\n${isNumber($(local:range).values[0]) ? `${round($(local:range).values[0] * 1000) / 1000} dB` : ''}`",
 					},
 					fontsize: 22,
 					color: 0xffffff,
@@ -429,13 +443,61 @@ describe('presets', () => {
 		})
 	})
 
+	it('gives a dial only to the rotary classes whose table entry asks for one, always behind the label', async () => {
+		const roleMap = ROTARY_CLASSES.map(({ className, property }, i): [string, OcaRoot] => [
+			`${className}/1`,
+			makeObject(ControlClasses[className] as unknown as ControlClass, i + 1, [
+				['Enabled', true],
+				[property, 0],
+			]),
+		])
+		const { presets } = await define(roleMap)
+
+		const withDial: string[] = []
+		for (const [id, preset] of Object.entries(presets)) {
+			if (preset?.type !== 'layered') throw new Error('Expected layered presets')
+			const ids = preset.elements.map((element) => element.id)
+			if (!ids.includes('dial')) continue
+			withDial.push(id)
+			// Drawn in order, so the arc goes down before the text that sits over it
+			expect(ids, id).toEqual(['background', 'dial', 'label'])
+		}
+		expect(withDial).toEqual(
+			ROTARY_CLASSES.filter((rotary) => rotary.dial).map(({ className }) => `rotary_${className}_${className}/1`),
+		)
+		expect(withDial).toEqual(['rotary_OcaGain_OcaGain/1'])
+	})
+
+	it('puts a unit after the value only on the rotary classes whose table entry names one', async () => {
+		const roleMap = ROTARY_CLASSES.map(({ className, property }, i): [string, OcaRoot] => [
+			`${className}/1`,
+			makeObject(ControlClasses[className] as unknown as ControlClass, i + 1, [
+				['Enabled', true],
+				[property, 0],
+			]),
+		])
+		const { presets } = await define(roleMap)
+
+		for (const rotary of ROTARY_CLASSES) {
+			const preset = presets[`rotary_${rotary.className}_${rotary.className}/1`]
+			if (preset?.type !== 'layered') throw new Error(`No layered ${rotary.className} preset`)
+			const text = (labelOf(preset) as { text: { value: string } }).text.value
+			// Inside the isNumber guard, so an unread value shows nothing rather than a bare unit
+			if (rotary.unit === undefined) expect(text, rotary.className).not.toContain('} ')
+			else expect(text, rotary.className).toContain(`} ${rotary.unit}\``)
+		}
+		expect(ROTARY_CLASSES.filter((rotary) => rotary.unit !== undefined).map((rotary) => rotary.className)).toEqual([
+			'OcaGain',
+		])
+	})
+
 	// Companion reads template literal text raw, so these would otherwise end the literal or interpolate
 	it("puts a role path that would break the label's template literal in as a quoted string", async () => {
 		const { presets } = await define([['we`ird$(x)', gain(1)]])
 		const preset = presets['rotary_OcaGain_we`ird$(x)']
 		if (preset?.type !== 'layered') throw new Error('No layered gain preset')
 
-		expect(preset.elements[1]).toMatchObject({
+		expect(labelOf(preset)).toMatchObject({
 			text: { isExpression: true, value: expect.stringMatching(/^`\$\{"we`ird\$\(x\)"\}\\n \(Rotary\)\\n\$\{/) },
 		})
 	})
@@ -491,7 +553,7 @@ describe('presets', () => {
 			options: { objectId: 'SDCARD/PLAY', property: 'PositionNames', sync: true },
 		})
 		// The name while the names are an array holding one for this position, otherwise the number as before
-		expect(preset.elements[1]).toMatchObject({
+		expect(labelOf(preset)).toMatchObject({
 			text: {
 				isExpression: true,
 				value:
@@ -745,6 +807,13 @@ describe('presets', () => {
 		expect(presets).toEqual({})
 	})
 })
+
+/** The preset's text element, found by id rather than position, since a dial sits between it and the background. */
+function labelOf(preset: { elements: { id?: string }[] }): unknown {
+	const label = preset.elements.find((element) => element.id === 'label')
+	expect(label).toBeDefined()
+	return label
+}
 
 type DefinitionShape = { options: { id: string; choices?: { id: string | number }[] }[] }
 type PresetEntry = { actionId?: string; feedbackId?: string; options: Record<string, unknown> }

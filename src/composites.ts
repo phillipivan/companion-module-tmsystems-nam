@@ -17,6 +17,7 @@ import type ModuleInstance from './main.js'
  */
 export enum CompositeElementId {
 	Meter = 'meter',
+	Dial = 'dial',
 }
 
 export const MeterPosition = ['left', 'right', 'top', 'bottom'] as const
@@ -32,6 +33,9 @@ const POSITION_CHOICES = [
 export type CompositeElementSchema = {
 	[CompositeElementId.Meter]: {
 		options: { level: number; min: number; max: number; position: MeterPosition; padding: number }
+	}
+	[CompositeElementId.Dial]: {
+		options: { level: number; min: number; max: number; color: number }
 	}
 }
 
@@ -69,10 +73,38 @@ export const METER_STOPS = [
 	{ at: 0.9, color: combineRgb(255, 0, 0) }, // red, -6 dB
 ] as const
 
+/**
+ * The dial's arc, as positions on a clock face. Companion measures a ring gauge's angles in degrees
+ * clockwise from 12 o'clock, so an hour is 30 degrees. Running from 8 round through 12 to 4 sweeps 240
+ * degrees and leaves the bottom 120 undrawn, which is where a knob's pointer never goes.
+ */
+const CLOCK_HOUR_DEGREES = 30
+const DIAL_START_HOUR = 8
+const DIAL_END_HOUR = 4
+
+/** How thick the ring is, as a percentage of its radius. Companion allows 1 to 50. */
+const DIAL_RING_WIDTH = 15
+
+/**
+ * How far the ring is held back from each edge of the button, as a percentage. At 0 the ring touches the
+ * edge at 12, 3, 6 and 9 o'clock, since its radius is half the shorter side.
+ */
+const DIAL_PADDING = 5
+const DIAL_DIAMETER = 100 - DIAL_PADDING * 2
+
+/** How much colour the untravelled part of the arc keeps, so the dial still reads as one. */
+const DIAL_TRACK_AMOUNT = 20
+
+/** `hour` on a clock face as a gauge angle. */
+function clockAngle(hour: number): number {
+	return (hour % 12) * CLOCK_HOUR_DEGREES
+}
+
 const POSITION = `$(options:position)`
 const PADDING = `$(options:padding)`
 const MIN = `$(options:min)`
 const MAX = `$(options:max)`
+const COLOR = `$(options:color)`
 const IS_VERTICAL = `(${POSITION} == 'left' || ${POSITION} == 'right')`
 
 /** Where `stop` sits on a bar running from the meter's min to its max. */
@@ -160,6 +192,77 @@ export function UpdateCompositeElements(self: ModuleInstance): void {
 						color: stop.color,
 						gradient: true,
 					})),
+				},
+			],
+		},
+		[CompositeElementId.Dial]: {
+			type: 'composite',
+			name: 'Value Dial',
+			description: `A knob-style arc running from ${DIAL_START_HOUR} o'clock up round to ${DIAL_END_HOUR}, filling as the value rises. Feed it a value and the ends of its range, e.g. from a Get Property feedback`,
+			options: [
+				{
+					type: 'number',
+					label: 'Value',
+					id: 'level',
+					tooltip: 'Set this to the property value, e.g. $(local:range).values[0]',
+					min: Number.MIN_SAFE_INTEGER,
+					max: Number.MAX_SAFE_INTEGER,
+					default: 0,
+				},
+				{
+					type: 'number',
+					label: 'Minimum',
+					id: 'min',
+					tooltip: 'The value at the empty end of the arc',
+					min: Number.MIN_SAFE_INTEGER,
+					max: Number.MAX_SAFE_INTEGER,
+					default: 0,
+				},
+				{
+					type: 'number',
+					label: 'Maximum',
+					id: 'max',
+					tooltip: 'The value at the full end of the arc',
+					min: Number.MIN_SAFE_INTEGER,
+					max: Number.MAX_SAFE_INTEGER,
+					default: 100,
+				},
+				{
+					type: 'colorpicker',
+					label: 'Colour',
+					id: 'color',
+					default: combineRgb(0, 204, 0),
+					returnType: 'number',
+				},
+			],
+			elements: [
+				{
+					type: 'gauge',
+					name: 'Dial',
+					// The renderer centres the ring and takes its radius from the shorter side, so a square
+					// inset from every edge stays circular, scales with whatever it is drawn on, and keeps
+					// clear of the button's edges
+					x: DIAL_PADDING,
+					y: DIAL_PADDING,
+					width: DIAL_DIAMETER,
+					height: DIAL_DIAMETER,
+					orientation: 'ring',
+					startAngle: clockAngle(DIAL_START_HOUR),
+					endAngle: clockAngle(DIAL_END_HOUR),
+					ringWidth: DIAL_RING_WIDTH,
+					roundedEnds: true,
+					min: { isExpression: true, value: MIN },
+					max: { isExpression: true, value: MAX },
+					value: { isExpression: true, value: '$(options:level)' },
+					fillEnabled: true,
+					// One colour over the whole arc, rather than a scale, so the single stop is all it needs
+					multiColour: false,
+					stops: [
+						{ value: { isExpression: true, value: MIN }, color: { isExpression: true, value: COLOR }, gradient: false },
+					],
+					// The untravelled part of the arc stays faintly visible, so the dial reads as a dial
+					trackStyle: 'dimmed',
+					trackAmount: DIAL_TRACK_AMOUNT,
 				},
 			],
 		},
