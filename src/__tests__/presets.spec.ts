@@ -443,7 +443,7 @@ describe('presets', () => {
 		})
 	})
 
-	it('gives a dial only to the rotary classes whose table entry asks for one, always behind the label', async () => {
+	it('gives every rotary a dial behind its label, panning ones the pan element and the rest a plain one', async () => {
 		const roleMap = ROTARY_CLASSES.map(({ className, property }, i): [string, OcaRoot] => [
 			`${className}/1`,
 			makeObject(ControlClasses[className] as unknown as ControlClass, i + 1, [
@@ -453,19 +453,26 @@ describe('presets', () => {
 		])
 		const { presets } = await define(roleMap)
 
-		const withDial: string[] = []
-		for (const [id, preset] of Object.entries(presets)) {
-			if (preset?.type !== 'layered') throw new Error('Expected layered presets')
-			const ids = preset.elements.map((element) => element.id)
-			if (!ids.includes('dial')) continue
-			withDial.push(id)
+		for (const rotary of ROTARY_CLASSES) {
+			const id = `rotary_${rotary.className}_${rotary.className}/1`
+			const preset = presets[id]
+			if (preset?.type !== 'layered') throw new Error(`No layered ${rotary.className} preset`)
 			// Drawn in order, so the arc goes down before the text that sits over it
-			expect(ids, id).toEqual(['background', 'dial', 'label'])
+			expect(
+				preset.elements.map((element) => element.id),
+				id,
+			).toEqual(['background', 'dial', 'label'])
+
+			const dial = preset.elements.find((element) => element.id === 'dial')
+			if (dial?.type !== 'composite') throw new Error(`No dial on ${id}`)
+			expect(dial.elementId, id).toBe(rotary.dial === 'pan' ? 'pan_dial' : 'dial')
+			// A class that names no colour is drawn in the plain grey
+			expect(dial.options.color, id).toBe(rotary.dialColor ?? 0xb6b6b6)
 		}
-		expect(withDial).toEqual(
-			ROTARY_CLASSES.filter((rotary) => rotary.dial).map(({ className }) => `rotary_${className}_${className}/1`),
+		// Only the two whose property has a conventional colour choose one
+		expect(ROTARY_CLASSES.filter((rotary) => rotary.dialColor !== undefined).map((rotary) => rotary.className)).toEqual(
+			['OcaGain', 'OcaPanBalance'],
 		)
-		expect(withDial).toEqual(['rotary_OcaGain_OcaGain/1', 'rotary_OcaPanBalance_OcaPanBalance/1'])
 	})
 
 	it('puts a unit after the value only on the rotary classes whose table entry names one', async () => {
@@ -565,7 +572,7 @@ describe('presets', () => {
 		expect(rightTurn).toEqual({
 			isExpression: true,
 			value:
-				'min($(local:range).values[2], arrayIncludes($(local:names), $(local:names)[0]) ? length($(local:names)) - 1 : $(local:range).values[2], $(local:range).values[0] + $(local:step_size))',
+				'min($(local:range).values[2], (arrayIncludes($(local:names), $(local:names)[0]) ? length($(local:names)) - 1 : $(local:range).values[2]), $(local:range).values[0] + $(local:step_size))',
 		})
 	})
 
