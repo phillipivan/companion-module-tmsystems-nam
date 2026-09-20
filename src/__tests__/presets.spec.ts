@@ -29,7 +29,7 @@ import { OcaPolarityState } from 'aes70/src/types/OcaPolarityState.js'
 import { OcaHelper } from '../OcaHelper.js'
 import { UpdateActions, type ActionSchema } from '../actions.js'
 import { UpdateFeedbacks, type FeedbackSchema } from '../feedbacks.js'
-import { ROTARY_CLASSES, UpdatePresets } from '../presets.js'
+import { METER_CLASSES, ROTARY_CLASSES, UpdatePresets } from '../presets.js'
 import { UpdateCompositeElements } from '../composites.js'
 import { makeNamFilterParametric } from './fakeControlObjects.js'
 import type { OcaModuleTypes } from '../types.js'
@@ -612,6 +612,9 @@ describe('presets', () => {
 						max: { isExpression: true, value: '$(local:level).values[2]' },
 						position: 'bottom',
 						padding: 2,
+						// A signal level, so it keeps the metering scale and the colour goes unused
+						scheme: 'meter',
+						color: 0x00cc00,
 					},
 				},
 			],
@@ -689,6 +692,75 @@ describe('presets', () => {
 			feedbackId: 'get_property_OcaAudioLevelSensor',
 			options: { objectId: 'AMP/CH0/LEVEL', property: 'Reading', sync: false },
 		})
+	})
+
+	it('gives every meter class a group, with its own unit and colours, from one readable Reading', async () => {
+		const roleMap = METER_CLASSES.map(({ className, property }, i): [string, OcaRoot] => [
+			`${className}/1`,
+			makeObject(ControlClasses[className] as unknown as ControlClass, i + 1, [
+				['Enabled', true],
+				[property, 0],
+			]),
+		])
+		const { structure, presets } = await define(roleMap)
+		const feedbacks = setFeedbackDefinitions.mock.lastCall?.[0] as unknown as Record<string, DefinitionShape>
+
+		// A class aes70 has no Reading on would silently lose its group
+		expect(structure.find((section) => section.id === 'meters')?.definitions).toEqual(
+			METER_CLASSES.map(({ className }) => expect.objectContaining({ id: `meter_${className}` })),
+		)
+		for (const meter of METER_CLASSES) {
+			const id = `meter_${meter.className}_${meter.className}/1`
+			const preset = presets[id]
+			if (preset?.type !== 'layered') throw new Error(`No layered ${meter.className} preset`)
+
+			const text = (labelOf(preset) as { text: { value: string } }).text.value
+			// Inside the isNumber guard, so an unread reading shows nothing rather than a bare unit
+			if (meter.unit === undefined) expect(text, meter.className).not.toContain('} ')
+			else expect(text, meter.className).toContain(`} ${meter.unit}\``)
+
+			const bar = preset.elements.find((element) => element.id === 'meter')
+			if (bar?.type !== 'composite') throw new Error(`No meter on ${id}`)
+			// Only the signal level classes keep the green-to-red scale; the rest name a flat colour
+			expect(bar.options.scheme, meter.className).toBe(meter.color === undefined ? 'meter' : 'custom')
+			if (meter.color !== undefined) expect(bar.options.color, meter.className).toBe(meter.color)
+			for (const variable of (preset.localVariables ?? []) as PresetEntry[]) {
+				if (variable.feedbackId) expectOptionsOffered(feedbacks[variable.feedbackId], variable.options)
+			}
+		}
+		// The level classes are the only ones metered on the audio scale
+		expect(METER_CLASSES.filter((meter) => meter.color === undefined).map((meter) => meter.className)).toEqual([
+			'OcaLevelSensor',
+			'OcaAudioLevelSensor',
+		])
+	})
+
+	// Pinned because the set was asked for by name. OcaIdentificationSensor is deliberately absent: it
+	// signals an identify press as an event and has no Reading. OcaPowerSensor too, its getter returning
+	// four values rather than the [reading, min, max] the bar and label index into
+	it('meters every numeric sensor class aes70 has a three-value Reading for', async () => {
+		expect(METER_CLASSES.map((meter) => meter.className)).toEqual([
+			'OcaLevelSensor',
+			'OcaAudioLevelSensor',
+			'OcaTimeIntervalSensor',
+			'OcaFrequencySensor',
+			'OcaTemperatureSensor',
+			'OcaVoltageSensor',
+			'OcaCurrentSensor',
+			'OcaImpedanceSensor',
+			'OcaGainSensor',
+			'OcaInt8Sensor',
+			'OcaInt16Sensor',
+			'OcaInt32Sensor',
+			'OcaInt64Sensor',
+			'OcaUint8Sensor',
+			'OcaUint16Sensor',
+			'OcaUint32Sensor',
+			'OcaFloat32Sensor',
+			'OcaFloat64Sensor',
+		])
+		// Every one of them reads the same property, so the group builder's check is the same for all
+		expect(METER_CLASSES.every((meter) => meter.property === 'Reading')).toBe(true)
 	})
 
 	// aes70 truncates a fractional integer when it encodes it, so a fine step below 1 would be uneven

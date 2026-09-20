@@ -33,9 +33,26 @@ const POSITION_CHOICES = [
 	{ id: 'bottom', label: 'Bottom' },
 ] as const satisfies DropdownChoice<MeterPosition>[]
 
+/** How a meter is coloured: the audio metering scale, or one colour of the user's choosing. */
+export const MeterScheme = ['meter', 'custom'] as const
+export type MeterScheme = (typeof MeterScheme)[number]
+
+const SCHEME_CHOICES = [
+	{ id: 'meter', label: 'Audio metering' },
+	{ id: 'custom', label: 'Single colour' },
+] as const satisfies DropdownChoice<MeterScheme>[]
+
 export type CompositeElementSchema = {
 	[CompositeElementId.Meter]: {
-		options: { level: number; min: number; max: number; position: MeterPosition; padding: number }
+		options: {
+			level: number
+			min: number
+			max: number
+			position: MeterPosition
+			padding: number
+			scheme: MeterScheme
+			color: number
+		}
 	}
 	[CompositeElementId.Dial]: {
 		options: { level: number; min: number; max: number; color: number }
@@ -56,6 +73,9 @@ export const METER_PADDING = 2
 /** The ends of the bar a meter gets until it is told otherwise, in dB: a full scale audio meter. */
 export const METER_DEFAULT_MIN = -60
 export const METER_DEFAULT_MAX = 0
+
+/** The single colour a meter is drawn in when it isn't using the metering scale. */
+export const METER_DEFAULT_COLOR = combineRgb(0, 204, 0)
 
 /**
  * How much of its colour the unfilled part of the bar keeps, 0 - 100. At 100 it matches the fill and a silent
@@ -119,6 +139,7 @@ const MIN = `$(options:min)`
 const MAX = `$(options:max)`
 const COLOR = `$(options:color)`
 const IS_VERTICAL = `(${POSITION} == 'left' || ${POSITION} == 'right')`
+const IS_METERING = `$(options:scheme) == '${SCHEME_CHOICES[0].id}'`
 
 /** Where `stop` sits on a bar running from the meter's min to its max. */
 function stopValue(at: number): string {
@@ -265,6 +286,23 @@ export function UpdateCompositeElements(self: ModuleInstance): void {
 					max: 40,
 					default: METER_PADDING,
 				},
+				{
+					type: 'dropdown',
+					label: 'Colours',
+					id: 'scheme',
+					tooltip:
+						'The metering scale runs green to red across the range; a single colour suits a reading that is not a signal level',
+					choices: SCHEME_CHOICES,
+					default: SCHEME_CHOICES[0].id,
+				},
+				{
+					type: 'colorpicker',
+					label: 'Colour',
+					id: 'color',
+					tooltip: 'Used when Colours is set to a single colour',
+					default: METER_DEFAULT_COLOR,
+					returnType: 'number',
+				},
 			],
 			elements: [
 				{
@@ -285,12 +323,15 @@ export function UpdateCompositeElements(self: ModuleInstance): void {
 					max: { isExpression: true, value: MAX },
 					value: { isExpression: true, value: '$(options:level)' },
 					fillEnabled: true,
-					multiColour: true,
+					// Only the metering scale blends between its stops; a single colour is flat
+					multiColour: { isExpression: true, value: IS_METERING },
 					trackStyle: 'dimmed',
 					trackAmount: METER_TRACK_AMOUNT,
+					// The stops stay in place for either scheme. On a single colour they all resolve to it,
+					// so whichever one the reading falls in, and whatever blending happens, the bar is that colour
 					stops: METER_STOPS.map((stop) => ({
 						value: { isExpression: true, value: stopValue(stop.at) },
-						color: stop.color,
+						color: { isExpression: true, value: `${IS_METERING} ? ${stop.color} : ${COLOR}` },
 						gradient: true,
 					})),
 				},

@@ -51,7 +51,15 @@ describe('composite elements', () => {
 	it('offers a meter taking a level and the two ends of the range it draws', () => {
 		const { meter } = defineElements()
 
-		expect(meter.options.map((option) => option.id)).toEqual(['level', 'min', 'max', 'position', 'padding'])
+		expect(meter.options.map((option) => option.id)).toEqual([
+			'level',
+			'min',
+			'max',
+			'position',
+			'padding',
+			'scheme',
+			'color',
+		])
 		// A reading is in whatever unit its class is defined in, so nothing here is limited to a dB range
 		for (const id of ['level', 'min', 'max']) {
 			const option = meter.options.find((o) => o.id === id)
@@ -66,6 +74,24 @@ describe('composite elements', () => {
 		expect(gauge.min).toEqual({ isExpression: true, value: '$(options:min)' })
 		expect(gauge.max).toEqual({ isExpression: true, value: '$(options:max)' })
 		expect(gauge.value).toEqual({ isExpression: true, value: '$(options:level)' })
+	})
+
+	it('draws the meter in one colour instead of the metering scale when asked', () => {
+		const { meter } = defineElements()
+		const gauge = meterGauge()
+
+		expect(meter.options.find((o) => o.id === 'scheme')).toMatchObject({ type: 'dropdown', default: 'meter' })
+		expect(meter.options.find((o) => o.id === 'color')).toMatchObject({ type: 'colorpicker', default: 0x00cc00 })
+		// Only the metering scale blends between colours
+		expect(gauge.multiColour).toEqual({ isExpression: true, value: "$(options:scheme) == 'meter'" })
+		// Every stop falls back to the chosen colour, so the bar is flat whichever one the reading is in
+		const stops = gauge.stops as { color: { value: string } }[]
+		expect(stops).toHaveLength(5)
+		for (const [index, stop] of stops.entries()) {
+			expect(stop.color.value, `stop ${index}`).toBe(
+				`$(options:scheme) == 'meter' ? ${METER_STOPS[index]?.color} : $(options:color)`,
+			)
+		}
 	})
 
 	it('spaces its colour stops across the range, rather than at fixed levels', () => {
