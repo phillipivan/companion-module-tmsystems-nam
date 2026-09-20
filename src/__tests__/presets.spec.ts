@@ -7,9 +7,11 @@ import type {
 } from '@companion-module/base'
 import * as ControlClasses from 'aes70/src/controller/ControlClasses.js'
 import {
+	OcaAudioLevelSensor,
 	OcaBooleanActuator,
 	OcaGain,
 	OcaIdentificationActuator,
+	OcaLevelSensor,
 	OcaMute,
 	OcaPolarity,
 	OcaSwitch,
@@ -28,6 +30,7 @@ import { OcaHelper } from '../OcaHelper.js'
 import { UpdateActions, type ActionSchema } from '../actions.js'
 import { UpdateFeedbacks, type FeedbackSchema } from '../feedbacks.js'
 import { ROTARY_CLASSES, UpdatePresets } from '../presets.js'
+import { UpdateCompositeElements } from '../composites.js'
 import { makeNamFilterParametric } from './fakeControlObjects.js'
 import type { OcaModuleTypes } from '../types.js'
 import type ModuleInstance from '../main.js'
@@ -76,10 +79,28 @@ const gain = (ono: number): OcaRoot =>
 		['Enabled', true],
 		['Gain', 0],
 	])
+/** A switch like the NAM's SDCARD/PLAY on 2026-09-20: position 0 of three named ones, though it reports a max of 3. */
+const namedSwitch = (ono: number): OcaRoot =>
+	makeObject(OcaSwitch, ono, [
+		['Enabled', true],
+		['Position', 0],
+		['PositionNames', ['ON', 'OFF', 'LOOP']],
+	])
 const switchObject = (ono: number): OcaRoot =>
 	makeObject(OcaSwitch, ono, [
 		['Enabled', true],
 		['Position', 1],
+	])
+/** Like one of the NAM's 16 OcaLevelSensors, such as CHLEVELS/INS0. Its Reading is read-only. */
+const levelSensor = (ono: number): OcaRoot =>
+	makeObject(OcaLevelSensor, ono, [
+		['Enabled', true],
+		['Reading', -42.123456],
+	])
+const audioLevelSensor = (ono: number): OcaRoot =>
+	makeObject(OcaAudioLevelSensor, ono, [
+		['Enabled', true],
+		['Reading', -12.5],
 	])
 
 describe('presets', () => {
@@ -127,7 +148,8 @@ describe('presets', () => {
 			['MIC/PH', booleanActuator(5)],
 			['IDENTIFY', identification(6)],
 			['SDCARD/PLAY', switchObject(7)],
-			['MIC/BQ0', makeNamFilterParametric(8)],
+			['CHLEVELS/INS0', levelSensor(8)],
+			['MIC/BQ0', makeNamFilterParametric(9)],
 		])
 
 		expect(structure).toEqual([
@@ -169,6 +191,18 @@ describe('presets', () => {
 					{ id: 'rotary_OcaSwitch', type: 'simple', name: 'Switch', presets: ['rotary_OcaSwitch_SDCARD/PLAY'] },
 				],
 			},
+			{
+				id: 'meters',
+				name: 'Meters',
+				definitions: [
+					{
+						id: 'meter_OcaLevelSensor',
+						type: 'simple',
+						name: 'Level Sensor',
+						presets: ['meter_OcaLevelSensor_CHLEVELS/INS0'],
+					},
+				],
+			},
 		])
 		expect(Object.keys(presets)).toEqual([
 			'toggle_OcaMute_AMP/CH1/MUTE',
@@ -178,6 +212,7 @@ describe('presets', () => {
 			'toggle_OcaIdentificationActuator_IDENTIFY',
 			'rotary_OcaGain_MIC/GAIN',
 			'rotary_OcaSwitch_SDCARD/PLAY',
+			'meter_OcaLevelSensor_CHLEVELS/INS0',
 		])
 	})
 
@@ -427,7 +462,7 @@ describe('presets', () => {
 		expect(result).toEqual({ values: [0, -2.4000000953674316, 41.5] })
 	})
 
-	it('steps a switch a whole position per detent, with no fine mode', async () => {
+	it('steps a switch without position names a whole position per detent, with no fine mode', async () => {
 		const { presets } = await define([['SDCARD/PLAY', switchObject(1)]])
 		const preset = presets['rotary_OcaSwitch_SDCARD/PLAY']
 		if (preset?.type !== 'layered') throw new Error('No layered switch preset')
@@ -442,6 +477,149 @@ describe('presets', () => {
 			{ isExpression: true, value: 'min($(local:range).values[2], $(local:range).values[0] + $(local:step_size))' },
 		])
 		expect(preset.localVariables?.[0]).toEqual({ variableType: 'simple', variableName: 'step_size', startupValue: 1 })
+	})
+
+	it('shows a switch position by name, and stops at the last named position', async () => {
+		const { presets } = await define([['SDCARD/PLAY', namedSwitch(1)]])
+		const preset = presets['rotary_OcaSwitch_SDCARD/PLAY']
+		if (preset?.type !== 'layered') throw new Error('No layered switch preset')
+
+		expect(preset.localVariables?.at(-1)).toEqual({
+			variableType: 'feedback',
+			variableName: 'names',
+			feedbackId: 'get_property_OcaSwitch',
+			options: { objectId: 'SDCARD/PLAY', property: 'PositionNames', sync: true },
+		})
+		// The name while the names are an array holding one for this position, otherwise the number as before
+		expect(preset.elements[1]).toMatchObject({
+			text: {
+				isExpression: true,
+				value:
+					"`SDCARD/PLAY\\n (Rotary)\\n${arrayIncludes($(local:names), $(local:names)[$(local:range).values[0]]) ? $(local:names)[$(local:range).values[0]] : isNumber($(local:range).values[0]) ? round($(local:range).values[0] * 1000) / 1000 : ''}`",
+			},
+		})
+		// The NAM reports max as the number of positions, one past the last
+		const rightTurn = (preset.steps[0]?.rotate_right?.[0] as PresetEntry | undefined)?.options.value_Position
+		expect(rightTurn).toEqual({
+			isExpression: true,
+			value:
+				'min($(local:range).values[2], arrayIncludes($(local:names), $(local:names)[0]) ? length($(local:names)) - 1 : $(local:range).values[2], $(local:range).values[0] + $(local:step_size))',
+		})
+	})
+
+	it('shows a level sensor reading in dB above a bar along the bottom of the button', async () => {
+		const { presets } = await define([['CHLEVELS/INS0', levelSensor(1)]])
+
+		expect(presets['meter_OcaLevelSensor_CHLEVELS/INS0']).toEqual({
+			type: 'layered',
+			name: 'Level Sensor - CHLEVELS/INS0',
+			elements: [
+				{ type: 'box', id: 'background', name: 'Background', color: 0x000000 },
+				{
+					type: 'text',
+					id: 'label',
+					name: 'Label',
+					// The unit is in a nested template literal, since Companion's + adds numbers rather than
+					// joining strings. Before the first reading the line is empty, not "$NA dB"
+					text: {
+						isExpression: true,
+						value:
+							"`CHLEVELS/INS0\\n${isNumber($(local:level).values[0]) ? `${round($(local:level).values[0] * 10) / 10} dB` : ''}`",
+					},
+					// Clear of the bar below it
+					height: 90,
+					fontsize: 22,
+					color: 0xffffff,
+				},
+				{
+					type: 'composite',
+					id: 'meter',
+					name: 'Signal Meter',
+					elementId: 'meter',
+					// Reading, then the sensor's own limits, all from the one read
+					options: {
+						level: { isExpression: true, value: '$(local:level).values[0]' },
+						min: { isExpression: true, value: '$(local:level).values[1]' },
+						max: { isExpression: true, value: '$(local:level).values[2]' },
+						position: 'bottom',
+						padding: 2,
+					},
+				},
+			],
+			// A sensor is read-only, so nothing on the button writes to the device
+			steps: [{ down: [], up: [] }],
+			feedbacks: [],
+			localVariables: [
+				{
+					variableType: 'feedback',
+					variableName: 'level',
+					feedbackId: 'get_property_OcaLevelSensor',
+					options: { objectId: 'CHLEVELS/INS0', property: 'Reading', sync: false },
+				},
+			],
+		})
+	})
+
+	// The label and the bar both index into this shape. aes70 declares GetReading as
+	// Arguments<[number, number, number]>, so it decodes like the actuators' getters; what a real sensor
+	// puts in those three slots is still unconfirmed, the NAM being away until the week of 2026-09-22
+	it("gets a sensor's reading and limits from the Get Property feedback without sync, as { values: [reading, min, max] }", async () => {
+		const { presets } = await define([['CHLEVELS/INS0', levelSensor(1)]])
+		const preset = presets['meter_OcaLevelSensor_CHLEVELS/INS0']
+		if (preset?.type !== 'layered') throw new Error('No layered level sensor preset')
+		const level = preset.localVariables?.find((variable) => variable.variableName === 'level') as PresetEntry
+		;(helper.getObject('CHLEVELS/INS0') as unknown as { GetReading: unknown }).GetReading = vi
+			.fn()
+			.mockResolvedValue(new Arguments([-42.123456, -200, 20]))
+
+		const feedback = setFeedbackDefinitions.mock.lastCall?.[0].get_property_OcaLevelSensor as unknown as {
+			callback: (event: unknown, context: unknown) => Promise<unknown>
+		}
+		const result = await feedback.callback(
+			{ type: 'value', id: 'fb1', controlId: 'bank:1:1', feedbackId: level.feedbackId, options: level.options },
+			{ type: 'feedback', signal: new AbortController().signal },
+		)
+
+		expect(result).toEqual({ values: [-42.123456, -200, 20] })
+	})
+
+	// Reading has a getter and no setter, so requiring a writable property would leave both classes out
+	it('gives both sensor classes meter presets, though their reading can only be read', async () => {
+		const { structure, presets } = await define([
+			['CHLEVELS/INS0', levelSensor(1)],
+			['CHLEVELS/INS1', levelSensor(2)],
+			['AMP/CH0/LEVEL', audioLevelSensor(3)],
+		])
+
+		expect(structure).toEqual([
+			{
+				id: 'meters',
+				name: 'Meters',
+				definitions: [
+					{
+						id: 'meter_OcaLevelSensor',
+						type: 'simple',
+						name: 'Level Sensor',
+						presets: ['meter_OcaLevelSensor_CHLEVELS/INS0', 'meter_OcaLevelSensor_CHLEVELS/INS1'],
+					},
+					{
+						id: 'meter_OcaAudioLevelSensor',
+						type: 'simple',
+						// Reading is inherited from OcaLevelSensor
+						name: 'Audio Level Sensor',
+						presets: ['meter_OcaAudioLevelSensor_AMP/CH0/LEVEL'],
+					},
+				],
+			},
+		])
+		const audio = presets['meter_OcaAudioLevelSensor_AMP/CH0/LEVEL']
+		if (audio?.type !== 'layered') throw new Error('No layered audio level sensor preset')
+		expect(audio.localVariables?.at(-1)).toEqual({
+			variableType: 'feedback',
+			variableName: 'level',
+			feedbackId: 'get_property_OcaAudioLevelSensor',
+			options: { objectId: 'AMP/CH0/LEVEL', property: 'Reading', sync: false },
+		})
 	})
 
 	// aes70 truncates a fractional integer when it encodes it, so a fine step below 1 would be uneven
@@ -500,11 +678,16 @@ describe('presets', () => {
 			['MIC/PH', booleanActuator(3)],
 			['IDENTIFY', identification(4)],
 			['MIC/GAIN', gain(5)],
-			['SDCARD/PLAY', switchObject(6)],
+			['SDCARD/PLAY', namedSwitch(6)],
+			['CHLEVELS/INS0', levelSensor(7)],
 		])
-		expect(Object.keys(presets)).toHaveLength(6)
+		expect(Object.keys(presets)).toHaveLength(7)
 		const actions = setActionDefinitions.mock.lastCall?.[0] as unknown as Record<string, DefinitionShape>
 		const feedbacks = setFeedbackDefinitions.mock.lastCall?.[0] as unknown as Record<string, DefinitionShape>
+		// An element's options are checked the same way, against the composite the module offers
+		const setCompositeElementDefinitions = vi.fn()
+		UpdateCompositeElements({ setCompositeElementDefinitions } as unknown as ModuleInstance)
+		const composites = setCompositeElementDefinitions.mock.lastCall?.[0] as Record<string, DefinitionShape>
 
 		for (const preset of Object.values(presets)) {
 			if (preset?.type !== 'layered') throw new Error('Expected layered presets')
@@ -519,6 +702,10 @@ describe('presets', () => {
 			for (const variable of (preset.localVariables ?? []) as PresetEntry[]) {
 				// A simple local variable, such as step_size, has no feedback
 				if (variable.feedbackId) expectOptionsOffered(feedbacks[variable.feedbackId], variable.options)
+			}
+			for (const element of preset.elements) {
+				if (element.type !== 'composite') continue
+				expectOptionsOffered(composites[element.elementId], element.options)
 			}
 		}
 	})

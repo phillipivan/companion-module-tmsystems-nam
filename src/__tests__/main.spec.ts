@@ -26,6 +26,7 @@ vi.mock('@companion-module/base', async (importOriginal) => {
 		setActionDefinitions = vi.fn()
 		setFeedbackDefinitions = vi.fn()
 		setPresetDefinitions = vi.fn()
+		setCompositeElementDefinitions = vi.fn()
 		setVariableDefinitions = vi.fn()
 		setVariableValues = vi.fn()
 		subscribeActions = vi.fn()

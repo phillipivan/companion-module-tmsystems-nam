@@ -3,6 +3,7 @@ import type { ModuleConfig } from './config.js'
 import type { ActionSchema } from './actions.js'
 import type { FeedbackSchema } from './feedbacks.js'
 import type { VariablesSchema } from './variables.js'
+import type { CompositeElementSchema } from './composites.js'
 
 export interface OcaModuleTypes {
 	config: ModuleConfig
@@ -10,4 +11,5 @@ export interface OcaModuleTypes {
 	actions: ActionSchema
 	feedbacks: FeedbackSchema
 	variables: VariablesSchema
+	compositeElements: CompositeElementSchema
 }

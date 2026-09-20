@@ -5,6 +5,7 @@ import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
 import { UpdatePresets } from './presets.js'
+import { UpdateCompositeElements } from './composites.js'
 import { WebSocket } from 'ws'
 import {
 	CloseError,
@@ -68,6 +69,10 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 	public async init(config: ModuleConfig): Promise<void> {
 		this.config = handleBonjourHost(config)
+
+		// Nothing here comes from the device, and a button saved with one of these elements needs its
+		// definition whether or not this instance ever connects
+		UpdateCompositeElements(this)
 
 		this.updateStatus(InstanceStatus.Connecting)
 
