@@ -1,7 +1,9 @@
 import {
 	combineRgb,
+	type ButtonGraphicsGaugeElement,
 	type CompanionGraphicsCompositeElementDefinitions,
 	type DropdownChoice,
+	type SomeCompanionFeedbackInputField,
 } from '@companion-module/base'
 import type ModuleInstance from './main.js'
 
@@ -18,6 +20,7 @@ import type ModuleInstance from './main.js'
 export enum CompositeElementId {
 	Meter = 'meter',
 	Dial = 'dial',
+	PanDial = 'pan_dial',
 }
 
 export const MeterPosition = ['left', 'right', 'top', 'bottom'] as const
@@ -35,6 +38,9 @@ export type CompositeElementSchema = {
 		options: { level: number; min: number; max: number; position: MeterPosition; padding: number }
 	}
 	[CompositeElementId.Dial]: {
+		options: { level: number; min: number; max: number; color: number }
+	}
+	[CompositeElementId.PanDial]: {
 		options: { level: number; min: number; max: number; color: number }
 	}
 }
@@ -95,6 +101,13 @@ const DIAL_DIAMETER = 100 - DIAL_PADDING * 2
 /** How much colour the untravelled part of the arc keeps, so the dial still reads as one. */
 const DIAL_TRACK_AMOUNT = 20
 
+/**
+ * How long the pan dial's marker bead is along the arc, as a percentage of the ring's thickness, so at 100
+ * it is as long as the ring is thick and reads as a dot rather than a hairline. Companion's own default, 15,
+ * would come out under a pixel and be clamped to one.
+ */
+const DIAL_MARKER_WIDTH = 100
+
 /** `hour` on a clock face as a gauge angle. */
 function clockAngle(hour: number): number {
 	return (hour % 12) * CLOCK_HOUR_DEGREES
@@ -111,6 +124,94 @@ const IS_VERTICAL = `(${POSITION} == 'left' || ${POSITION} == 'right')`
 function stopValue(at: number): string {
 	if (at === 0) return MIN
 	return `${MIN} + (${MAX} - ${MIN}) * ${at}`
+}
+
+/** Halfway between the dial's ends, which a pan dial fills out from. */
+const MIDPOINT = `(${MIN} + ${MAX}) / 2`
+
+/** The options both dials take, differing only in what their ends mean and their colour. */
+function dialOptions(
+	minimumTooltip: string,
+	defaultColor: number,
+): SomeCompanionFeedbackInputField<keyof CompositeElementSchema[CompositeElementId.Dial]['options']>[] {
+	return [
+		{
+			type: 'number',
+			label: 'Value',
+			id: 'level',
+			tooltip: 'Set this to the property value, e.g. $(local:range).values[0]',
+			min: Number.MIN_SAFE_INTEGER,
+			max: Number.MAX_SAFE_INTEGER,
+			default: 0,
+		},
+		{
+			type: 'number',
+			label: 'Minimum',
+			id: 'min',
+			tooltip: minimumTooltip,
+			min: Number.MIN_SAFE_INTEGER,
+			max: Number.MAX_SAFE_INTEGER,
+			default: 0,
+		},
+		{
+			type: 'number',
+			label: 'Maximum',
+			id: 'max',
+			tooltip: 'The value at the full end of the arc',
+			min: Number.MIN_SAFE_INTEGER,
+			max: Number.MAX_SAFE_INTEGER,
+			default: 100,
+		},
+		{ type: 'colorpicker', label: 'Colour', id: 'color', default: defaultColor, returnType: 'number' },
+	]
+}
+
+/**
+ * The ring both dials are drawn with. `centred` fills out from the midpoint of the range rather than up
+ * from the minimum, so a value above centre runs clockwise towards the DIAL_END_HOUR end of the arc and one
+ * below runs anticlockwise towards DIAL_START_HOUR. 12 o'clock is halfway along, so that is where it starts.
+ *
+ * A centred dial also carries a marker bead. The renderer draws that at the value whether or not there is
+ * any fill (`LayeredRenderer.ts:794`), which is what leaves a dot at 12 o'clock when the value sits exactly
+ * at the midpoint and the fill is empty.
+ */
+function dialGauge(centred: boolean): ButtonGraphicsGaugeElement {
+	return {
+		type: 'gauge',
+		name: centred ? 'Pan Dial' : 'Dial',
+		// The renderer centres the ring and takes its radius from the shorter side, so a square
+		// inset from every edge stays circular, scales with whatever it is drawn on, and keeps
+		// clear of the button's edges
+		x: DIAL_PADDING,
+		y: DIAL_PADDING,
+		width: DIAL_DIAMETER,
+		height: DIAL_DIAMETER,
+		orientation: 'ring',
+		startAngle: clockAngle(DIAL_START_HOUR),
+		endAngle: clockAngle(DIAL_END_HOUR),
+		ringWidth: DIAL_RING_WIDTH,
+		roundedEnds: true,
+		min: { isExpression: true, value: MIN },
+		max: { isExpression: true, value: MAX },
+		value: { isExpression: true, value: '$(options:level)' },
+		fillEnabled: true,
+		// One colour over the whole arc, rather than a scale, so the single stop is all it needs
+		multiColour: false,
+		stops: [
+			{ value: { isExpression: true, value: MIN }, color: { isExpression: true, value: COLOR }, gradient: false },
+		],
+		// The untravelled part of the arc stays faintly visible, so the dial reads as a dial
+		trackStyle: 'dimmed',
+		trackAmount: DIAL_TRACK_AMOUNT,
+		...(centred
+			? {
+					origin: { isExpression: true, value: MIDPOINT },
+					markerEnabled: true,
+					markerColor: { isExpression: true, value: COLOR },
+					markerWidth: DIAL_MARKER_WIDTH,
+				}
+			: {}),
+	}
 }
 
 export function UpdateCompositeElements(self: ModuleInstance): void {
@@ -198,73 +299,16 @@ export function UpdateCompositeElements(self: ModuleInstance): void {
 		[CompositeElementId.Dial]: {
 			type: 'composite',
 			name: 'Value Dial',
-			description: `A knob-style arc running from ${DIAL_START_HOUR} o'clock up round to ${DIAL_END_HOUR}, filling as the value rises. Feed it a value and the ends of its range, e.g. from a Get Property feedback`,
-			options: [
-				{
-					type: 'number',
-					label: 'Value',
-					id: 'level',
-					tooltip: 'Set this to the property value, e.g. $(local:range).values[0]',
-					min: Number.MIN_SAFE_INTEGER,
-					max: Number.MAX_SAFE_INTEGER,
-					default: 0,
-				},
-				{
-					type: 'number',
-					label: 'Minimum',
-					id: 'min',
-					tooltip: 'The value at the empty end of the arc',
-					min: Number.MIN_SAFE_INTEGER,
-					max: Number.MAX_SAFE_INTEGER,
-					default: 0,
-				},
-				{
-					type: 'number',
-					label: 'Maximum',
-					id: 'max',
-					tooltip: 'The value at the full end of the arc',
-					min: Number.MIN_SAFE_INTEGER,
-					max: Number.MAX_SAFE_INTEGER,
-					default: 100,
-				},
-				{
-					type: 'colorpicker',
-					label: 'Colour',
-					id: 'color',
-					default: combineRgb(0, 204, 0),
-					returnType: 'number',
-				},
-			],
-			elements: [
-				{
-					type: 'gauge',
-					name: 'Dial',
-					// The renderer centres the ring and takes its radius from the shorter side, so a square
-					// inset from every edge stays circular, scales with whatever it is drawn on, and keeps
-					// clear of the button's edges
-					x: DIAL_PADDING,
-					y: DIAL_PADDING,
-					width: DIAL_DIAMETER,
-					height: DIAL_DIAMETER,
-					orientation: 'ring',
-					startAngle: clockAngle(DIAL_START_HOUR),
-					endAngle: clockAngle(DIAL_END_HOUR),
-					ringWidth: DIAL_RING_WIDTH,
-					roundedEnds: true,
-					min: { isExpression: true, value: MIN },
-					max: { isExpression: true, value: MAX },
-					value: { isExpression: true, value: '$(options:level)' },
-					fillEnabled: true,
-					// One colour over the whole arc, rather than a scale, so the single stop is all it needs
-					multiColour: false,
-					stops: [
-						{ value: { isExpression: true, value: MIN }, color: { isExpression: true, value: COLOR }, gradient: false },
-					],
-					// The untravelled part of the arc stays faintly visible, so the dial reads as a dial
-					trackStyle: 'dimmed',
-					trackAmount: DIAL_TRACK_AMOUNT,
-				},
-			],
+			description: `A knob-style arc running from ${DIAL_START_HOUR} o'clock up round to ${DIAL_END_HOUR}, filling from the minimum as the value rises. Feed it a value and the ends of its range, e.g. from a Get Property feedback`,
+			options: dialOptions('The value at the empty end of the arc', combineRgb(0, 204, 0)),
+			elements: [dialGauge(false)],
+		},
+		[CompositeElementId.PanDial]: {
+			type: 'composite',
+			name: 'Pan Dial',
+			description: `A knob-style arc centred at 12 o'clock, filling clockwise towards ${DIAL_END_HOUR} o'clock above the midpoint of its range and anticlockwise towards ${DIAL_START_HOUR} below it, with a dot marking the position`,
+			options: dialOptions('The value at the anticlockwise end of the arc', combineRgb(255, 255, 0)),
+			elements: [dialGauge(true)],
 		},
 	}
 

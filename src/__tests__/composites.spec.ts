@@ -119,6 +119,46 @@ describe('composite elements', () => {
 		])
 	})
 
+	it('fills the pan dial out from the midpoint of its range, in yellow by default', () => {
+		const { definitions } = defineElements()
+		const pan = definitions[CompositeElementId.PanDial]
+		if (!pan) throw new Error('No pan dial element was defined')
+		const gauge = gaugeOf(CompositeElementId.PanDial)
+
+		expect(pan.options.find((o) => o.id === 'color')).toMatchObject({ type: 'colorpicker', default: 0xffff00 })
+		// Halfway between the ends, which is 12 o'clock, since that is halfway along the arc
+		expect(gauge.origin).toEqual({ isExpression: true, value: '($(options:min) + $(options:max)) / 2' })
+		// Not symmetric: the fill runs from the origin to the value, so it grows either way from centre
+		expect(gauge.symmetric).toBeUndefined()
+	})
+
+	// The renderer draws the marker at the value whether or not there is a fill, and at the midpoint there is none
+	it('marks the pan position with a bead, so a centred value still shows a dot', () => {
+		const gauge = gaugeOf(CompositeElementId.PanDial)
+
+		expect(gauge.markerEnabled).toBe(true)
+		expect(gauge.markerColor).toEqual({ isExpression: true, value: '$(options:color)' })
+		// The bead's length is a percentage of the ring's thickness; Companion's default of 15 would round to a hairline
+		expect(gauge.markerWidth).toBe(100)
+	})
+
+	it('leaves the plain value dial growing from the minimum, with no marker', () => {
+		const gauge = gaugeOf(CompositeElementId.Dial)
+
+		// No origin means the renderer's default, which is to grow from the minimum
+		expect(gauge.origin).toBeUndefined()
+		expect(gauge.markerEnabled).toBeUndefined()
+	})
+
+	it('draws both dials with the same ring, so only their fill differs', () => {
+		const dial = gaugeOf(CompositeElementId.Dial)
+		const pan = gaugeOf(CompositeElementId.PanDial)
+
+		for (const key of ['x', 'y', 'width', 'height', 'orientation', 'startAngle', 'endAngle', 'ringWidth']) {
+			expect(pan[key], key).toEqual(dial[key])
+		}
+	})
+
 	// The renderer centres a ring and takes its radius from the shorter side, so a centred square keeps it round
 	it('insets the dial from every edge, so it scales with the button without touching its sides', () => {
 		const gauge = gaugeOf(CompositeElementId.Dial)

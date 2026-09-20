@@ -465,7 +465,7 @@ describe('presets', () => {
 		expect(withDial).toEqual(
 			ROTARY_CLASSES.filter((rotary) => rotary.dial).map(({ className }) => `rotary_${className}_${className}/1`),
 		)
-		expect(withDial).toEqual(['rotary_OcaGain_OcaGain/1'])
+		expect(withDial).toEqual(['rotary_OcaGain_OcaGain/1', 'rotary_OcaPanBalance_OcaPanBalance/1'])
 	})
 
 	it('puts a unit after the value only on the rotary classes whose table entry names one', async () => {

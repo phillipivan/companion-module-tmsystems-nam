@@ -108,8 +108,14 @@ const LABEL_ID = 'label'
 const METER_ID = 'meter'
 const DIAL_ID = 'dial'
 
-/** The dial arc's colour, dark enough to stay behind the label rather than compete with it. */
-const DIAL_COLOR = combineRgb(0, 153, 0)
+/** The two dial arcs a rotary can carry, and the composite element each is drawn with. */
+export type DialKind = 'value' | 'pan'
+
+/** Each dial's colour, both darker than their element's own default, to sit behind white text. */
+const DIAL_COLORS: Record<DialKind, number> = {
+	value: combineRgb(0, 153, 0),
+	pan: combineRgb(204, 204, 0),
+}
 
 /** In Companion's text element units, used as given. A simple preset's `size` is in older units and gets scaled. */
 const LABEL_FONT_SIZE = 22
@@ -233,8 +239,11 @@ export interface RotaryClass {
 	 * max as its number of positions, one past the last.
 	 */
 	readonly names?: string
-	/** Whether the button draws a dial arc behind its text, showing where the value sits in its range. */
-	readonly dial?: boolean
+	/**
+	 * The dial arc drawn behind the button's text, showing where the value sits in its range: `value`
+	 * fills up from the minimum, `pan` fills out from the midpoint either way. Left out for no arc.
+	 */
+	readonly dial?: DialKind
 	/**
 	 * The unit shown after the value on the button, where the class has one its objects always report in.
 	 * Left out where the value is bare, such as a switch position, or where the device chooses the unit.
@@ -255,8 +264,8 @@ const DEFAULT_STEPS = { stepSize: 1, fine: true } as const
 const INTEGER_STEPS = { stepSize: FINE_STEP_DIVISOR, fine: true } as const
 
 export const ROTARY_CLASSES: readonly RotaryClass[] = [
-	{ className: OCA_CLASS_NAMES.OcaGain, property: 'Gain', ...DEFAULT_STEPS, dial: true, unit: 'dB' },
-	{ className: OCA_CLASS_NAMES.OcaPanBalance, property: 'Position', ...DEFAULT_STEPS },
+	{ className: OCA_CLASS_NAMES.OcaGain, property: 'Gain', ...DEFAULT_STEPS, dial: 'value', unit: 'dB' },
+	{ className: OCA_CLASS_NAMES.OcaPanBalance, property: 'Position', ...DEFAULT_STEPS, dial: 'pan' },
 	{ className: OCA_CLASS_NAMES.OcaDelay, property: 'DelayTime', ...DEFAULT_STEPS },
 	// Its own DelayValue is a value and unit, which actions can't set; DelayTime is inherited from OcaDelay
 	{ className: OCA_CLASS_NAMES.OcaDelayExtended, property: 'DelayTime', ...DEFAULT_STEPS },
@@ -286,19 +295,22 @@ function templateText(text: string): string {
 }
 
 /** A dial arc showing where `value` sits between `min` and `max`, for a button to draw behind its text. */
-function dialElement(value: string, min: string, max: string): SomeButtonGraphicsElement<CompositeElementSchema> {
-	return {
-		type: 'composite',
-		id: DIAL_ID,
-		name: 'Value Dial',
-		elementId: CompositeElementId.Dial,
-		options: {
-			level: { isExpression: true, value },
-			min: { isExpression: true, value: min },
-			max: { isExpression: true, value: max },
-			color: DIAL_COLOR,
-		},
+function dialElement(
+	kind: DialKind,
+	value: string,
+	min: string,
+	max: string,
+): SomeButtonGraphicsElement<CompositeElementSchema> {
+	// Both dials take the same options; the branch is so each carries its element's own id as a literal
+	const options = {
+		level: { isExpression: true as const, value },
+		min: { isExpression: true as const, value: min },
+		max: { isExpression: true as const, value: max },
+		color: DIAL_COLORS[kind],
 	}
+	return kind === 'pan'
+		? { type: 'composite', id: DIAL_ID, name: 'Pan Dial', elementId: CompositeElementId.PanDial, options }
+		: { type: 'composite', id: DIAL_ID, name: 'Value Dial', elementId: CompositeElementId.Dial, options }
 }
 
 /** An expression rounding `value` to `places` decimal places. Callers guard it with `isNumber`. */
@@ -368,7 +380,7 @@ function rotaryPreset(
 	})
 	const elements = labelElements({ isExpression: true, value: rotaryLabel(rolePath, value, names, rotary.unit) })
 	// Between the background and the label, so the arc is drawn behind the text
-	if (rotary.dial) elements.splice(1, 0, dialElement(value, min, max))
+	if (rotary.dial) elements.splice(1, 0, dialElement(rotary.dial, value, min, max))
 	return {
 		type: 'layered',
 		name: `${ocaClassNameToLabel(className)} - ${rolePath}`,
