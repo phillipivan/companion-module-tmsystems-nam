@@ -45,17 +45,20 @@ describe('rotary presets', () => {
 			name: 'Gain - MIC/GAIN',
 			elements: [
 				{ type: 'box', id: 'background', name: 'Background', color: 0x000000 },
-				// Between the background and the label, so the arc is drawn behind the text
+				// Between the background and the label, so the arc is drawn behind the text.
+				// Centred, so the arc grows either side of 0 dB rather than up from the device's floor
 				{
 					type: 'composite',
 					id: 'dial',
-					name: 'Value Dial',
-					elementId: 'dial',
+					name: 'Centred Dial',
+					elementId: 'centred_dial',
 					options: {
 						level: { isExpression: true, value: '$(local:range).values[0]' },
 						min: { isExpression: true, value: '$(local:range).values[1]' },
 						max: { isExpression: true, value: '$(local:range).values[2]' },
 						color: 0x009900,
+						// Grey below unity, so a cut reads differently from a boost
+						colorBelow: 0x929292,
 					},
 				},
 				{

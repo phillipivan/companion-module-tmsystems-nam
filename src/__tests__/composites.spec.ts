@@ -173,9 +173,57 @@ describe('composite elements', () => {
 			const gauge = gaugeOf(id)
 
 			expect(gauge.markerEnabled, id).toBe(true)
-			expect(gauge.markerColor, id).toEqual({ isExpression: true, value: '$(options:color)' })
 			// A percentage of the ring's thickness; Companion's default of 15 would round to a hairline
 			expect(gauge.markerWidth, id).toBe(100)
+		}
+		// The width dial has one colour; the centred dial's dot follows the side the value is on
+		expect(gaugeOf(CompositeElementId.WidthDial).markerColor).toEqual({
+			isExpression: true,
+			value: '$(options:color)',
+		})
+		expect(gaugeOf(CompositeElementId.CentredDial).markerColor).toEqual({
+			isExpression: true,
+			value:
+				'$(options:level) < min(max(0, $(options:min)), $(options:max)) ? $(options:colorBelow) : $(options:color)',
+		})
+	})
+
+	// The renderer paints a single-colour fill with the last stop at or below the value, so a stop at
+	// the minimum and another at zero give the arc one colour per side
+	it('gives the centred dial a second colour for below zero', () => {
+		const { definitions } = defineElements()
+		const centred = definitions[CompositeElementId.CentredDial]
+		if (!centred) throw new Error('No centred dial element was defined')
+		const gauge = gaugeOf(CompositeElementId.CentredDial)
+
+		expect(centred.options.map((option) => option.id)).toEqual(['level', 'min', 'max', 'color', 'colorBelow'])
+		// Both default to the same colour, so a dial is one colour throughout until told otherwise
+		const colours = centred.options.filter((option) => option.type === 'colorpicker')
+		expect(colours.map((option) => option.default)).toEqual([0xffff00, 0xffff00])
+		expect(gauge.multiColour).toBe(false)
+		expect(gauge.stops).toEqual([
+			{
+				value: { isExpression: true, value: '$(options:min)' },
+				color: { isExpression: true, value: '$(options:colorBelow)' },
+				gradient: false,
+			},
+			{
+				value: { isExpression: true, value: 'min(max(0, $(options:min)), $(options:max))' },
+				color: { isExpression: true, value: '$(options:color)' },
+				gradient: false,
+			},
+		])
+	})
+
+	it('leaves the other dials with a single colour', () => {
+		const { definitions } = defineElements()
+
+		for (const id of [CompositeElementId.Dial, CompositeElementId.WidthDial]) {
+			expect(
+				definitions[id]?.options.map((option) => option.id),
+				id,
+			).toEqual(['level', 'min', 'max', 'color'])
+			expect((gaugeOf(id).stops as unknown[]).length, id).toBe(1)
 		}
 	})
 

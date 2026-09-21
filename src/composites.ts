@@ -62,7 +62,7 @@ export type CompositeElementSchema = {
 		options: { level: number; min: number; max: number; color: number }
 	}
 	[CompositeElementId.CentredDial]: {
-		options: { level: number; min: number; max: number; color: number }
+		options: { level: number; min: number; max: number; color: number; colorBelow: number }
 	}
 	[CompositeElementId.WidthDial]: {
 		options: { level: number; min: number; max: number; color: number }
@@ -145,6 +145,7 @@ const PADDING = `$(options:padding)`
 const MIN = `$(options:min)`
 const MAX = `$(options:max)`
 const COLOR = `$(options:color)`
+const COLOR_BELOW = `$(options:colorBelow)`
 const IS_VERTICAL = `(${POSITION} == 'left' || ${POSITION} == 'right')`
 const IS_METERING = `$(options:scheme) == '${SCHEME_CHOICES[0].id}'`
 
@@ -164,11 +165,29 @@ const MIDPOINT = `(${MIN} + ${MAX}) / 2`
  */
 const ZERO_ORIGIN = `min(max(0, ${MIN}), ${MAX})`
 
-/** The options both dials take, differing only in what their ends mean and their colour. */
+type DialOption = keyof CompositeElementSchema[CompositeElementId.Dial]['options']
+type CentredDialOption = keyof CompositeElementSchema[CompositeElementId.CentredDial]['options']
+
+/**
+ * The options every dial takes, differing only in what their ends mean and their colour. A centred
+ * dial has a second colour for below zero, which is why the overloads separate the two: only its
+ * schema carries that option.
+ */
 function dialOptions(
+	mode: 'centred',
 	minimumTooltip: string,
 	defaultColor: number,
-): SomeCompanionFeedbackInputField<keyof CompositeElementSchema[CompositeElementId.Dial]['options']>[] {
+): SomeCompanionFeedbackInputField<CentredDialOption>[]
+function dialOptions(
+	mode: 'minimum' | 'width',
+	minimumTooltip: string,
+	defaultColor: number,
+): SomeCompanionFeedbackInputField<DialOption>[]
+function dialOptions(
+	mode: DialMode,
+	minimumTooltip: string,
+	defaultColor: number,
+): SomeCompanionFeedbackInputField<CentredDialOption>[] {
 	return [
 		{
 			type: 'number',
@@ -197,7 +216,26 @@ function dialOptions(
 			max: Number.MAX_SAFE_INTEGER,
 			default: 100,
 		},
-		{ type: 'colorpicker', label: 'Colour', id: 'color', default: defaultColor, returnType: 'number' },
+		{
+			type: 'colorpicker',
+			label: mode === 'centred' ? 'Colour above zero' : 'Colour',
+			id: 'color',
+			default: defaultColor,
+			returnType: 'number',
+		},
+		// Only a centred dial has two sides to tell apart. Set it to match the other for one colour throughout
+		...(mode === 'centred'
+			? [
+					{
+						type: 'colorpicker' as const,
+						label: 'Colour below zero',
+						id: 'colorBelow' as const,
+						tooltip: 'Set this to the same colour as above zero to draw the whole arc in one',
+						default: defaultColor,
+						returnType: 'number' as const,
+					},
+				]
+			: []),
 	]
 }
 
@@ -235,11 +273,32 @@ function dialGauge(mode: DialMode): ButtonGraphicsGaugeElement {
 		max: { isExpression: true, value: MAX },
 		value: { isExpression: true, value: '$(options:level)' },
 		fillEnabled: true,
-		// One colour over the whole arc, rather than a scale, so the single stop is all it needs
+		// One colour over the whole fill, taken from the last stop at or below the value
+		// (`GaugeColorModel.ts:120`), rather than a scale blended across the arc
 		multiColour: false,
-		stops: [
-			{ value: { isExpression: true, value: MIN }, color: { isExpression: true, value: COLOR }, gradient: false },
-		],
+		// A centred dial has a second stop at zero, so a fill that sits below it takes the other
+		// colour and one above it takes the first. Anywhere else a single stop is all it needs
+		stops:
+			mode === 'centred'
+				? [
+						{
+							value: { isExpression: true, value: MIN },
+							color: { isExpression: true, value: COLOR_BELOW },
+							gradient: false,
+						},
+						{
+							value: { isExpression: true, value: ZERO_ORIGIN },
+							color: { isExpression: true, value: COLOR },
+							gradient: false,
+						},
+					]
+				: [
+						{
+							value: { isExpression: true, value: MIN },
+							color: { isExpression: true, value: COLOR },
+							gradient: false,
+						},
+					],
 		// The untravelled part of the arc stays faintly visible, so the dial reads as a dial
 		trackStyle: 'dimmed',
 		trackAmount: DIAL_TRACK_AMOUNT,
@@ -249,7 +308,11 @@ function dialGauge(mode: DialMode): ButtonGraphicsGaugeElement {
 					origin: { isExpression: true, value: mode === 'width' ? MIDPOINT : ZERO_ORIGIN },
 					...(mode === 'width' ? { symmetric: true } : {}),
 					markerEnabled: true,
-					markerColor: { isExpression: true, value: COLOR },
+					// The dot follows the side the value is on, so it matches the fill it caps
+					markerColor: {
+						isExpression: true,
+						value: mode === 'centred' ? `$(options:level) < ${ZERO_ORIGIN} ? ${COLOR_BELOW} : ${COLOR}` : COLOR,
+					},
 					markerWidth: DIAL_MARKER_WIDTH,
 				}),
 	}
@@ -361,21 +424,21 @@ export function UpdateCompositeElements(self: ModuleInstance): void {
 			type: 'composite',
 			name: 'Value Dial',
 			description: `A knob-style arc running from ${DIAL_START_HOUR} o'clock up round to ${DIAL_END_HOUR}, filling from the minimum as the value rises. Feed it a value and the ends of its range, e.g. from a Get Property feedback`,
-			options: dialOptions('The value at the empty end of the arc', combineRgb(0, 204, 0)),
+			options: dialOptions('minimum', 'The value at the empty end of the arc', combineRgb(0, 204, 0)),
 			elements: [dialGauge('minimum')],
 		},
 		[CompositeElementId.CentredDial]: {
 			type: 'composite',
 			name: 'Centred Dial',
 			description: `A knob-style arc growing out from zero, clockwise towards ${DIAL_END_HOUR} o'clock above it and anticlockwise towards ${DIAL_START_HOUR} below, with a dot marking the position. Zero sits at 12 o'clock when the two ends match, and off to one side when they don't`,
-			options: dialOptions('The value at the anticlockwise end of the arc', combineRgb(255, 255, 0)),
+			options: dialOptions('centred', 'The value at the anticlockwise end of the arc', combineRgb(255, 255, 0)),
 			elements: [dialGauge('centred')],
 		},
 		[CompositeElementId.WidthDial]: {
 			type: 'composite',
 			name: 'Width Dial',
 			description: `A knob-style arc growing both ways from 12 o'clock: a dot at the minimum, opening out until it runs the whole way from ${DIAL_START_HOUR} o'clock to ${DIAL_END_HOUR} at the maximum`,
-			options: dialOptions('The value drawn as a dot at 12 o’clock', combineRgb(182, 182, 182)),
+			options: dialOptions('width', 'The value drawn as a dot at 12 o’clock', combineRgb(182, 182, 182)),
 			elements: [dialGauge('width')],
 		},
 	}

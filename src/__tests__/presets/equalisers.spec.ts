@@ -120,8 +120,10 @@ describe('equaliser presets', () => {
 		}
 		// Gain cuts and boosts either side of zero; width only ever opens out from the middle
 		expect(dialOf('InBandGain').elementId).toBe('centred_dial')
-		// Green, the same as the Gain rotaries, rather than the plain grey the other filter arcs get
+		// Green, the same as the Gain rotaries, rather than the plain grey the other filter arcs get,
+		// and grey below unity so a cut reads differently from a boost
 		expect(dialOf('InBandGain').options.color).toBe(0x009900)
+		expect(dialOf('InBandGain').options.colorBelow).toBe(0x929292)
 		// Amber, distinct from the pan dial's yellow
 		expect(dialOf('WidthParameter').options.color).toBe(0xcc9900)
 		// A quarter per detent, a fortieth while held

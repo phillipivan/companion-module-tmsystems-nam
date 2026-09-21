@@ -45,6 +45,8 @@ export const DIAL_COLORS = {
 	/** For a class that doesn't pick its own, where the property has no conventional colour. */
 	plain: combineRgb(182, 182, 182),
 	gain: combineRgb(0, 153, 0),
+	/** A gain below unity, so a cut reads as taking something away rather than adding it. */
+	cut: combineRgb(146, 146, 146),
 	pan: combineRgb(204, 204, 0),
 	/** Amber rather than the pan dial's yellow, so the two read apart where a device has both. */
 	width: combineRgb(204, 153, 0),
@@ -196,6 +198,8 @@ export function dialElement(
 	value: string,
 	min: string,
 	max: string,
+	/** A centred dial's colour below zero. The same as `color` unless a class asks for its own. */
+	colorBelow?: number,
 ): SomeButtonGraphicsElement<CompositeElementSchema> {
 	// Every dial takes the same options; the switch is so each carries its element's own id as a literal
 	const options = {
@@ -207,7 +211,13 @@ export function dialElement(
 	const { name } = DIAL_ELEMENTS[kind]
 	switch (kind) {
 		case 'centred':
-			return { type: 'composite', id: DIAL_ID, name, elementId: CompositeElementId.CentredDial, options }
+			return {
+				type: 'composite',
+				id: DIAL_ID,
+				name,
+				elementId: CompositeElementId.CentredDial,
+				options: { ...options, colorBelow: colorBelow ?? color },
+			}
 		case 'width':
 			return { type: 'composite', id: DIAL_ID, name, elementId: CompositeElementId.WidthDial, options }
 		default:

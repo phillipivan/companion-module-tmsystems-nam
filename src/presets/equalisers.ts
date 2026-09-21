@@ -55,6 +55,8 @@ export type EqProperty =
 			readonly unit?: string
 			/** The arc's colour, where the property has a conventional one. Otherwise it is drawn plain. */
 			readonly color?: number
+			/** A centred dial's colour below zero, where it should differ from the one above. */
+			readonly colorBelow?: number
 	  }
 
 export interface EqClass {
@@ -112,8 +114,17 @@ export const EQ_CLASSES: readonly EqClass[] = [
 				stepSize: 0.25,
 				fine: true,
 			},
-			// A gain, so it gets the same green as the Gain rotaries rather than the plain grey
-			{ property: 'InBandGain', kind: 'dial', dial: 'centred', unit: 'dB', color: DIAL_COLORS.gain, ...DEFAULT_STEPS },
+			// A gain, so it gets the same green as the Gain rotaries rather than the plain grey, and the
+			// same grey below unity so a cut reads differently from a boost
+			{
+				property: 'InBandGain',
+				kind: 'dial',
+				dial: 'centred',
+				unit: 'dB',
+				color: DIAL_COLORS.gain,
+				colorBelow: DIAL_COLORS.cut,
+				...DEFAULT_STEPS,
+			},
 			{ property: 'ShapeParameter', kind: 'dial', dial: 'value', ...DEFAULT_STEPS },
 		],
 	},
@@ -240,7 +251,7 @@ function eqDialPreset(
 	rolePath: string,
 	entry: Extract<EqProperty, { kind: 'dial' }>,
 ): CompanionLayeredButtonPresetDefinition<OcaModuleTypes> {
-	const { property, dial, unit, color } = entry
+	const { property, dial, unit, color, colorBelow } = entry
 	const [value, min, max] = [0, 1, 2].map((index) => `$(local:${EQ_VALUE_VARIABLE}).values[${index}]`)
 	const elements = labelElements({
 		isExpression: true,
@@ -255,6 +266,7 @@ function eqDialPreset(
 			dialScale(entry, value),
 			dialScale(entry, min),
 			dialScale(entry, max),
+			colorBelow,
 		),
 	)
 	return {

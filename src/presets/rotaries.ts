@@ -73,6 +73,8 @@ export interface RotaryClass {
 	readonly dial?: DialKind
 	/** The dial arc's colour, where the property has a conventional one. Otherwise it is drawn plain. */
 	readonly dialColor?: number
+	/** A centred dial's colour below zero, where it should differ from the one above. */
+	readonly dialColorBelow?: number
 	/**
 	 * The unit shown after the value on the button, where the class has one its objects always report in.
 	 * Left out where the value is bare, such as a switch position, or where the device chooses the unit.
@@ -88,8 +90,10 @@ export const ROTARY_CLASSES: readonly RotaryClass[] = [
 		className: OCA_CLASS_NAMES.OcaGain,
 		property: 'Gain',
 		...DEFAULT_STEPS,
-		...VALUE_DIAL,
+		// Cut and boost either side of unity, like a filter's InBandGain, so the arc reads against 0 dB
+		dial: 'centred',
 		dialColor: DIAL_COLORS.gain,
+		dialColorBelow: DIAL_COLORS.cut,
 		unit: 'dB',
 	},
 	{
@@ -186,6 +190,7 @@ function rotaryPreset(
 				dialScale(rotary, value),
 				dialScale(rotary, min),
 				dialScale(rotary, cappedMax),
+				rotary.dialColorBelow,
 			),
 		)
 	}
