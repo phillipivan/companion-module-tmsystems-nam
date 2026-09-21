@@ -146,9 +146,10 @@ describe('Set Property action value inputs', () => {
 			'value_Frequency',
 			'value_Shape',
 			'value_WidthParameter',
+			'value_InBandGain',
 			'value_ShapeParameter',
 		])
-		expect(propertyChoiceIds(definition)).toEqual(['Enabled', 'Frequency', 'Shape', 'WidthParameter'])
+		expect(propertyChoiceIds(definition)).toEqual(['Enabled', 'Frequency', 'Shape', 'WidthParameter', 'InBandGain'])
 	})
 
 	// Companion stores a default for every option when an action is created and nothing for options added
@@ -167,7 +168,7 @@ describe('Set Property action value inputs', () => {
 
 		expect(optionIds(after)).toEqual(optionIds(before))
 		expect(propertyChoiceIds(before)).not.toContain('Label')
-		expect(propertyChoiceIds(after)).toEqual(['Enabled', 'Label', 'Frequency', 'Shape', 'WidthParameter'])
+		expect(propertyChoiceIds(after)).toEqual(['Enabled', 'Label', 'Frequency', 'Shape', 'WidthParameter', 'InBandGain'])
 	})
 
 	// Every definition rebuild makes Companion re-send every action. Unsubscribing first would drop an

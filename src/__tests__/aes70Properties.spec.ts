@@ -64,7 +64,14 @@ describe('settablePropertiesOf', () => {
 		const filter = kindsByName(settablePropertiesOf(new OcaFilterParametric(1, inertDevice)))
 
 		expect(filter).not.toHaveProperty('Role')
-		expect(filter).not.toHaveProperty('InBandGain')
 		expect(filter).toMatchObject({ Frequency: 'number', WidthParameter: 'number' })
+	})
+
+	// aes70 names this one's setter SetInbandGain, after the property's alias rather than the property.
+	// Looking only for Set<property> made it look read-only, so the action offered no way to set it
+	it("includes a property whose setter aes70 named after the property's alias", () => {
+		const filter = kindsByName(settablePropertiesOf(new OcaFilterParametric(1, inertDevice)))
+
+		expect(filter).toMatchObject({ InBandGain: 'number' })
 	})
 })

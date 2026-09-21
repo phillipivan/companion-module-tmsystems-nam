@@ -10,6 +10,7 @@ import { OcaFloat32 } from 'aes70/src/OCP1/OcaFloat32.js'
 import { OcaFloat64 } from 'aes70/src/OCP1/OcaFloat64.js'
 import type { OcaRoot } from 'aes70/src/controller/ControlClasses.js'
 import { enumValuesOf, isAes70Enum, type EnumValues } from './enums.js'
+import { accessorName } from './utils.js'
 
 /*
  * The settable properties of an aes70 control class, typed from aes70's own class
@@ -69,10 +70,10 @@ function enumValuesOfEncoder(encoder: object): EnumValues | undefined {
  * 64-bit integers and structured types are left out.
  */
 export function settablePropertiesOf(obj: OcaRoot): SettableProperty[] {
-	const methods = obj as unknown as Record<string, unknown>
 	const settable: SettableProperty[] = []
 	obj.get_properties().forEach((property) => {
-		if (typeof methods[`Set${property.name}`] !== 'function') return
+		// Not `Set${name}`: a few of aes70's setters are named after one of the property's aliases
+		if (accessorName(obj, 'Set', property.name) === undefined) return
 		const encoder = property.type?.[0]
 		if (typeof encoder !== 'object' || encoder === null) return
 
