@@ -736,8 +736,9 @@ describe('presets', () => {
 	})
 
 	// Pinned because the set was asked for by name. OcaIdentificationSensor is deliberately absent: it
-	// signals an identify press as an event and has no Reading. OcaPowerSensor too, its getter returning
-	// four values rather than the [reading, min, max] the bar and label index into
+	// signals an identify press as an event and has no Reading. aes70 also has an OcaPowerSensor, which
+	// this module's OCA_CLASS_NAMES doesn't carry, and whose Reading is four values (power, power factor
+	// and the power limits) rather than the [reading, min, max] the bar and label index into
 	it('meters every numeric sensor class aes70 has a three-value Reading for', async () => {
 		expect(METER_CLASSES.map((meter) => meter.className)).toEqual([
 			'OcaLevelSensor',
@@ -756,6 +757,7 @@ describe('presets', () => {
 			'OcaUint8Sensor',
 			'OcaUint16Sensor',
 			'OcaUint32Sensor',
+			'OcaUint64Sensor',
 			'OcaFloat32Sensor',
 			'OcaFloat64Sensor',
 		])

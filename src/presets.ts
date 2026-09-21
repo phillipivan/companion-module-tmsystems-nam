@@ -473,6 +473,7 @@ export type MeterClassName =
 	| typeof OCA_CLASS_NAMES.OcaUint8Sensor
 	| typeof OCA_CLASS_NAMES.OcaUint16Sensor
 	| typeof OCA_CLASS_NAMES.OcaUint32Sensor
+	| typeof OCA_CLASS_NAMES.OcaUint64Sensor
 	| typeof OCA_CLASS_NAMES.OcaFloat32Sensor
 	| typeof OCA_CLASS_NAMES.OcaFloat64Sensor
 
@@ -519,6 +520,7 @@ export const METER_CLASSES: readonly MeterClass[] = [
 	{ className: OCA_CLASS_NAMES.OcaUint8Sensor, property: 'Reading', ...METER_PLAIN },
 	{ className: OCA_CLASS_NAMES.OcaUint16Sensor, property: 'Reading', ...METER_PLAIN },
 	{ className: OCA_CLASS_NAMES.OcaUint32Sensor, property: 'Reading', ...METER_PLAIN },
+	{ className: OCA_CLASS_NAMES.OcaUint64Sensor, property: 'Reading', ...METER_PLAIN },
 	{ className: OCA_CLASS_NAMES.OcaFloat32Sensor, property: 'Reading', ...METER_PLAIN },
 	{ className: OCA_CLASS_NAMES.OcaFloat64Sensor, property: 'Reading', ...METER_PLAIN },
 ]
