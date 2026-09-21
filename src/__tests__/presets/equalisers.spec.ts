@@ -120,6 +120,18 @@ describe('equaliser presets', () => {
 		}
 		// Gain cuts and boosts either side of zero; width only ever opens out from the middle
 		expect(dialOf('InBandGain').elementId).toBe('centred_dial')
+		// Green, the same as the Gain rotaries, rather than the plain grey the other filter arcs get
+		expect(dialOf('InBandGain').options.color).toBe(0x009900)
+		// Amber, distinct from the pan dial's yellow
+		expect(dialOf('WidthParameter').options.color).toBe(0xcc9900)
+		// A quarter per detent, a fortieth while held
+		const width = presets['eq_OcaFilterParametric_MIC/BQ0_WidthParameter']
+		if (width?.type !== 'layered') throw new Error('No layered WidthParameter preset')
+		expect(width.localVariables?.[0]).toEqual({
+			variableType: 'simple',
+			variableName: 'step_size',
+			startupValue: 0.25,
+		})
 		expect(dialOf('WidthParameter').elementId).toBe('width_dial')
 		// Frequency is a plain level, filling from the bottom of the device's range
 		expect(dialOf('Frequency').elementId).toBe('dial')

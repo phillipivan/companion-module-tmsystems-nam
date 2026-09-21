@@ -97,7 +97,7 @@ export const ROTARY_CLASSES: readonly RotaryClass[] = [
 		property: 'Position',
 		...DEFAULT_STEPS,
 		dial: 'centred',
-		dialColor: DIAL_COLORS.centred,
+		dialColor: DIAL_COLORS.pan,
 	},
 	{ className: OCA_CLASS_NAMES.OcaDelay, property: 'DelayTime', ...DEFAULT_STEPS, ...VALUE_DIAL },
 	// Its own DelayValue is a value and unit, which actions can't set; DelayTime is inherited from OcaDelay

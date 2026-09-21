@@ -45,7 +45,9 @@ export const DIAL_COLORS = {
 	/** For a class that doesn't pick its own, where the property has no conventional colour. */
 	plain: combineRgb(182, 182, 182),
 	gain: combineRgb(0, 153, 0),
-	centred: combineRgb(204, 204, 0),
+	pan: combineRgb(204, 204, 0),
+	/** Amber rather than the pan dial's yellow, so the two read apart where a device has both. */
+	width: combineRgb(204, 153, 0),
 	frequency: combineRgb(102, 178, 255),
 } as const
 

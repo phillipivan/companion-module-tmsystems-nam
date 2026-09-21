@@ -102,9 +102,18 @@ export const EQ_CLASSES: readonly EqClass[] = [
 				...OCTAVE_STEPS,
 			},
 			{ property: 'Shape', kind: 'enum' },
-			// Narrowest at the minimum, opening out symmetrically as it widens
-			{ property: 'WidthParameter', kind: 'dial', dial: 'width', ...DEFAULT_STEPS },
-			{ property: 'InBandGain', kind: 'dial', dial: 'centred', unit: 'dB', ...DEFAULT_STEPS },
+			// Narrowest at the minimum, opening out symmetrically as it widens. A quarter per detent,
+			// since a whole one covers most of a filter's usable width range in a few turns
+			{
+				property: 'WidthParameter',
+				kind: 'dial',
+				dial: 'width',
+				color: DIAL_COLORS.width,
+				stepSize: 0.25,
+				fine: true,
+			},
+			// A gain, so it gets the same green as the Gain rotaries rather than the plain grey
+			{ property: 'InBandGain', kind: 'dial', dial: 'centred', unit: 'dB', color: DIAL_COLORS.gain, ...DEFAULT_STEPS },
 			{ property: 'ShapeParameter', kind: 'dial', dial: 'value', ...DEFAULT_STEPS },
 		],
 	},
