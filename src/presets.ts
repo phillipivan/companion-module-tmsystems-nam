@@ -25,7 +25,7 @@ export async function UpdatePresets(self: ModuleInstance): Promise<void> {
 	]
 
 	const presetCount = Object.keys(presets).length
-	logger.info(`Completed preset definitions: ${presetCount} presets defined (${excitementEmoji(presetCount)})`)
+	logger.info(`Completed preset definitions: ${presetCount} presets defined (${excitementEmoji(presetCount / 10)})`)
 	self.setPresetDefinitions(
 		sections.filter((section) => section.definitions.length > 0),
 		presets,
