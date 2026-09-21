@@ -20,8 +20,9 @@ const customConfig = [
 		},
 	},
 	{
-		// Tests and their helpers, none of which are built into dist
-		files: ['src/**/*.spec.ts', 'src/**/__tests__/*.ts'],
+		// Tests and their helpers, none of which are built into dist. The second pattern needs its own
+		// `**` to reach helpers in a subfolder, such as src/__tests__/presets/helpers.ts
+		files: ['src/**/*.spec.ts', 'src/**/__tests__/**/*.ts'],
 		rules: {
 			'n/no-unpublished-import': 'off',
 		},

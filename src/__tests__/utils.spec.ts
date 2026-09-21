@@ -4,10 +4,12 @@ import { OcaModelDescription } from 'aes70/src/types/OcaModelDescription.js'
 import { OcaMuteState } from 'aes70/src/types/OcaMuteState.js'
 import { OcaStatus } from 'aes70/src/types/OcaStatus.js'
 import { RemoteError } from 'aes70/src/controller/remote_error.js'
+import { OcaFilterParametric, OcaLevelSensor } from 'aes70/src/controller/ControlClasses.js'
 import type { PropertyDescription } from '../OcaHelper.js'
 import type { ModuleConfig } from '../config.js'
 import {
 	abortable,
+	accessorName,
 	defaultPropertyName,
 	excitementEmoji,
 	handleBonjourHost,
@@ -313,5 +315,43 @@ describe('isNotImplemented', () => {
 		expect(isNotImplemented(new RemoteError(OcaStatus.DeviceError, undefined))).toBe(false)
 		expect(isNotImplemented(new Error('Call failed with OcaStatus NotImplemented'))).toBe(false)
 		expect(isNotImplemented(undefined)).toBe(false)
+	})
+})
+
+describe('accessorName', () => {
+	const device = {
+		send_command: (): undefined => undefined,
+		add_subscription: (): undefined => undefined,
+		remove_subscription: (): undefined => undefined,
+	}
+	const make = <T>(Cls: new (ono: number, dev: unknown) => T): T => new Cls(1, device)
+
+	it('names the getter and setter after the property', () => {
+		const filter = make(OcaFilterParametric)
+
+		expect(accessorName(filter, 'Get', 'Frequency')).toBe('GetFrequency')
+		expect(accessorName(filter, 'Set', 'Frequency')).toBe('SetFrequency')
+	})
+
+	// aes70 spells these two after the property's alias, differing only in case, so guessing
+	// Set<property> makes a settable property look read-only
+	it("falls back to a property's alias where aes70 named the accessor after that instead", () => {
+		const filter = make(OcaFilterParametric)
+
+		expect(filter).not.toHaveProperty('SetInBandGain')
+		expect(accessorName(filter, 'Get', 'InBandGain')).toBe('GetInbandGain')
+		expect(accessorName(filter, 'Set', 'InBandGain')).toBe('SetInbandGain')
+	})
+
+	it('has no setter for a property that is only ever read', () => {
+		const sensor = make(OcaLevelSensor)
+
+		expect(accessorName(sensor, 'Get', 'Reading')).toBe('GetReading')
+		expect(accessorName(sensor, 'Set', 'Reading')).toBeUndefined()
+	})
+
+	it('has nothing for an unknown property, or an object with no accessors at all', () => {
+		expect(accessorName(make(OcaFilterParametric), 'Get', 'NotAProperty')).toBeUndefined()
+		expect(accessorName({}, 'Set', 'Frequency')).toBeUndefined()
 	})
 })

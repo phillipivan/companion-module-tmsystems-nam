@@ -14,6 +14,7 @@ import {
 	makePropChoices,
 	defaultPropertyName,
 	isNotImplemented,
+	accessorName,
 } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 import { isAes70Enum } from './enums.js'
@@ -160,11 +161,11 @@ export async function UpdateFeedbacks(self: ModuleInstance): Promise<void> {
 					logger.debug(`property: ${property} not found in entry.properties, trying async getter`)
 				}
 
-				const getterName = `Get${property}`
-				const getter = (entry.obj as unknown as Record<string, unknown>)[getterName]
+				const getterName = accessorName(entry.obj, 'Get', property)
+				const getter = getterName && (entry.obj as unknown as Record<string, unknown>)[getterName]
 				if (typeof getter !== 'function') {
 					logger.warn(
-						`${feedback.feedbackId}\\${feedback.id}: No getter '${getterName}' found on object at '${objectId}'. Aborting feedback check ${feedback.id}`,
+						`${feedback.feedbackId}\\${feedback.id}: No getter for '${property}' found on object at '${objectId}'. Aborting feedback check ${feedback.id}`,
 					)
 					return null
 				}

@@ -13,6 +13,7 @@ import {
 	makePropChoices,
 	defaultPropertyName,
 	isNotImplemented,
+	accessorName,
 } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 import { enumChoices, enumExpressionDescription, isAes70Enum } from './enums.js'
@@ -197,10 +198,10 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				if (!entry) {
 					throw new Error(`No entry found for objectId ${objectId}. Aborting action ${action.id}`)
 				}
-				const setterName = `Set${property}`
-				const setter = (entry.obj as unknown as Record<string, unknown>)[setterName]
+				const setterName = accessorName(entry.obj, 'Set', property)
+				const setter = setterName && (entry.obj as unknown as Record<string, unknown>)[setterName]
 				if (typeof setter !== 'function') {
-					throw new Error(`No setter '${setterName}' found on object at '${objectId}'. Aborting action ${action.id}`)
+					throw new Error(`No setter for '${property}' found on object at '${objectId}'. Aborting action ${action.id}`)
 				}
 				try {
 					await (setter as (v: boolean | string | number) => Promise<void>).call(entry.obj, value)

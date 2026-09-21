@@ -359,3 +359,30 @@ export function defaultPropertyName(props: readonly PropertyDescription[]): stri
 export function isNotImplemented(err: unknown): boolean {
 	return err instanceof RemoteError && err.status === OcaStatus.NotImplemented
 }
+
+/** An object carrying aes70's generated accessors, and the property table describing them. */
+type ObjectWithAccessors = Record<string, unknown> & {
+	get_properties?: () => { find_property?: (name: string) => { aliases?: readonly string[] | null } | undefined }
+}
+
+/**
+ * The name of `obj`'s `Get` or `Set` method for `property`, or `undefined` where it has none.
+ *
+ * aes70 almost always names these after the property, but a handful are named after one of the
+ * property's aliases instead, and the mismatch is only in the capitalisation: `InBandGain` on
+ * OcaFilterParametric is read and written by `GetInbandGain` and `SetInbandGain`, and
+ * OcaDeviceManager's `ControlEnabled` by `GetEnabled` and `SetEnabled`. Guessing `Set${name}` alone
+ * therefore makes a settable property look read-only, and a readable one unreadable.
+ */
+export function accessorName(obj: unknown, prefix: 'Get' | 'Set', property: string): string | undefined {
+	const target = obj as ObjectWithAccessors
+	const direct = `${prefix}${property}`
+	if (typeof target[direct] === 'function') return direct
+
+	const aliases = target.get_properties?.()?.find_property?.(property)?.aliases ?? []
+	for (const alias of aliases) {
+		const name = `${prefix}${alias}`
+		if (typeof target[name] === 'function') return name
+	}
+	return undefined
+}

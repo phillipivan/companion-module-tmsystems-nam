@@ -145,27 +145,38 @@ describe('composite elements', () => {
 		])
 	})
 
-	it('fills the pan dial out from the midpoint of its range, in yellow by default', () => {
+	it('grows the centred dial out from zero, held inside the range, in yellow by default', () => {
 		const { definitions } = defineElements()
-		const pan = definitions[CompositeElementId.PanDial]
-		if (!pan) throw new Error('No pan dial element was defined')
-		const gauge = gaugeOf(CompositeElementId.PanDial)
+		const centred = definitions[CompositeElementId.CentredDial]
+		if (!centred) throw new Error('No centred dial element was defined')
+		const gauge = gaugeOf(CompositeElementId.CentredDial)
 
-		expect(pan.options.find((o) => o.id === 'color')).toMatchObject({ type: 'colorpicker', default: 0xffff00 })
-		// Halfway between the ends, which is 12 o'clock, since that is halfway along the arc
-		expect(gauge.origin).toEqual({ isExpression: true, value: '($(options:min) + $(options:max)) / 2' })
-		// Not symmetric: the fill runs from the origin to the value, so it grows either way from centre
+		expect(centred.options.find((o) => o.id === 'color')).toMatchObject({ type: 'colorpicker', default: 0xffff00 })
+		// Zero clamped into the range: 12 o'clock when the ends match, offset when they don't, and on
+		// whichever end is nearer when the range never reaches zero
+		expect(gauge.origin).toEqual({ isExpression: true, value: 'min(max(0, $(options:min)), $(options:max))' })
+		// Not symmetric: the fill runs from the origin to the value, so it grows either way from zero
 		expect(gauge.symmetric).toBeUndefined()
 	})
 
-	// The renderer draws the marker at the value whether or not there is a fill, and at the midpoint there is none
-	it('marks the pan position with a bead, so a centred value still shows a dot', () => {
-		const gauge = gaugeOf(CompositeElementId.PanDial)
+	it('opens the width dial both ways from the middle, a dot at the minimum and the whole arc at the maximum', () => {
+		const gauge = gaugeOf(CompositeElementId.WidthDial)
 
-		expect(gauge.markerEnabled).toBe(true)
-		expect(gauge.markerColor).toEqual({ isExpression: true, value: '$(options:color)' })
-		// The bead's length is a percentage of the ring's thickness; Companion's default of 15 would round to a hairline
-		expect(gauge.markerWidth).toBe(100)
+		// Symmetric makes the fill a band of the value's own length, centred on the origin
+		expect(gauge.symmetric).toBe(true)
+		expect(gauge.origin).toEqual({ isExpression: true, value: '($(options:min) + $(options:max)) / 2' })
+	})
+
+	// The renderer draws the marker at the value whether or not there is a fill, and at the origin there is none
+	it('marks the position on both growing dials with a bead, so a value at the origin still shows a dot', () => {
+		for (const id of [CompositeElementId.CentredDial, CompositeElementId.WidthDial]) {
+			const gauge = gaugeOf(id)
+
+			expect(gauge.markerEnabled, id).toBe(true)
+			expect(gauge.markerColor, id).toEqual({ isExpression: true, value: '$(options:color)' })
+			// A percentage of the ring's thickness; Companion's default of 15 would round to a hairline
+			expect(gauge.markerWidth, id).toBe(100)
+		}
 	})
 
 	it('leaves the plain value dial growing from the minimum, with no marker', () => {
@@ -176,12 +187,14 @@ describe('composite elements', () => {
 		expect(gauge.markerEnabled).toBeUndefined()
 	})
 
-	it('draws both dials with the same ring, so only their fill differs', () => {
+	it('draws every dial with the same ring, so only where the arc grows from differs', () => {
 		const dial = gaugeOf(CompositeElementId.Dial)
-		const pan = gaugeOf(CompositeElementId.PanDial)
 
-		for (const key of ['x', 'y', 'width', 'height', 'orientation', 'startAngle', 'endAngle', 'ringWidth']) {
-			expect(pan[key], key).toEqual(dial[key])
+		for (const id of [CompositeElementId.CentredDial, CompositeElementId.WidthDial]) {
+			const other = gaugeOf(id)
+			for (const key of ['x', 'y', 'width', 'height', 'orientation', 'startAngle', 'endAngle', 'ringWidth']) {
+				expect(other[key], `${id} ${key}`).toEqual(dial[key])
+			}
 		}
 	})
 

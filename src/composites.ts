@@ -20,8 +20,12 @@ import type ModuleInstance from './main.js'
 export enum CompositeElementId {
 	Meter = 'meter',
 	Dial = 'dial',
-	PanDial = 'pan_dial',
+	CentredDial = 'centred_dial',
+	WidthDial = 'width_dial',
 }
+
+/** Where a dial's arc grows from. */
+type DialMode = 'minimum' | 'centred' | 'width'
 
 export const MeterPosition = ['left', 'right', 'top', 'bottom'] as const
 export type MeterPosition = (typeof MeterPosition)[number]
@@ -57,7 +61,10 @@ export type CompositeElementSchema = {
 	[CompositeElementId.Dial]: {
 		options: { level: number; min: number; max: number; color: number }
 	}
-	[CompositeElementId.PanDial]: {
+	[CompositeElementId.CentredDial]: {
+		options: { level: number; min: number; max: number; color: number }
+	}
+	[CompositeElementId.WidthDial]: {
 		options: { level: number; min: number; max: number; color: number }
 	}
 }
@@ -147,8 +154,15 @@ function stopValue(at: number): string {
 	return `${MIN} + (${MAX} - ${MIN}) * ${at}`
 }
 
-/** Halfway between the dial's ends, which a pan dial fills out from. */
+/** Halfway between the dial's ends, which a width dial grows out from. */
 const MIDPOINT = `(${MIN} + ${MAX}) / 2`
+
+/**
+ * Zero, held inside the dial's range: where a centred dial's arc starts. On a range either side of
+ * zero that is 12 o'clock when the ends match and offset when they don't, and on a range that never
+ * reaches zero it lands on whichever end is nearer, so the arc grows from there like a plain dial.
+ */
+const ZERO_ORIGIN = `min(max(0, ${MIN}), ${MAX})`
 
 /** The options both dials take, differing only in what their ends mean and their colour. */
 function dialOptions(
@@ -188,18 +202,23 @@ function dialOptions(
 }
 
 /**
- * The ring both dials are drawn with. `centred` fills out from the midpoint of the range rather than up
- * from the minimum, so a value above centre runs clockwise towards the DIAL_END_HOUR end of the arc and one
- * below runs anticlockwise towards DIAL_START_HOUR. 12 o'clock is halfway along, so that is where it starts.
+ * The ring every dial is drawn with, differing only in where its arc grows from:
  *
- * A centred dial also carries a marker bead. The renderer draws that at the value whether or not there is
- * any fill (`LayeredRenderer.ts:794`), which is what leaves a dot at 12 o'clock when the value sits exactly
- * at the midpoint and the fill is empty.
+ * - `minimum` fills up from the empty end, like a level.
+ * - `centred` fills out from zero, clockwise above it and anticlockwise below, so a range either side of
+ *   zero reads as a pan or a cut-and-boost.
+ * - `width` grows both ways at once from the middle of the range, so the minimum is a dot at 12 o'clock
+ *   and the maximum fills the arc end to end. That is Companion's `symmetric` mode, where the fill is a
+ *   band of the value's own length centred on the origin (`GaugeColorModel.ts:83-87`).
+ *
+ * Both of the latter carry a marker bead. The renderer draws that at the value whether or not there is any
+ * fill (`LayeredRenderer.ts:794`), which is what leaves a dot behind when the two ends of the band meet.
  */
-function dialGauge(centred: boolean): ButtonGraphicsGaugeElement {
+function dialGauge(mode: DialMode): ButtonGraphicsGaugeElement {
+	const names: Record<DialMode, string> = { minimum: 'Dial', centred: 'Centred Dial', width: 'Width Dial' }
 	return {
 		type: 'gauge',
-		name: centred ? 'Pan Dial' : 'Dial',
+		name: names[mode],
 		// The renderer centres the ring and takes its radius from the shorter side, so a square
 		// inset from every edge stays circular, scales with whatever it is drawn on, and keeps
 		// clear of the button's edges
@@ -224,14 +243,15 @@ function dialGauge(centred: boolean): ButtonGraphicsGaugeElement {
 		// The untravelled part of the arc stays faintly visible, so the dial reads as a dial
 		trackStyle: 'dimmed',
 		trackAmount: DIAL_TRACK_AMOUNT,
-		...(centred
-			? {
-					origin: { isExpression: true, value: MIDPOINT },
+		...(mode === 'minimum'
+			? {}
+			: {
+					origin: { isExpression: true, value: mode === 'width' ? MIDPOINT : ZERO_ORIGIN },
+					...(mode === 'width' ? { symmetric: true } : {}),
 					markerEnabled: true,
 					markerColor: { isExpression: true, value: COLOR },
 					markerWidth: DIAL_MARKER_WIDTH,
-				}
-			: {}),
+				}),
 	}
 }
 
@@ -342,14 +362,21 @@ export function UpdateCompositeElements(self: ModuleInstance): void {
 			name: 'Value Dial',
 			description: `A knob-style arc running from ${DIAL_START_HOUR} o'clock up round to ${DIAL_END_HOUR}, filling from the minimum as the value rises. Feed it a value and the ends of its range, e.g. from a Get Property feedback`,
 			options: dialOptions('The value at the empty end of the arc', combineRgb(0, 204, 0)),
-			elements: [dialGauge(false)],
+			elements: [dialGauge('minimum')],
 		},
-		[CompositeElementId.PanDial]: {
+		[CompositeElementId.CentredDial]: {
 			type: 'composite',
-			name: 'Pan Dial',
-			description: `A knob-style arc centred at 12 o'clock, filling clockwise towards ${DIAL_END_HOUR} o'clock above the midpoint of its range and anticlockwise towards ${DIAL_START_HOUR} below it, with a dot marking the position`,
+			name: 'Centred Dial',
+			description: `A knob-style arc growing out from zero, clockwise towards ${DIAL_END_HOUR} o'clock above it and anticlockwise towards ${DIAL_START_HOUR} below, with a dot marking the position. Zero sits at 12 o'clock when the two ends match, and off to one side when they don't`,
 			options: dialOptions('The value at the anticlockwise end of the arc', combineRgb(255, 255, 0)),
-			elements: [dialGauge(true)],
+			elements: [dialGauge('centred')],
+		},
+		[CompositeElementId.WidthDial]: {
+			type: 'composite',
+			name: 'Width Dial',
+			description: `A knob-style arc growing both ways from 12 o'clock: a dot at the minimum, opening out until it runs the whole way from ${DIAL_START_HOUR} o'clock to ${DIAL_END_HOUR} at the maximum`,
+			options: dialOptions('The value drawn as a dot at 12 o’clock', combineRgb(182, 182, 182)),
+			elements: [dialGauge('width')],
 		},
 	}
 
