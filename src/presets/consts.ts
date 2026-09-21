@@ -1,6 +1,7 @@
 import {
 	combineRgb,
 	createModuleLogger,
+	type CompanionPresetLocalVariable,
 	type CompanionGraphicsElementValue,
 	type CompanionLayeredButtonPresetDefinition,
 	type CompanionPresetDefinitions,
@@ -45,6 +46,7 @@ export const DIAL_COLORS = {
 	plain: combineRgb(182, 182, 182),
 	gain: combineRgb(0, 153, 0),
 	centred: combineRgb(204, 204, 0),
+	frequency: combineRgb(102, 178, 255),
 } as const
 
 /** In Companion's text element units, used as given. A simple preset's `size` is in older units and gets scaled. */
@@ -95,6 +97,83 @@ export const DEFAULT_STEPS = { stepSize: 1, fine: true } as const
  * aes70 encodes the integer, so a step_size that isn't a multiple of 10 makes fine mode uneven.
  */
 export const INTEGER_STEPS = { stepSize: FINE_STEP_DIVISOR, fine: true } as const
+
+/**
+ * How a turn moves the value: by a fixed amount, or by a fraction of an octave, which multiplies it
+ * instead. A frequency wants the latter, so a detent is the same musical interval wherever it lands
+ * rather than a jump of several octaves down low and an inaudible nudge up top.
+ */
+export type StepMode = 'linear' | 'octave'
+
+/** A dial's tuning variables: a step size, or the octave a frequency divides into. */
+const STEP_SIZE_VARIABLE = 'step_size'
+const OCTAVE_VARIABLE = 'octave_divisions'
+const OCTAVE_FINE_VARIABLE = 'octave_divisions_fine'
+
+/** A third of an octave per detent, a twenty-fourth while the dial is held. */
+export const OCTAVE_STEPS = { stepMode: 'octave', stepSize: 3, fineStepSize: 24, fine: true } as const
+
+/** What a dial's table entry says about its steps. */
+export interface StepSettings {
+	/** Linear unless it says otherwise. */
+	readonly stepMode?: StepMode
+	/** The step, or for an octave dial the number of steps an octave divides into. */
+	readonly stepSize: number
+	/** The octave's divisions while the dial is held; a linear dial divides its step by FINE_STEP_DIVISOR. */
+	readonly fineStepSize?: number
+	/** Whether holding the dial takes a smaller step. */
+	readonly fine: boolean
+}
+
+/** The local variables that tune `steps`, for the button to carry. */
+export function stepVariables(steps: StepSettings): CompanionPresetLocalVariable<OcaModuleTypes['feedbacks']>[] {
+	if (steps.stepMode === 'octave') {
+		return [
+			{ variableType: 'simple', variableName: OCTAVE_VARIABLE, startupValue: steps.stepSize },
+			{
+				variableType: 'simple',
+				variableName: OCTAVE_FINE_VARIABLE,
+				startupValue: steps.fineStepSize ?? steps.stepSize,
+			},
+		]
+	}
+	return [{ variableType: 'simple', variableName: STEP_SIZE_VARIABLE, startupValue: steps.stepSize }]
+}
+
+/**
+ * An expression moving `value` one detent `direction`, before the caller clamps it to the property's
+ * limits. An octave dial multiplies by `2 ^ (±1/divisions)`, which is exact both ways: stepping up and
+ * back down again returns the value it started from, where a rounded ratio would drift.
+ */
+export function steppedValue(steps: StepSettings, value: string, direction: 'up' | 'down'): string {
+	if (steps.stepMode === 'octave') {
+		const divisions = steps.fine
+			? `($(this:active) ? $(local:${OCTAVE_FINE_VARIABLE}) : $(local:${OCTAVE_VARIABLE}))`
+			: `$(local:${OCTAVE_VARIABLE})`
+		return `${value} * pow(2, ${direction === 'up' ? '1' : '-1'} / ${divisions})`
+	}
+	const size = steps.fine
+		? `($(this:active) ? $(local:${STEP_SIZE_VARIABLE}) / ${FINE_STEP_DIVISOR} : $(local:${STEP_SIZE_VARIABLE}))`
+		: `$(local:${STEP_SIZE_VARIABLE})`
+	return `${value} ${direction === 'up' ? '+' : '-'} ${size}`
+}
+
+/**
+ * The smallest value a logarithmic dial will take the log of, so a device reporting zero as its
+ * minimum gives a very negative number rather than -Infinity, which would leave the arc undrawable.
+ */
+const LOG_FLOOR = 0.001
+
+/**
+ * `value` on the scale the dial is drawn against. A dial that steps by octaves is drawn
+ * logarithmically, so every octave takes the same length of arc; on a linear one the top octave
+ * would fill half the dial and everything below it would be squeezed into the first few degrees.
+ *
+ * Only the arc is scaled. The button's text still reads in the property's own units.
+ */
+export function dialScale(steps: StepSettings, value: string): string {
+	return steps.stepMode === 'octave' ? `log(max(${LOG_FLOOR}, ${value}))` : value
+}
 
 /** A rotary's label shows its value to at most this many decimal places, hiding float32 noise such as -2.4000000953674316. */
 export const VALUE_DECIMAL_PLACES = 3

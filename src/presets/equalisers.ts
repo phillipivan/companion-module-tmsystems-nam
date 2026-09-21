@@ -13,17 +13,20 @@ import type { EnumValues } from '../enums.js'
 import {
 	activeOverrides,
 	dialElement,
+	dialScale,
 	DEFAULT_STEPS,
 	DIAL_COLORS,
-	FINE_STEP_DIVISOR,
-	INTEGER_STEPS,
+	OCTAVE_STEPS,
 	labelElements,
 	logger,
 	numberWithUnit,
+	stepVariables,
+	steppedValue,
 	templateText,
 	VALUE_DECIMAL_PLACES,
 	type ActiveColors,
 	type DialKind,
+	type StepMode,
 } from './consts.js'
 
 /** The filter classes with a preset group each. The curve classes are left out: FIR, polynomial and
@@ -42,9 +45,16 @@ export type EqProperty =
 			readonly property: string
 			readonly kind: 'dial'
 			readonly dial: DialKind
+			/** Linear unless it says otherwise; a frequency steps by a fraction of an octave. */
+			readonly stepMode?: StepMode
+			/** The step it starts with, or for an octave dial the divisions of an octave. */
 			readonly stepSize: number
+			/** An octave dial's divisions while held; a linear one divides its step by FINE_STEP_DIVISOR. */
+			readonly fineStepSize?: number
 			readonly fine: boolean
 			readonly unit?: string
+			/** The arc's colour, where the property has a conventional one. Otherwise it is drawn plain. */
+			readonly color?: number
 	  }
 
 export interface EqClass {
@@ -64,7 +74,14 @@ export const EQ_CLASSES: readonly EqClass[] = [
 		className: OCA_CLASS_NAMES.OcaFilterClassical,
 		properties: [
 			EQ_ENABLED,
-			{ property: 'Frequency', kind: 'dial', dial: 'value', unit: 'Hz', ...INTEGER_STEPS },
+			{
+				property: 'Frequency',
+				kind: 'dial',
+				dial: 'value',
+				unit: 'Hz',
+				color: DIAL_COLORS.frequency,
+				...OCTAVE_STEPS,
+			},
 			{ property: 'Passband', kind: 'enum' },
 			{ property: 'Shape', kind: 'enum' },
 			// Filter orders are small whole numbers, so a step of 10 would jump past every one of them
@@ -76,7 +93,14 @@ export const EQ_CLASSES: readonly EqClass[] = [
 		className: OCA_CLASS_NAMES.OcaFilterParametric,
 		properties: [
 			EQ_ENABLED,
-			{ property: 'Frequency', kind: 'dial', dial: 'value', unit: 'Hz', ...INTEGER_STEPS },
+			{
+				property: 'Frequency',
+				kind: 'dial',
+				dial: 'value',
+				unit: 'Hz',
+				color: DIAL_COLORS.frequency,
+				...OCTAVE_STEPS,
+			},
 			{ property: 'Shape', kind: 'enum' },
 			// Narrowest at the minimum, opening out symmetrically as it widens
 			{ property: 'WidthParameter', kind: 'dial', dial: 'width', ...DEFAULT_STEPS },
@@ -207,16 +231,23 @@ function eqDialPreset(
 	rolePath: string,
 	entry: Extract<EqProperty, { kind: 'dial' }>,
 ): CompanionLayeredButtonPresetDefinition<OcaModuleTypes> {
-	const { property, stepSize, fine, dial, unit } = entry
+	const { property, dial, unit, color } = entry
 	const [value, min, max] = [0, 1, 2].map((index) => `$(local:${EQ_VALUE_VARIABLE}).values[${index}]`)
-	const step = fine
-		? `($(this:active) ? $(local:step_size) / ${FINE_STEP_DIVISOR} : $(local:step_size))`
-		: '$(local:step_size)'
 	const elements = labelElements({
 		isExpression: true,
 		value: eqLabel(rolePath, property, numberWithUnit(value, VALUE_DECIMAL_PLACES, unit)),
 	})
-	elements.splice(1, 0, dialElement(dial, DIAL_COLORS.plain, value, min, max))
+	elements.splice(
+		1,
+		0,
+		dialElement(
+			dial,
+			color ?? DIAL_COLORS.plain,
+			dialScale(entry, value),
+			dialScale(entry, min),
+			dialScale(entry, max),
+		),
+	)
 	return {
 		type: 'layered',
 		name: `${rolePath} - ${ocaClassNameToLabel(property)}`,
@@ -225,13 +256,13 @@ function eqDialPreset(
 			{
 				down: [],
 				up: [],
-				rotate_left: [eqSetTo(className, rolePath, property, `max(${min}, ${value} - ${step})`)],
-				rotate_right: [eqSetTo(className, rolePath, property, `min(${max}, ${value} + ${step})`)],
+				rotate_left: [eqSetTo(className, rolePath, property, `max(${min}, ${steppedValue(entry, value, 'down')})`)],
+				rotate_right: [eqSetTo(className, rolePath, property, `min(${max}, ${steppedValue(entry, value, 'up')})`)],
 			},
 		],
 		feedbacks: [],
 		localVariables: [
-			{ variableType: 'simple', variableName: 'step_size', startupValue: stepSize },
+			...stepVariables(entry),
 			{
 				variableType: 'feedback',
 				variableName: EQ_VALUE_VARIABLE,

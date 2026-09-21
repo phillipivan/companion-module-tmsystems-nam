@@ -143,19 +143,23 @@ describe('equaliser presets', () => {
 					"`MIC/BQ0\\nFrequency\\n${isNumber($(local:value).values[0]) ? `${round($(local:value).values[0] * 1000) / 1000} Hz` : ''}`",
 			},
 		})
-		// A step of 10 Hz, a whole 1 Hz in fine mode while the dial is held
-		expect(preset.localVariables?.[0]).toEqual({ variableType: 'simple', variableName: 'step_size', startupValue: 10 })
+		// A third of an octave per detent, a twenty-fourth while the dial is held, both tunable per button
+		expect(preset.localVariables?.slice(0, 2)).toEqual([
+			{ variableType: 'simple', variableName: 'octave_divisions', startupValue: 3 },
+			{ variableType: 'simple', variableName: 'octave_divisions_fine', startupValue: 24 },
+		])
+		// Multiplied, not added, so a detent is the same interval at 30 Hz as at 16 kHz
 		const turns = [preset.steps[0]?.rotate_left?.[0], preset.steps[0]?.rotate_right?.[0]] as PresetEntry[]
 		expect(turns.map((action) => action.options.value_Frequency)).toEqual([
 			{
 				isExpression: true,
 				value:
-					'max($(local:value).values[1], $(local:value).values[0] - ($(this:active) ? $(local:step_size) / 10 : $(local:step_size)))',
+					'max($(local:value).values[1], $(local:value).values[0] * pow(2, -1 / ($(this:active) ? $(local:octave_divisions_fine) : $(local:octave_divisions))))',
 			},
 			{
 				isExpression: true,
 				value:
-					'min($(local:value).values[2], $(local:value).values[0] + ($(this:active) ? $(local:step_size) / 10 : $(local:step_size)))',
+					'min($(local:value).values[2], $(local:value).values[0] * pow(2, 1 / ($(this:active) ? $(local:octave_divisions_fine) : $(local:octave_divisions))))',
 			},
 		])
 	})
@@ -193,5 +197,36 @@ describe('equaliser presets', () => {
 		expect(Object.keys(presets ?? {})).not.toContain('eq_OcaFilterParametric_MIC/BQ0_Shape')
 		// The rest of the band still works
 		expect(Object.keys(presets ?? {})).toContain('eq_OcaFilterParametric_MIC/BQ0_Frequency')
+	})
+
+	// Linearly, the top octave of a 20 Hz - 20 kHz range would take half the arc and the bottom
+	// octave under a tenth of a degree. Logged, every octave takes the same length of it
+	it('draws the frequency arc logarithmically, in light blue', async () => {
+		const { presets } = await define([['MIC/BQ0', makeNamFilterParametric(1)]])
+		const preset = presets['eq_OcaFilterParametric_MIC/BQ0_Frequency']
+		if (preset?.type !== 'layered') throw new Error('No layered Frequency preset')
+		const dial = preset.elements.find((element) => element.id === 'dial')
+		if (dial?.type !== 'composite') throw new Error('No dial on the Frequency preset')
+
+		// The floor keeps the log finite if a device reports zero as its minimum
+		expect(dial.options).toMatchObject({
+			level: { isExpression: true, value: 'log(max(0.001, $(local:value).values[0]))' },
+			min: { isExpression: true, value: 'log(max(0.001, $(local:value).values[1]))' },
+			max: { isExpression: true, value: 'log(max(0.001, $(local:value).values[2]))' },
+			color: 0x66b2ff,
+		})
+		// Only the arc is scaled; the text still reads in hertz
+		expect(labelOf(preset)).toMatchObject({ text: { value: expect.stringContaining('} Hz`') } })
+	})
+
+	// A linear property keeps its plain value, so the scaling only follows octave stepping
+	it('leaves a non-frequency arc unscaled', async () => {
+		const { presets } = await define([['MIC/BQ0', makeNamFilterParametric(1)]])
+		const preset = presets['eq_OcaFilterParametric_MIC/BQ0_InBandGain']
+		if (preset?.type !== 'layered') throw new Error('No layered InBandGain preset')
+		const dial = preset.elements.find((element) => element.id === 'dial')
+		if (dial?.type !== 'composite') throw new Error('No dial on the InBandGain preset')
+
+		expect(dial.options).toMatchObject({ level: { isExpression: true, value: '$(local:value).values[0]' } })
 	})
 })

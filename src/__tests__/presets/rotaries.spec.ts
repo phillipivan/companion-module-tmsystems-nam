@@ -132,9 +132,9 @@ describe('rotary presets', () => {
 			// A class that names no colour is drawn in the plain grey
 			expect(dial.options.color, id).toBe(rotary.dialColor ?? 0xb6b6b6)
 		}
-		// Only the two whose property has a conventional colour choose one
+		// Only those whose property has a conventional colour choose one
 		expect(ROTARY_CLASSES.filter((rotary) => rotary.dialColor !== undefined).map((rotary) => rotary.className)).toEqual(
-			['OcaGain', 'OcaPanBalance'],
+			['OcaGain', 'OcaPanBalance', 'OcaFrequencyActuator'],
 		)
 	})
 

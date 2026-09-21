@@ -12,15 +12,19 @@ import { ocaClassNameToLabel } from '../utils.js'
 import {
 	classGroups,
 	dialElement,
+	dialScale,
 	DEFAULT_STEPS,
 	DIAL_COLORS,
-	FINE_STEP_DIVISOR,
 	INTEGER_STEPS,
+	OCTAVE_STEPS,
 	labelElements,
 	numberWithUnit,
+	stepVariables,
+	steppedValue,
 	templateText,
 	VALUE_DECIMAL_PLACES,
 	type DialKind,
+	type StepMode,
 } from './consts.js'
 
 /** The classes with rotary presets. Add a class here and to ROTARY_CLASSES to give it presets. */
@@ -48,9 +52,13 @@ export interface RotaryClass {
 	readonly className: RotaryClassName
 	/** The number property stepped. */
 	readonly property: string
-	/** The `step_size` a dial starts with. */
+	/** Linear unless it says otherwise; a frequency steps by a fraction of an octave. */
+	readonly stepMode?: StepMode
+	/** The step a dial starts with, or for an octave dial the divisions of an octave. */
 	readonly stepSize: number
-	/** Whether holding the dial divides the step by FINE_STEP_DIVISOR. */
+	/** An octave dial's divisions while held; a linear one divides its step by FINE_STEP_DIVISOR. */
+	readonly fineStepSize?: number
+	/** Whether holding the dial takes a smaller step. */
 	readonly fine: boolean
 	/**
 	 * A string list property naming each value, from 0, shown on the button in place of the value
@@ -94,7 +102,14 @@ export const ROTARY_CLASSES: readonly RotaryClass[] = [
 	{ className: OCA_CLASS_NAMES.OcaDelay, property: 'DelayTime', ...DEFAULT_STEPS, ...VALUE_DIAL },
 	// Its own DelayValue is a value and unit, which actions can't set; DelayTime is inherited from OcaDelay
 	{ className: OCA_CLASS_NAMES.OcaDelayExtended, property: 'DelayTime', ...DEFAULT_STEPS, ...VALUE_DIAL },
-	{ className: OCA_CLASS_NAMES.OcaFrequencyActuator, property: 'Frequency', ...INTEGER_STEPS, ...VALUE_DIAL },
+	// A frequency steps by a fraction of an octave rather than a fixed number of hertz
+	{
+		className: OCA_CLASS_NAMES.OcaFrequencyActuator,
+		property: 'Frequency',
+		...OCTAVE_STEPS,
+		...VALUE_DIAL,
+		dialColor: DIAL_COLORS.frequency,
+	},
 	// Positions are whole numbers, one step apart
 	{
 		className: OCA_CLASS_NAMES.OcaSwitch,
@@ -155,9 +170,6 @@ function rotaryPreset(
 	// as its number of positions, one past the last. The dial uses it too, so its arc is full at the last
 	// position rather than stopping short of the end.
 	const cappedMax = names ? `(arrayIncludes(${names}, ${names}[0]) ? length(${names}) - 1 : ${max})` : max
-	const step = rotary.fine
-		? `($(this:active) ? $(local:step_size) / ${FINE_STEP_DIVISOR} : $(local:step_size))`
-		: '$(local:step_size)'
 	const setTo = (expression: string): SomePresetActionEntry<OcaModuleTypes> => ({
 		actionId: `set_property_${className}`,
 		options: { objectId: rolePath, property, [`value_${property}`]: { isExpression: true, value: expression } },
@@ -165,7 +177,17 @@ function rotaryPreset(
 	const elements = labelElements({ isExpression: true, value: rotaryLabel(rolePath, value, names, rotary.unit) })
 	// Between the background and the label, so the arc is drawn behind the text
 	if (rotary.dial) {
-		elements.splice(1, 0, dialElement(rotary.dial, rotary.dialColor ?? DIAL_COLORS.plain, value, min, cappedMax))
+		elements.splice(
+			1,
+			0,
+			dialElement(
+				rotary.dial,
+				rotary.dialColor ?? DIAL_COLORS.plain,
+				dialScale(rotary, value),
+				dialScale(rotary, min),
+				dialScale(rotary, cappedMax),
+			),
+		)
 	}
 	return {
 		type: 'layered',
@@ -175,14 +197,14 @@ function rotaryPreset(
 			{
 				down: [],
 				up: [],
-				rotate_left: [setTo(`max(${min}, ${value} - ${step})`)],
+				rotate_left: [setTo(`max(${min}, ${steppedValue(rotary, value, 'down')})`)],
 				// Both limits where there are names, so a device reporting more names than positions still clamps
-				rotate_right: [setTo(`min(${names ? `${max}, ${cappedMax}` : max}, ${value} + ${step})`)],
+				rotate_right: [setTo(`min(${names ? `${max}, ${cappedMax}` : max}, ${steppedValue(rotary, value, 'up')})`)],
 			},
 		],
 		feedbacks: [],
 		localVariables: [
-			{ variableType: 'simple', variableName: 'step_size', startupValue: rotary.stepSize },
+			...stepVariables(rotary),
 			{
 				variableType: 'feedback',
 				variableName: 'range',
