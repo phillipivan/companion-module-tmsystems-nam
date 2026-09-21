@@ -207,6 +207,9 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 					await (setter as (v: boolean | string | number) => Promise<void>).call(entry.obj, value)
 				} catch (err) {
 					if (isNotImplemented(err)) {
+						// The only way to learn this: a device can serve a property's value and still refuse
+						// to set it, and AES70 has no way to ask beforehand
+						self.ocaHelper.markWriteRefused(objectId, property)
 						throw new Error(`'${objectId}' does not implement property '${property}'. Aborting action ${action.id}`, {
 							cause: err,
 						})

@@ -256,8 +256,10 @@ export async function getEqualiserGroups(
 	for (const eq of EQ_CLASSES) {
 		const rolePaths = [...self.ocaHelper.getByClass(eq.className)]
 		if (rolePaths.length === 0) continue
-		const properties = await self.ocaHelper.getClassProperties(eq.className)
 		for (const rolePath of rolePaths) {
+			// This object's own properties, not the class's: bands of one filter class differ in what
+			// they implement, and a button for a property this one lacks is refused when pressed
+			const properties = await self.ocaHelper.getObjectProperties(rolePath)
 			const ids: string[] = []
 			for (const entry of eq.properties) {
 				// The Set Property action only offers a property the device has shown it implements

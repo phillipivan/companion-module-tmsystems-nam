@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { OcaHelper } from '../OcaHelper.js'
 import { OCA_CLASS_NAMES } from '../consts/aes70-constants.js'
 import {
+	OcaFilterParametric,
 	OcaGain,
 	OcaMute,
 	OcaBooleanActuator,
@@ -1185,5 +1186,86 @@ describe('classIdToBinary / classIdToDotted', () => {
 	it('treats the empty string as its own round trip', () => {
 		expect(OcaHelper.classIdToBinary('')).toBe('')
 		expect(OcaHelper.classIdToDotted('')).toBe('')
+	})
+})
+
+describe('getObjectProperties and refused writes', () => {
+	const device = {
+		send_command: (): undefined => undefined,
+		add_subscription: (): undefined => undefined,
+		remove_subscription: (): undefined => undefined,
+	}
+	/** An object reporting only `reported`, the way a device serves the properties it implements. */
+	const filter = (ono: number, reported: [name: string, value: unknown][]): OcaFilterParametric => {
+		const obj = new OcaFilterParametric(ono, device as unknown as ConstructorParameters<typeof OcaFilterParametric>[1])
+		;(obj as unknown as { GetPropertySync: unknown }).GetPropertySync = () => ({
+			sync: async (): Promise<void> => undefined,
+			forEach: (cb: (value: unknown, name: string) => void): void => {
+				for (const [name, value] of reported) cb(value, name)
+			},
+			Dispose: (): undefined => undefined,
+		})
+		return obj
+	}
+
+	it("reports only the properties an object itself returned, not its class's", async () => {
+		const helper = new OcaHelper()
+		await helper.loadRoleMap(
+			new Map<string, unknown>([
+				[
+					'EQ/Band1',
+					filter(1, [
+						['Enabled', true],
+						['Frequency', 1000],
+						['WidthParameter', 1],
+					]),
+				],
+				['EQ/Band2', filter(2, [['Frequency', 1000]])],
+			]),
+		)
+
+		const band1 = (await helper.getObjectProperties('EQ/Band1')).map((prop) => prop.name)
+		const band2 = (await helper.getObjectProperties('EQ/Band2')).map((prop) => prop.name)
+
+		expect(band1).toEqual(['Enabled', 'Frequency', 'WidthParameter'])
+		// Its sibling implements more, and the class's set is the union, but this object's is its own
+		expect(band2).toEqual(['Frequency'])
+		expect((await helper.getClassProperties(OCA_CLASS_NAMES.OcaFilterParametric)).map((prop) => prop.name)).toEqual(
+			expect.arrayContaining(['Enabled', 'Frequency', 'WidthParameter']),
+		)
+	})
+
+	// A device can serve a property's value and still refuse to set it, and AES70 has no way to ask
+	// beforehand, so the refusal is the only signal
+	it('stops calling a property settable once the object has refused to set it', async () => {
+		const helper = new OcaHelper()
+		const refused = vi.fn()
+		helper.on('property:refused', refused)
+		await helper.loadRoleMap(
+			new Map<string, unknown>([
+				[
+					'EQ/Band2',
+					filter(1, [
+						['Frequency', 1000],
+						['Shape', 1],
+					]),
+				],
+			]),
+		)
+		const writable = async (): Promise<string[]> =>
+			(await helper.getObjectProperties('EQ/Band2')).filter((prop) => prop.write).map((prop) => prop.name)
+
+		expect(await writable()).toEqual(['Frequency', 'Shape'])
+
+		helper.markWriteRefused('EQ/Band2', 'Shape')
+
+		expect(await writable()).toEqual(['Frequency'])
+		// Still readable, so it keeps its value on the button; only setting it is off
+		expect((await helper.getObjectProperties('EQ/Band2')).map((prop) => prop.name)).toEqual(['Frequency', 'Shape'])
+		expect(refused).toHaveBeenCalledExactlyOnceWith('EQ/Band2', 'Shape')
+
+		// Repeats are quiet, so a button pressed again doesn't schedule another rebuild
+		helper.markWriteRefused('EQ/Band2', 'Shape')
+		expect(refused).toHaveBeenCalledTimes(1)
 	})
 })

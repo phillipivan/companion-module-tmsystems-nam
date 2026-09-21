@@ -1,6 +1,19 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import { OcaFilterParametric, type OcaRoot } from 'aes70/src/controller/ControlClasses.js'
+import { UpdatePresets } from '../../presets.js'
 import { makeNamFilterParametric } from '../fakeControlObjects.js'
-import { labelOf, makeHarness, type PresetEntry, type PresetHarness, type RoleMap } from './helpers.js'
+import { labelOf, makeHarness, makeObject, type PresetEntry, type PresetHarness, type RoleMap } from './helpers.js'
+
+/**
+ * A band that returns nothing for Enabled or Shape, as a Sonance DSP's
+ * Slot2/DSP/Zones/1/Equalizer/Band2 did on 2026-09-21 while its siblings implemented both.
+ */
+const partialFilter = (ono: number): OcaRoot =>
+	makeObject(OcaFilterParametric, ono, [
+		['Frequency', 1000],
+		['WidthParameter', 1],
+		['InBandGain', 0],
+	])
 
 describe('equaliser presets', () => {
 	let ctx: PresetHarness
@@ -145,5 +158,40 @@ describe('equaliser presets', () => {
 					'min($(local:value).values[2], $(local:value).values[0] + ($(this:active) ? $(local:step_size) / 10 : $(local:step_size)))',
 			},
 		])
+	})
+
+	// The device refuses a property its object doesn't implement, so a button for one is dead on arrival.
+	// Objects of a class differ in what they implement, and the class's set is the union across them
+	it('builds each band from its own properties, not from what its class implements between them', async () => {
+		const { structure } = await define([
+			['MIC/BQ0', makeNamFilterParametric(1)],
+			['MIC/BQ1', partialFilter(2)],
+		])
+		const groups = structure.find((section) => section.id === 'equalisers')?.definitions
+		const presetsOf = (name: string): string[] => {
+			const group = groups?.find((candidate) => candidate.name === name)
+			if (!group || group.type !== 'simple') throw new Error(`No group for ${name}`)
+			return group.presets.map((id) => id.split('_').at(-1) ?? '')
+		}
+
+		expect(presetsOf('MIC/BQ0')).toEqual(['Enabled', 'Frequency', 'Shape', 'WidthParameter', 'InBandGain'])
+		// No Enabled or Shape button, though its sibling has both
+		expect(presetsOf('MIC/BQ1')).toEqual(['Frequency', 'WidthParameter', 'InBandGain'])
+	})
+
+	// The device serves Shape's value but refuses to set it, so nothing before the first press can tell.
+	// Once it has refused, a rebuild drops the button rather than leaving one that always errors
+	it('drops a button for a property the object has refused to set', async () => {
+		const roleMap: RoleMap = [['MIC/BQ0', makeNamFilterParametric(1)]]
+		const before = await define(roleMap)
+		expect(Object.keys(before.presets)).toContain('eq_OcaFilterParametric_MIC/BQ0_Shape')
+
+		ctx.helper.markWriteRefused('MIC/BQ0', 'Shape')
+		await UpdatePresets(ctx.self)
+		const [, presets] = ctx.setPresetDefinitions.mock.lastCall ?? []
+
+		expect(Object.keys(presets ?? {})).not.toContain('eq_OcaFilterParametric_MIC/BQ0_Shape')
+		// The rest of the band still works
+		expect(Object.keys(presets ?? {})).toContain('eq_OcaFilterParametric_MIC/BQ0_Frequency')
 	})
 })

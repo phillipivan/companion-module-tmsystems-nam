@@ -106,6 +106,10 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 			this.log('debug', `Found more implemented properties on ${className} objects — scheduling a definitions rebuild`)
 			this.debouncedRebuildDefinitions()
 		})
+		this.ocaHelper.on('property:refused', (rolePath, property) => {
+			this.log('debug', `"${rolePath}" won't set "${property}" — scheduling a definitions rebuild without it`)
+			this.debouncedRebuildDefinitions()
+		})
 
 		void this.configUpdated(config)
 	}

@@ -249,6 +249,11 @@ interface OcaHelperInternalEvents {
 	 * known to have, so definitions built from `getClassProperties()` are out of date.
 	 */
 	'properties:discovered': [className: OcaClassName]
+	/**
+	 * Fired the first time an object refuses to set a property, so definitions built from
+	 * `getObjectProperties()` can be rebuilt without it.
+	 */
+	'property:refused': [rolePath: string, property: string]
 }
 
 // ---------------------------------------------------------------------------
@@ -411,6 +416,14 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 * object represents each class.
 	 */
 	private _classProbes: Map<OcaClassName, Promise<void>> = new Map()
+	/** Per-object property reads, so a preset built per object asks the device once. */
+	private _objectProbes: Map<string, Promise<PropertyDescription[]>> = new Map()
+	/**
+	 * Properties each object has refused to set. AES70 has no way to ask whether a property is
+	 * settable on a particular object — a device can serve its value and still refuse to change
+	 * it — so the refusal itself is the only signal there is.
+	 */
+	private _refusedWrites: Map<string, Set<string>> = new Map()
 
 	/**
 	 * Per class, the properties known to be implemented, by name: the probed
@@ -501,6 +514,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		this._actionIndex = new Map()
 		this._feedbackIndex = new Map()
 		this._classProbes = new Map()
+		this._objectProbes = new Map()
+		this._refusedWrites = new Map()
 		this._classProperties = new Map()
 
 		// Populate
@@ -1004,6 +1019,80 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 			throw err
 		}
 		return this._knownClassProperties(className)
+	}
+
+	/**
+	 * Every property the object at `rolePath` implements, meaning every one it returned a value for.
+	 *
+	 * `getClassProperties` answers for a class from one representative object plus whatever other
+	 * objects have since been registered, so it is the union across them: objects of a class can
+	 * implement different optional properties, and a device may refuse one of them on a particular
+	 * object. Anything built per object — a preset group for one filter band, say — needs that
+	 * object's own set instead, or it offers buttons the device will refuse.
+	 *
+	 * This reads the object, so it costs a round trip per object the first time. The result is cached
+	 * until the role map reloads, and also folded into the class's set, which only makes that more
+	 * complete.
+	 */
+	public async getObjectProperties(rolePath: string): Promise<PropertyDescription[]> {
+		let probe = this._objectProbes.get(rolePath)
+		if (!probe) {
+			probe = this._probeObject(rolePath)
+			this._objectProbes.set(rolePath, probe)
+		}
+		let props: PropertyDescription[]
+		try {
+			props = await probe
+		} catch (err) {
+			// Don't cache a failure — a later attempt may succeed.
+			if (this._objectProbes.get(rolePath) === probe) this._objectProbes.delete(rolePath)
+			throw err
+		}
+
+		// Applied here rather than to the cached read, so a refusal after the probe still counts
+		const refused = this._refusedWrites.get(rolePath)
+		if (!refused?.size) return props
+		return props.map((prop) => (prop.write && refused.has(prop.name) ? { ...prop, write: false } : prop))
+	}
+
+	/**
+	 * Record that the object at `rolePath` refused to set `property`, so anything built per object
+	 * stops offering it. Fires `'property:refused'` the first time, for a definitions rebuild.
+	 *
+	 * The class's property set is left alone: another object of the same class may well accept it.
+	 */
+	public markWriteRefused(rolePath: string, property: string): void {
+		let refused = this._refusedWrites.get(rolePath)
+		if (!refused) {
+			refused = new Set()
+			this._refusedWrites.set(rolePath, refused)
+		}
+		if (refused.has(property)) return
+		refused.add(property)
+		this.logger.info(
+			`"${rolePath}" refused to set "${property}", so it won't be offered for that object again. Buttons already using it need removing by hand.`,
+		)
+		this.emit('property:refused', rolePath, property)
+	}
+
+	private async _probeObject(rolePath: string): Promise<PropertyDescription[]> {
+		const entry = this._objectRegistry.get(rolePath)
+		if (!entry) {
+			this.logger.debug(`No object at "${rolePath}" to read properties from`)
+			return []
+		}
+
+		// A temporary sync, disposed like the class probe's: GetPropertySync() hands out a new
+		// instance each call, so disposing this one never unsubscribes the entry's own.
+		const propSync = entry.obj.GetPropertySync()
+		try {
+			await abortable(propSync.sync(), this._connectionController.signal)
+			const props = this._describeProperties(entry, propSync)
+			this._recordProperties(entry, props)
+			return props
+		} finally {
+			propSync.Dispose()
+		}
 	}
 
 	private async _probeClass(className: OcaClassName): Promise<void> {
