@@ -8,6 +8,8 @@ Connect to AES70/OCA-compatible devices via TCP, UDP, or WebSockets. Get or set 
 
 When the module connects, it loads the device's role map and discovers every control class it exposes. For each control class that has at least one property of a supported data type, the module automatically generates one action and one value feedback for that class. If the device dynamically changes its role map, the module will detect this event and reload the role map, updating the action and feedback definitions.
 
+Until the module is connected, no actions or feedbacks are defined - as such offline configuration of this module is not supported.
+
 #### Actions
 
 | Option           | Description                                                        |
@@ -26,6 +28,14 @@ When the module connects, it loads the device's role map and discovers every con
 | `Enum`              | Shown only when the selected property is an enum and `Use Property Sync` is enabled. Enabled by default - returns the enum member's name instead of its raw numeric value.                                                                                                 |
 
 For more detail on how properties, getters, and sync work, see the [AES70.js documentation](https://docs.deuso.de/AES70.js/introduction.html).
+
+#### Variables
+
+Some device info is presented as connection variables, depending on what the device exposes. All other control object data is accessible via the value feedbacks.
+
+#### Presets
+
+The module generates presets for many common control objects, mapping controls to toggle buttons or rotary encoders depending on the property. In the case of rotaries the presets also include graphic feedback intended to be displayed adjacent to the rotary. As a generic module it is to be expected that some fine tuning of the presets is required.
 
 #### Caveats
 
