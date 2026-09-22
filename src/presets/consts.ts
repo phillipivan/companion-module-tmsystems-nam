@@ -40,6 +40,10 @@ const DIAL_ELEMENTS = {
 	width: { id: CompositeElementId.WidthDial, name: 'Width Dial' },
 } as const satisfies Record<DialKind, { id: CompositeElementId; name: string }>
 
+/** Colours more than one kind of dial uses, named once so the sharing is on purpose. */
+const DIAL_BLUE = combineRgb(102, 178, 255)
+const DIAL_YELLOW = combineRgb(204, 204, 0)
+
 /** Dial arc colours, all darker than the elements' own defaults so they sit behind white text. */
 export const DIAL_COLORS = {
 	/** For a class that doesn't pick its own, where the property has no conventional colour. */
@@ -48,11 +52,15 @@ export const DIAL_COLORS = {
 	/** A gain below unity, so a cut reads as taking something away rather than adding it. */
 	cut: combineRgb(153, 0, 0),
 	/** Unity gain, which a gain dial blends out from: red down to a cut, green up to a boost. */
-	unity: combineRgb(204, 204, 0),
-	pan: combineRgb(204, 204, 0),
+	unity: DIAL_YELLOW,
+	pan: DIAL_YELLOW,
+	/** A dynamics ratio or slope, sharing the pan dial's yellow. */
+	ratio: DIAL_YELLOW,
 	/** Amber rather than the pan dial's yellow, so the two read apart where a device has both. */
 	width: combineRgb(204, 153, 0),
-	frequency: combineRgb(102, 178, 255),
+	frequency: DIAL_BLUE,
+	/** A dynamics time constant, sharing the frequency dial's blue. */
+	time: DIAL_BLUE,
 } as const
 
 /** In Companion's text element units, used as given. A simple preset's `size` is in older units and gets scaled. */
@@ -105,27 +113,38 @@ export const DEFAULT_STEPS = { stepSize: 1, fine: true } as const
 export const INTEGER_STEPS = { stepSize: FINE_STEP_DIVISOR, fine: true } as const
 
 /**
- * How a turn moves the value: by a fixed amount, or by a fraction of an octave, which multiplies it
- * instead. A frequency wants the latter, so a detent is the same musical interval wherever it lands
- * rather than a jump of several octaves down low and an inaudible nudge up top.
+ * How a turn moves the value: by a fixed amount, or by a ratio of it, which multiplies instead of
+ * adding. Anything read on a scale rather than a count wants the latter, so a detent is the same
+ * proportional change wherever it lands. A fixed step is a leap at the bottom of such a range and
+ * imperceptible at the top: 1 ms on a 0.5 ms attack against 1 ms on a 500 ms one.
+ *
+ * A ratio step is sized in divisions of a doubling, so 3 is a factor of 2^(1/3), about 1.26. On a
+ * frequency that is the familiar third of an octave; on a time it lands on the 1, 1.25, 1.6, 2, 2.5
+ * series that time constants are usually marked in.
  */
-export type StepMode = 'linear' | 'octave'
+export type StepMode = 'linear' | 'ratio'
 
-/** A dial's tuning variables: a step size, or the octave a frequency divides into. */
+/** A dial's tuning variables: a step size, or the divisions of a doubling a ratio step takes. */
 const STEP_SIZE_VARIABLE = 'step_size'
-const OCTAVE_VARIABLE = 'octave_divisions'
-const OCTAVE_FINE_VARIABLE = 'octave_divisions_fine'
+const DIVISIONS_VARIABLE = 'step_divisions'
+const DIVISIONS_FINE_VARIABLE = 'step_divisions_fine'
 
-/** A third of an octave per detent, a twenty-fourth while the dial is held. */
-export const OCTAVE_STEPS = { stepMode: 'octave', stepSize: 3, fineStepSize: 24, fine: true } as const
+/**
+ * Where a ratio step starts from when the value is too near zero to multiply: zero times anything is
+ * still zero, so a dial sitting there could never leave it.
+ */
+const RATIO_FLOOR = 0.001
+
+/** A third of a doubling per detent, a twenty-fourth while the dial is held. */
+export const RATIO_STEPS = { stepMode: 'ratio', stepSize: 3, fineStepSize: 24, fine: true } as const
 
 /** What a dial's table entry says about its steps. */
 export interface StepSettings {
 	/** Linear unless it says otherwise. */
 	readonly stepMode?: StepMode
-	/** The step, or for an octave dial the number of steps an octave divides into. */
+	/** The step, or for a ratio dial the divisions of a doubling each detent takes. */
 	readonly stepSize: number
-	/** The octave's divisions while the dial is held; a linear dial divides its step by FINE_STEP_DIVISOR. */
+	/** The divisions while the dial is held; a linear dial divides its step by FINE_STEP_DIVISOR. */
 	readonly fineStepSize?: number
 	/** Whether holding the dial takes a smaller step. */
 	readonly fine: boolean
@@ -133,12 +152,12 @@ export interface StepSettings {
 
 /** The local variables that tune `steps`, for the button to carry. */
 export function stepVariables(steps: StepSettings): CompanionPresetLocalVariable<OcaModuleTypes['feedbacks']>[] {
-	if (steps.stepMode === 'octave') {
+	if (steps.stepMode === 'ratio') {
 		return [
-			{ variableType: 'simple', variableName: OCTAVE_VARIABLE, startupValue: steps.stepSize },
+			{ variableType: 'simple', variableName: DIVISIONS_VARIABLE, startupValue: steps.stepSize },
 			{
 				variableType: 'simple',
-				variableName: OCTAVE_FINE_VARIABLE,
+				variableName: DIVISIONS_FINE_VARIABLE,
 				startupValue: steps.fineStepSize ?? steps.stepSize,
 			},
 		]
@@ -152,11 +171,20 @@ export function stepVariables(steps: StepSettings): CompanionPresetLocalVariable
  * back down again returns the value it started from, where a rounded ratio would drift.
  */
 export function steppedValue(steps: StepSettings, value: string, direction: 'up' | 'down'): string {
-	if (steps.stepMode === 'octave') {
+	if (steps.stepMode === 'ratio') {
 		const divisions = steps.fine
-			? `($(this:active) ? $(local:${OCTAVE_FINE_VARIABLE}) : $(local:${OCTAVE_VARIABLE}))`
-			: `$(local:${OCTAVE_VARIABLE})`
-		return `${value} * pow(2, ${direction === 'up' ? '1' : '-1'} / ${divisions})`
+			? `($(this:active) ? $(local:${DIVISIONS_FINE_VARIABLE}) : $(local:${DIVISIONS_VARIABLE}))`
+			: `$(local:${DIVISIONS_VARIABLE})`
+		const factor = `pow(2, 1 / ${divisions})`
+		// A turn always moves the value the way it was turned, whatever its sign. Multiplying suits a
+		// positive value; below zero the same factor would run the wrong way, so it divides instead,
+		// and either way a value too near zero to multiply starts again from the floor.
+		const [grow, shrink] = direction === 'up' ? [`* ${factor}`, `/ ${factor}`] : [`/ ${factor}`, `* ${factor}`]
+		const escape = direction === 'up' ? RATIO_FLOOR : -RATIO_FLOOR
+		return (
+			`${value} >= ${RATIO_FLOOR} ? ${value} ${grow} : ` +
+			`(${value} <= ${-RATIO_FLOOR} ? ${value} ${shrink} : ${escape})`
+		)
 	}
 	const size = steps.fine
 		? `($(this:active) ? $(local:${STEP_SIZE_VARIABLE}) / ${FINE_STEP_DIVISOR} : $(local:${STEP_SIZE_VARIABLE}))`
@@ -171,14 +199,16 @@ export function steppedValue(steps: StepSettings, value: string, direction: 'up'
 const LOG_FLOOR = 0.001
 
 /**
- * `value` on the scale the dial is drawn against. A dial that steps by octaves is drawn
- * logarithmically, so every octave takes the same length of arc; on a linear one the top octave
- * would fill half the dial and everything below it would be squeezed into the first few degrees.
+ * `value` on the scale the dial is drawn against. A dial that steps by ratio is drawn logarithmically,
+ * so every doubling takes the same length of arc; on a linear one the top doubling would fill half the
+ * dial and everything below it would be squeezed into the first few degrees.
  *
- * Only the arc is scaled. The button's text still reads in the property's own units.
+ * Only the arc is scaled. The button's text still reads in the property's own units. A value at or
+ * below zero has no logarithm, so the floor pins it to the bottom of the arc rather than leaving it
+ * undrawable — see the note on negative values in steppedValue.
  */
 export function dialScale(steps: StepSettings, value: string): string {
-	return steps.stepMode === 'octave' ? `log(max(${LOG_FLOOR}, ${value}))` : value
+	return steps.stepMode === 'ratio' ? `log(max(${LOG_FLOOR}, ${value}))` : value
 }
 
 /** A rotary's label shows its value to at most this many decimal places, hiding float32 noise such as -2.4000000953674316. */
@@ -238,31 +268,41 @@ export function dialElement(
 }
 
 /** An expression rounding `value` to `places` decimal places. Callers guard it with `isNumber`. */
-function rounded(value: string, places: number): string {
+export function rounded(value: string, places: number): string {
 	const scale = 10 ** places
 	return `round(${value} * ${scale}) / ${scale}`
 }
 
 /**
- * A larger unit a value switches to once it reaches `above`, so a reading stays legible at both ends
- * of its range: a frequency reads 583 Hz down low and 1.83 kHz rather than 1830 Hz further up.
+ * Another unit a value switches to on one side of a threshold, so a reading stays legible across a
+ * range that spans decades: a frequency reads 583 Hz down low and 1.83 kHz rather than 1830 Hz
+ * further up, and a time reads 5 ms rather than 0.005 s.
  */
 export interface UnitStep {
-	/** The value at which the larger unit takes over. */
-	readonly above: number
+	/** The value at which the other unit takes over. */
+	readonly at: number
+	/** Whether it takes over below that value rather than at or above it. */
+	readonly whenBelow?: boolean
+	/** What the value is divided by, so a smaller unit divides by a fraction. */
 	readonly divisor: number
 	readonly unit: string
-	/** Decimal places for the larger unit, which needs fewer than the smaller one. */
+	/** Decimal places for this unit, which rarely wants as many as the one it replaces. */
 	readonly places: number
 }
 
 /** Hertz become kilohertz at a thousand, to two decimal places. */
-export const KILOHERTZ: UnitStep = { above: 1000, divisor: 1000, unit: 'kHz', places: 2 }
+export const KILOHERTZ: UnitStep = { at: 1000, divisor: 1000, unit: 'kHz', places: 2 }
+
+/**
+ * Seconds become milliseconds below one. Dynamics time constants live almost entirely down there, and
+ * 5 ms reads better than 0.005 s.
+ */
+export const MILLISECONDS: UnitStep = { at: 1, whenBelow: true, divisor: 0.001, unit: 'ms', places: 2 }
 
 /**
  * An expression showing `value` to `places` decimal places, followed by `unit` where there is one, and
- * showing nothing at all until the value is a number. With a `step`, it switches to that larger unit
- * once the value reaches it.
+ * showing nothing at all until the value is a number. With a `step`, it switches to that other unit
+ * on the far side of its threshold.
  *
  * The unit is joined on in a nested template literal, since Companion's `+` adds numbers rather than
  * joining strings. Keeping it inside the guard means an unread value leaves the line empty rather than
@@ -275,8 +315,9 @@ export function numberWithUnit(value: string, places: number, unit?: string, ste
 	const small = shown(places, unit)
 	if (step === undefined) return `isNumber(${value}) ? ${small} : ''`
 
-	const large = shown(step.places, step.unit, `${value} / ${step.divisor}`)
-	return `isNumber(${value}) ? (${value} >= ${step.above} ? ${large} : ${small}) : ''`
+	const scaled = shown(step.places, step.unit, `${value} / ${step.divisor}`)
+	const applies = `${value} ${step.whenBelow ? '<' : '>='} ${step.at}`
+	return `isNumber(${value}) ? (${applies} ? ${scaled} : ${small}) : ''`
 }
 
 /**

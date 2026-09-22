@@ -161,8 +161,8 @@ describe('equaliser presets', () => {
 		})
 		// A third of an octave per detent, a twenty-fourth while the dial is held, both tunable per button
 		expect(preset.localVariables?.slice(0, 2)).toEqual([
-			{ variableType: 'simple', variableName: 'octave_divisions', startupValue: 3 },
-			{ variableType: 'simple', variableName: 'octave_divisions_fine', startupValue: 24 },
+			{ variableType: 'simple', variableName: 'step_divisions', startupValue: 3 },
+			{ variableType: 'simple', variableName: 'step_divisions_fine', startupValue: 24 },
 		])
 		// Multiplied, not added, so a detent is the same interval at 30 Hz as at 16 kHz
 		const turns = [preset.steps[0]?.rotate_left?.[0], preset.steps[0]?.rotate_right?.[0]] as PresetEntry[]
@@ -170,12 +170,12 @@ describe('equaliser presets', () => {
 			{
 				isExpression: true,
 				value:
-					'max($(local:value).values[1], $(local:value).values[0] * pow(2, -1 / ($(this:active) ? $(local:octave_divisions_fine) : $(local:octave_divisions))))',
+					'max($(local:value).values[1], $(local:value).values[0] >= 0.001 ? $(local:value).values[0] / pow(2, 1 / ($(this:active) ? $(local:step_divisions_fine) : $(local:step_divisions))) : ($(local:value).values[0] <= -0.001 ? $(local:value).values[0] * pow(2, 1 / ($(this:active) ? $(local:step_divisions_fine) : $(local:step_divisions))) : -0.001))',
 			},
 			{
 				isExpression: true,
 				value:
-					'min($(local:value).values[2], $(local:value).values[0] * pow(2, 1 / ($(this:active) ? $(local:octave_divisions_fine) : $(local:octave_divisions))))',
+					'min($(local:value).values[2], $(local:value).values[0] >= 0.001 ? $(local:value).values[0] * pow(2, 1 / ($(this:active) ? $(local:step_divisions_fine) : $(local:step_divisions))) : ($(local:value).values[0] <= -0.001 ? $(local:value).values[0] / pow(2, 1 / ($(this:active) ? $(local:step_divisions_fine) : $(local:step_divisions))) : 0.001))',
 			},
 		])
 	})

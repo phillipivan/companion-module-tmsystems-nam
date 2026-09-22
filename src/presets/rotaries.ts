@@ -17,7 +17,7 @@ import {
 	DIAL_COLORS,
 	INTEGER_STEPS,
 	KILOHERTZ,
-	OCTAVE_STEPS,
+	RATIO_STEPS,
 	labelElements,
 	numberWithUnit,
 	stepVariables,
@@ -124,7 +124,7 @@ export const ROTARY_CLASSES: readonly RotaryClass[] = [
 	{
 		className: OCA_CLASS_NAMES.OcaFrequencyActuator,
 		property: 'Frequency',
-		...OCTAVE_STEPS,
+		...RATIO_STEPS,
 		...VALUE_DIAL,
 		// Red low to violet high, like the spectrum a frequency is named for
 		dialScheme: 'spectrum',
