@@ -16,6 +16,7 @@ import {
 	DEFAULT_STEPS,
 	DIAL_COLORS,
 	INTEGER_STEPS,
+	KILOHERTZ,
 	OCTAVE_STEPS,
 	labelElements,
 	numberWithUnit,
@@ -25,7 +26,9 @@ import {
 	VALUE_DECIMAL_PLACES,
 	type DialKind,
 	type StepMode,
+	type UnitStep,
 } from './consts.js'
+import type { DialScheme } from '../composites.js'
 
 /** The classes with rotary presets. Add a class here and to ROTARY_CLASSES to give it presets. */
 export type RotaryClassName =
@@ -75,6 +78,12 @@ export interface RotaryClass {
 	readonly dialColor?: number
 	/** A centred dial's colour below zero, where it should differ from the one above. */
 	readonly dialColorBelow?: number
+	/** A centred dial's colour at zero, which the arc blends from out to each end. */
+	readonly dialColorZero?: number
+	/** A value dial's colour scheme. The spectrum ignores `dialColor`. */
+	readonly dialScheme?: DialScheme
+	/** A larger unit the label switches to once the value is big enough, such as Hz to kHz. */
+	readonly unitStep?: UnitStep
 	/**
 	 * The unit shown after the value on the button, where the class has one its objects always report in.
 	 * Left out where the value is bare, such as a switch position, or where the device chooses the unit.
@@ -94,6 +103,7 @@ export const ROTARY_CLASSES: readonly RotaryClass[] = [
 		dial: 'centred',
 		dialColor: DIAL_COLORS.gain,
 		dialColorBelow: DIAL_COLORS.cut,
+		dialColorZero: DIAL_COLORS.unity,
 		unit: 'dB',
 	},
 	{
@@ -112,7 +122,11 @@ export const ROTARY_CLASSES: readonly RotaryClass[] = [
 		property: 'Frequency',
 		...OCTAVE_STEPS,
 		...VALUE_DIAL,
+		// Red low to violet high, like the spectrum a frequency is named for
+		dialScheme: 'spectrum',
 		dialColor: DIAL_COLORS.frequency,
+		unit: 'Hz',
+		unitStep: KILOHERTZ,
 	},
 	// Positions are whole numbers, one step apart
 	{
@@ -138,8 +152,8 @@ export const ROTARY_CLASSES: readonly RotaryClass[] = [
  * known. Companion's renderer turns the two characters `\n` into a line break, which is how a
  * raw template literal gets one.
  */
-function rotaryLabel(rolePath: string, value: string, names?: string, unit?: string): string {
-	const number = numberWithUnit(value, VALUE_DECIMAL_PLACES, unit)
+function rotaryLabel(rolePath: string, value: string, names?: string, unit?: string, step?: UnitStep): string {
+	const number = numberWithUnit(value, VALUE_DECIMAL_PLACES, unit, step)
 	// Only an array holding that name: a variable not known yet can read as the string $NA, which indexing picks apart
 	const shown = names ? `arrayIncludes(${names}, ${names}[${value}]) ? ${names}[${value}] : ${number}` : number
 	return '`' + templateText(rolePath) + '\\n (Rotary)\\n${' + shown + '}`'
@@ -178,7 +192,10 @@ function rotaryPreset(
 		actionId: `set_property_${className}`,
 		options: { objectId: rolePath, property, [`value_${property}`]: { isExpression: true, value: expression } },
 	})
-	const elements = labelElements({ isExpression: true, value: rotaryLabel(rolePath, value, names, rotary.unit) })
+	const elements = labelElements({
+		isExpression: true,
+		value: rotaryLabel(rolePath, value, names, rotary.unit, rotary.unitStep),
+	})
 	// Between the background and the label, so the arc is drawn behind the text
 	if (rotary.dial) {
 		elements.splice(
@@ -191,6 +208,8 @@ function rotaryPreset(
 				dialScale(rotary, min),
 				dialScale(rotary, cappedMax),
 				rotary.dialColorBelow,
+				rotary.dialColorZero,
+				rotary.dialScheme,
 			),
 		)
 	}

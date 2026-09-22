@@ -5,6 +5,7 @@ import {
 	METER_DEFAULT_MAX,
 	METER_DEFAULT_MIN,
 	METER_STOPS,
+	SPECTRUM_STOPS,
 	UpdateCompositeElements,
 	type CompositeElementSchema,
 } from '../composites.js'
@@ -129,20 +130,33 @@ describe('composite elements', () => {
 		if (!dial) throw new Error('No dial element was defined')
 		const gauge = gaugeOf(CompositeElementId.Dial)
 
-		expect(dial.options.map((option) => option.id)).toEqual(['level', 'min', 'max', 'color'])
+		expect(dial.options.map((option) => option.id)).toEqual(['level', 'min', 'max', 'color', 'scheme'])
 		expect(dial.options.find((o) => o.id === 'color')).toMatchObject({ type: 'colorpicker', default: 0x00cc00 })
+		expect(dial.options.find((o) => o.id === 'scheme')).toMatchObject({ type: 'dropdown', default: 'single' })
 		expect(gauge.value).toEqual({ isExpression: true, value: '$(options:level)' })
 		expect(gauge.min).toEqual({ isExpression: true, value: '$(options:min)' })
 		expect(gauge.max).toEqual({ isExpression: true, value: '$(options:max)' })
-		// One stop, whose colour is the chosen one, since multiColour off paints the fill in the active stop
-		expect(gauge.multiColour).toBe(false)
-		expect(gauge.stops).toEqual([
-			{
-				value: { isExpression: true, value: '$(options:min)' },
-				color: { isExpression: true, value: '$(options:color)' },
-				gradient: false,
-			},
+		// Blended only on a spectrum; on a single colour every stop resolves to it, so the arc stays flat
+		expect(gauge.multiColour).toEqual({ isExpression: true, value: "$(options:scheme) == 'spectrum'" })
+	})
+
+	// Newton's seven, each blending into the next, spaced across whatever range the dial is given
+	it('runs the value dial through the spectrum when asked, red at the bottom and violet at the top', () => {
+		const gauge = gaugeOf(CompositeElementId.Dial)
+		const stops = gauge.stops as { value: { value: string }; color: { value: string }; gradient: boolean }[]
+
+		expect(stops).toHaveLength(7)
+		expect(SPECTRUM_STOPS.map((stop) => stop.color)).toEqual([
+			0xff0000, 0xff7f00, 0xffff00, 0x00ff00, 0x0000ff, 0x4b0082, 0x9400d3,
 		])
+		expect(stops[0]?.value.value).toBe('$(options:min)')
+		expect(stops[6]?.value.value).toBe('$(options:min) + ($(options:max) - $(options:min)) * 1')
+		for (const [index, stop] of stops.entries()) {
+			expect(stop.color.value, `stop ${index}`).toBe(
+				`$(options:scheme) == 'spectrum' ? ${SPECTRUM_STOPS[index]?.color} : $(options:color)`,
+			)
+			expect(stop.gradient, `stop ${index}`).toBe(true)
+		}
 	})
 
 	it('grows the centred dial out from zero, held inside the range, in yellow by default', () => {
@@ -176,7 +190,8 @@ describe('composite elements', () => {
 			// A percentage of the ring's thickness; Companion's default of 15 would round to a hairline
 			expect(gauge.markerWidth, id).toBe(100)
 		}
-		// The width dial has one colour; the centred dial's dot follows the side the value is on
+		// The width dial has one colour; the centred dial's dot takes the colour of the end it heads
+		// for, and the zero colour when it sits on zero with no fill either side of it
 		expect(gaugeOf(CompositeElementId.WidthDial).markerColor).toEqual({
 			isExpression: true,
 			value: '$(options:color)',
@@ -184,47 +199,61 @@ describe('composite elements', () => {
 		expect(gaugeOf(CompositeElementId.CentredDial).markerColor).toEqual({
 			isExpression: true,
 			value:
-				'$(options:level) < min(max(0, $(options:min)), $(options:max)) ? $(options:colorBelow) : $(options:color)',
+				'$(options:level) < min(max(0, $(options:min)), $(options:max)) ? $(options:colorBelow) : ($(options:level) > min(max(0, $(options:min)), $(options:max)) ? $(options:color) : $(options:colorZero))',
 		})
 	})
 
-	// The renderer paints a single-colour fill with the last stop at or below the value, so a stop at
-	// the minimum and another at zero give the arc one colour per side
-	it('gives the centred dial a second colour for below zero', () => {
+	// The renderer blends between consecutive stops when multiColour is on, so a stop at each end and
+	// one at zero shades the arc away from zero in both directions
+	it('gives the centred dial a colour at zero blending out to one at each end', () => {
 		const { definitions } = defineElements()
 		const centred = definitions[CompositeElementId.CentredDial]
 		if (!centred) throw new Error('No centred dial element was defined')
 		const gauge = gaugeOf(CompositeElementId.CentredDial)
 
-		expect(centred.options.map((option) => option.id)).toEqual(['level', 'min', 'max', 'color', 'colorBelow'])
-		// Both default to the same colour, so a dial is one colour throughout until told otherwise
+		expect(centred.options.map((option) => option.id)).toEqual([
+			'level',
+			'min',
+			'max',
+			'color',
+			'colorZero',
+			'colorBelow',
+		])
+		// All three default alike, so a dial is one colour throughout until told otherwise
 		const colours = centred.options.filter((option) => option.type === 'colorpicker')
-		expect(colours.map((option) => option.default)).toEqual([0xffff00, 0xffff00])
-		expect(gauge.multiColour).toBe(false)
+		expect(colours.map((option) => option.default)).toEqual([0xffff00, 0xffff00, 0xffff00])
+		expect(gauge.multiColour).toBe(true)
 		expect(gauge.stops).toEqual([
 			{
 				value: { isExpression: true, value: '$(options:min)' },
 				color: { isExpression: true, value: '$(options:colorBelow)' },
-				gradient: false,
+				gradient: true,
 			},
 			{
 				value: { isExpression: true, value: 'min(max(0, $(options:min)), $(options:max))' },
+				color: { isExpression: true, value: '$(options:colorZero)' },
+				gradient: true,
+			},
+			// The last stop has nothing beyond it to blend into
+			{
+				value: { isExpression: true, value: '$(options:max)' },
 				color: { isExpression: true, value: '$(options:color)' },
 				gradient: false,
 			},
 		])
 	})
 
-	it('leaves the other dials with a single colour', () => {
+	// It grows from a point rather than running a scale along the arc, so a spectrum would say nothing
+	it('leaves the width dial with a single colour', () => {
 		const { definitions } = defineElements()
 
-		for (const id of [CompositeElementId.Dial, CompositeElementId.WidthDial]) {
-			expect(
-				definitions[id]?.options.map((option) => option.id),
-				id,
-			).toEqual(['level', 'min', 'max', 'color'])
-			expect((gaugeOf(id).stops as unknown[]).length, id).toBe(1)
-		}
+		expect(definitions[CompositeElementId.WidthDial]?.options.map((option) => option.id)).toEqual([
+			'level',
+			'min',
+			'max',
+			'color',
+		])
+		expect((gaugeOf(CompositeElementId.WidthDial).stops as unknown[]).length).toBe(1)
 	})
 
 	it('leaves the plain value dial growing from the minimum, with no marker', () => {

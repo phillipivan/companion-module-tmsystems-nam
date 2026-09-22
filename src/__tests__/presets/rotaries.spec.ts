@@ -57,8 +57,10 @@ describe('rotary presets', () => {
 						min: { isExpression: true, value: '$(local:range).values[1]' },
 						max: { isExpression: true, value: '$(local:range).values[2]' },
 						color: 0x009900,
-						// Grey below unity, so a cut reads differently from a boost
-						colorBelow: 0x929292,
+						// Red below unity, so a cut reads differently from a boost
+						colorBelow: 0x990000,
+						// Yellow at unity, which the arc blends out from: red down to a cut, green up to a boost
+						colorZero: 0xcccc00,
 					},
 				},
 				{
@@ -158,9 +160,12 @@ describe('rotary presets', () => {
 			// Inside the isNumber guard, so an unread value shows nothing rather than a bare unit
 			if (rotary.unit === undefined) expect(text, rotary.className).not.toContain('} ')
 			else expect(text, rotary.className).toContain(`} ${rotary.unit}\``)
+			// A class with a larger unit shows that one instead once the value reaches it
+			if (rotary.unitStep) expect(text, rotary.className).toContain(`} ${rotary.unitStep.unit}\``)
 		}
 		expect(ROTARY_CLASSES.filter((rotary) => rotary.unit !== undefined).map((rotary) => rotary.className)).toEqual([
 			'OcaGain',
+			'OcaFrequencyActuator',
 		])
 	})
 

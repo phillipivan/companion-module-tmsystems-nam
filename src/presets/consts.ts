@@ -14,7 +14,7 @@ import type { PropertyDescription } from '../OcaHelper.js'
 import type { OcaModuleTypes } from '../types.js'
 import type { OcaClassName } from '../consts/aes70-constants.js'
 import { ocaClassNameToLabel } from '../utils.js'
-import { CompositeElementId, type CompositeElementSchema } from '../composites.js'
+import { CompositeElementId, type CompositeElementSchema, type DialScheme } from '../composites.js'
 
 export const logger = createModuleLogger('OCA Presets')
 
@@ -46,7 +46,9 @@ export const DIAL_COLORS = {
 	plain: combineRgb(182, 182, 182),
 	gain: combineRgb(0, 153, 0),
 	/** A gain below unity, so a cut reads as taking something away rather than adding it. */
-	cut: combineRgb(146, 146, 146),
+	cut: combineRgb(153, 0, 0),
+	/** Unity gain, which a gain dial blends out from: red down to a cut, green up to a boost. */
+	unity: combineRgb(204, 204, 0),
 	pan: combineRgb(204, 204, 0),
 	/** Amber rather than the pan dial's yellow, so the two read apart where a device has both. */
 	width: combineRgb(204, 153, 0),
@@ -200,6 +202,10 @@ export function dialElement(
 	max: string,
 	/** A centred dial's colour below zero. The same as `color` unless a class asks for its own. */
 	colorBelow?: number,
+	/** A centred dial's colour at zero, which it blends from out to each end. Defaults to `color`. */
+	colorZero?: number,
+	/** A value dial's colour scheme: one colour, or the spectrum across its range. */
+	scheme?: DialScheme,
 ): SomeButtonGraphicsElement<CompositeElementSchema> {
 	// Every dial takes the same options; the switch is so each carries its element's own id as a literal
 	const options = {
@@ -216,12 +222,18 @@ export function dialElement(
 				id: DIAL_ID,
 				name,
 				elementId: CompositeElementId.CentredDial,
-				options: { ...options, colorBelow: colorBelow ?? color },
+				options: { ...options, colorZero: colorZero ?? color, colorBelow: colorBelow ?? color },
 			}
 		case 'width':
 			return { type: 'composite', id: DIAL_ID, name, elementId: CompositeElementId.WidthDial, options }
 		default:
-			return { type: 'composite', id: DIAL_ID, name, elementId: CompositeElementId.Dial, options }
+			return {
+				type: 'composite',
+				id: DIAL_ID,
+				name,
+				elementId: CompositeElementId.Dial,
+				options: { ...options, scheme: scheme ?? 'single' },
+			}
 	}
 }
 
@@ -232,16 +244,39 @@ function rounded(value: string, places: number): string {
 }
 
 /**
+ * A larger unit a value switches to once it reaches `above`, so a reading stays legible at both ends
+ * of its range: a frequency reads 583 Hz down low and 1.83 kHz rather than 1830 Hz further up.
+ */
+export interface UnitStep {
+	/** The value at which the larger unit takes over. */
+	readonly above: number
+	readonly divisor: number
+	readonly unit: string
+	/** Decimal places for the larger unit, which needs fewer than the smaller one. */
+	readonly places: number
+}
+
+/** Hertz become kilohertz at a thousand, to two decimal places. */
+export const KILOHERTZ: UnitStep = { above: 1000, divisor: 1000, unit: 'kHz', places: 2 }
+
+/**
  * An expression showing `value` to `places` decimal places, followed by `unit` where there is one, and
- * showing nothing at all until the value is a number.
+ * showing nothing at all until the value is a number. With a `step`, it switches to that larger unit
+ * once the value reaches it.
  *
  * The unit is joined on in a nested template literal, since Companion's `+` adds numbers rather than
  * joining strings. Keeping it inside the guard means an unread value leaves the line empty rather than
  * showing a bare unit or "$NA dB".
  */
-export function numberWithUnit(value: string, places: number, unit?: string): string {
-	const shown = unit === undefined ? rounded(value, places) : '`${' + rounded(value, places) + '} ' + unit + '`'
-	return `isNumber(${value}) ? ${shown} : ''`
+export function numberWithUnit(value: string, places: number, unit?: string, step?: UnitStep): string {
+	const shown = (places: number, unit?: string, scaled = value): string =>
+		unit === undefined ? rounded(scaled, places) : '`${' + rounded(scaled, places) + '} ' + unit + '`'
+
+	const small = shown(places, unit)
+	if (step === undefined) return `isNumber(${value}) ? ${small} : ''`
+
+	const large = shown(step.places, step.unit, `${value} / ${step.divisor}`)
+	return `isNumber(${value}) ? (${value} >= ${step.above} ? ${large} : ${small}) : ''`
 }
 
 /**

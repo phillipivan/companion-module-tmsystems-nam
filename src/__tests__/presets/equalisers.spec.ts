@@ -123,7 +123,8 @@ describe('equaliser presets', () => {
 		// Green, the same as the Gain rotaries, rather than the plain grey the other filter arcs get,
 		// and grey below unity so a cut reads differently from a boost
 		expect(dialOf('InBandGain').options.color).toBe(0x009900)
-		expect(dialOf('InBandGain').options.colorBelow).toBe(0x929292)
+		expect(dialOf('InBandGain').options.colorBelow).toBe(0x990000)
+		expect(dialOf('InBandGain').options.colorZero).toBe(0xcccc00)
 		// Amber, distinct from the pan dial's yellow
 		expect(dialOf('WidthParameter').options.color).toBe(0xcc9900)
 		// A quarter per detent, a fortieth while held
@@ -150,11 +151,12 @@ describe('equaliser presets', () => {
 		const preset = presets['eq_OcaFilterParametric_MIC/BQ0_Frequency']
 		if (preset?.type !== 'layered') throw new Error('No layered Frequency preset')
 
+		// Hertz up to a thousand, kilohertz to two places above it, so the label stays legible either way
 		expect(labelOf(preset)).toMatchObject({
 			text: {
 				isExpression: true,
 				value:
-					"`MIC/BQ0\\nFrequency\\n${isNumber($(local:value).values[0]) ? `${round($(local:value).values[0] * 1000) / 1000} Hz` : ''}`",
+					"`MIC/BQ0\\nFrequency\\n${isNumber($(local:value).values[0]) ? ($(local:value).values[0] >= 1000 ? `${round($(local:value).values[0] / 1000 * 100) / 100} kHz` : `${round($(local:value).values[0] * 1000) / 1000} Hz`) : ''}`",
 			},
 		})
 		// A third of an octave per detent, a twenty-fourth while the dial is held, both tunable per button

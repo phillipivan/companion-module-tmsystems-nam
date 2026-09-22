@@ -16,6 +16,7 @@ import {
 	dialScale,
 	DEFAULT_STEPS,
 	DIAL_COLORS,
+	KILOHERTZ,
 	OCTAVE_STEPS,
 	labelElements,
 	logger,
@@ -27,7 +28,9 @@ import {
 	type ActiveColors,
 	type DialKind,
 	type StepMode,
+	type UnitStep,
 } from './consts.js'
+import type { DialScheme } from '../composites.js'
 
 /** The filter classes with a preset group each. The curve classes are left out: FIR, polynomial and
  * arbitrary-curve filters are described by coefficient lists rather than the handful of settable
@@ -57,6 +60,12 @@ export type EqProperty =
 			readonly color?: number
 			/** A centred dial's colour below zero, where it should differ from the one above. */
 			readonly colorBelow?: number
+			/** A centred dial's colour at zero, which the arc blends from out to each end. */
+			readonly colorZero?: number
+			/** A value dial's colour scheme. The spectrum ignores `color`. */
+			readonly scheme?: DialScheme
+			/** A larger unit the label switches to once the value is big enough, such as Hz to kHz. */
+			readonly unitStep?: UnitStep
 	  }
 
 export interface EqClass {
@@ -82,6 +91,9 @@ export const EQ_CLASSES: readonly EqClass[] = [
 				dial: 'value',
 				unit: 'Hz',
 				color: DIAL_COLORS.frequency,
+				// Red low to violet high, like the spectrum a frequency is named for
+				scheme: 'spectrum',
+				unitStep: KILOHERTZ,
 				...OCTAVE_STEPS,
 			},
 			{ property: 'Passband', kind: 'enum' },
@@ -101,6 +113,9 @@ export const EQ_CLASSES: readonly EqClass[] = [
 				dial: 'value',
 				unit: 'Hz',
 				color: DIAL_COLORS.frequency,
+				// Red low to violet high, like the spectrum a frequency is named for
+				scheme: 'spectrum',
+				unitStep: KILOHERTZ,
 				...OCTAVE_STEPS,
 			},
 			{ property: 'Shape', kind: 'enum' },
@@ -123,6 +138,7 @@ export const EQ_CLASSES: readonly EqClass[] = [
 				unit: 'dB',
 				color: DIAL_COLORS.gain,
 				colorBelow: DIAL_COLORS.cut,
+				colorZero: DIAL_COLORS.unity,
 				...DEFAULT_STEPS,
 			},
 			{ property: 'ShapeParameter', kind: 'dial', dial: 'value', ...DEFAULT_STEPS },
@@ -251,11 +267,11 @@ function eqDialPreset(
 	rolePath: string,
 	entry: Extract<EqProperty, { kind: 'dial' }>,
 ): CompanionLayeredButtonPresetDefinition<OcaModuleTypes> {
-	const { property, dial, unit, color, colorBelow } = entry
+	const { property, dial, unit, color, colorBelow, colorZero, scheme } = entry
 	const [value, min, max] = [0, 1, 2].map((index) => `$(local:${EQ_VALUE_VARIABLE}).values[${index}]`)
 	const elements = labelElements({
 		isExpression: true,
-		value: eqLabel(rolePath, property, numberWithUnit(value, VALUE_DECIMAL_PLACES, unit)),
+		value: eqLabel(rolePath, property, numberWithUnit(value, VALUE_DECIMAL_PLACES, unit, entry.unitStep)),
 	})
 	elements.splice(
 		1,
@@ -267,6 +283,8 @@ function eqDialPreset(
 			dialScale(entry, min),
 			dialScale(entry, max),
 			colorBelow,
+			colorZero,
+			scheme,
 		),
 	)
 	return {

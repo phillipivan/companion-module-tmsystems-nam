@@ -46,6 +46,15 @@ const SCHEME_CHOICES = [
 	{ id: 'custom', label: 'Single colour' },
 ] as const satisfies DropdownChoice<MeterScheme>[]
 
+/** How a value dial is coloured: one colour, or the visible spectrum across its range. */
+export const DialScheme = ['single', 'spectrum'] as const
+export type DialScheme = (typeof DialScheme)[number]
+
+const DIAL_SCHEME_CHOICES = [
+	{ id: 'single', label: 'Single colour' },
+	{ id: 'spectrum', label: 'Spectrum' },
+] as const satisfies DropdownChoice<DialScheme>[]
+
 export type CompositeElementSchema = {
 	[CompositeElementId.Meter]: {
 		options: {
@@ -59,10 +68,10 @@ export type CompositeElementSchema = {
 		}
 	}
 	[CompositeElementId.Dial]: {
-		options: { level: number; min: number; max: number; color: number }
+		options: { level: number; min: number; max: number; color: number; scheme: DialScheme }
 	}
 	[CompositeElementId.CentredDial]: {
-		options: { level: number; min: number; max: number; color: number; colorBelow: number }
+		options: { level: number; min: number; max: number; color: number; colorZero: number; colorBelow: number }
 	}
 	[CompositeElementId.WidthDial]: {
 		options: { level: number; min: number; max: number; color: number }
@@ -107,6 +116,21 @@ export const METER_STOPS = [
 ] as const
 
 /**
+ * Newton's spectrum, each colour a fraction of the way along the dial. Every stop blends into the
+ * next, so the arc runs red through to violet rather than banding. On a frequency dial that reads
+ * like the visible spectrum it is named after: low is red, high is violet.
+ */
+export const SPECTRUM_STOPS = [
+	{ at: 0, color: combineRgb(255, 0, 0) }, // red
+	{ at: 1 / 6, color: combineRgb(255, 127, 0) }, // orange
+	{ at: 2 / 6, color: combineRgb(255, 255, 0) }, // yellow
+	{ at: 3 / 6, color: combineRgb(0, 255, 0) }, // green
+	{ at: 4 / 6, color: combineRgb(0, 0, 255) }, // blue
+	{ at: 5 / 6, color: combineRgb(75, 0, 130) }, // indigo
+	{ at: 1, color: combineRgb(148, 0, 211) }, // violet
+] as const
+
+/**
  * The dial's arc, as positions on a clock face. Companion measures a ring gauge's angles in degrees
  * clockwise from 12 o'clock, so an hour is 30 degrees. Running from 8 round through 12 to 4 sweeps 240
  * degrees and leaves the bottom 120 undrawn, which is where a knob's pointer never goes.
@@ -146,8 +170,10 @@ const MIN = `$(options:min)`
 const MAX = `$(options:max)`
 const COLOR = `$(options:color)`
 const COLOR_BELOW = `$(options:colorBelow)`
+const COLOR_ZERO = `$(options:colorZero)`
 const IS_VERTICAL = `(${POSITION} == 'left' || ${POSITION} == 'right')`
 const IS_METERING = `$(options:scheme) == '${SCHEME_CHOICES[0].id}'`
+const IS_SPECTRUM = `$(options:scheme) == '${DIAL_SCHEME_CHOICES[1].id}'`
 
 /** Where `stop` sits on a bar running from the meter's min to its max. */
 function stopValue(at: number): string {
@@ -166,6 +192,7 @@ const MIDPOINT = `(${MIN} + ${MAX}) / 2`
 const ZERO_ORIGIN = `min(max(0, ${MIN}), ${MAX})`
 
 type DialOption = keyof CompositeElementSchema[CompositeElementId.Dial]['options']
+type WidthDialOption = keyof CompositeElementSchema[CompositeElementId.WidthDial]['options']
 type CentredDialOption = keyof CompositeElementSchema[CompositeElementId.CentredDial]['options']
 
 /**
@@ -179,15 +206,20 @@ function dialOptions(
 	defaultColor: number,
 ): SomeCompanionFeedbackInputField<CentredDialOption>[]
 function dialOptions(
-	mode: 'minimum' | 'width',
+	mode: 'minimum',
 	minimumTooltip: string,
 	defaultColor: number,
 ): SomeCompanionFeedbackInputField<DialOption>[]
 function dialOptions(
+	mode: 'width',
+	minimumTooltip: string,
+	defaultColor: number,
+): SomeCompanionFeedbackInputField<WidthDialOption>[]
+function dialOptions(
 	mode: DialMode,
 	minimumTooltip: string,
 	defaultColor: number,
-): SomeCompanionFeedbackInputField<CentredDialOption>[] {
+): SomeCompanionFeedbackInputField<CentredDialOption | DialOption>[] {
 	return [
 		{
 			type: 'number',
@@ -223,14 +255,35 @@ function dialOptions(
 			default: defaultColor,
 			returnType: 'number',
 		},
-		// Only a centred dial has two sides to tell apart. Set it to match the other for one colour throughout
+		// Only the value dial runs a scale along its arc; the others grow from a point
+		...(mode === 'minimum'
+			? [
+					{
+						type: 'dropdown' as const,
+						label: 'Colours',
+						id: 'scheme' as const,
+						tooltip: 'A spectrum runs red to violet across the range, ignoring the colour above',
+						choices: DIAL_SCHEME_CHOICES,
+						default: DIAL_SCHEME_CHOICES[0].id,
+					},
+				]
+			: []),
+		// Only a centred dial has sides to tell apart. Leave all three the same for one colour throughout
 		...(mode === 'centred'
 			? [
 					{
 						type: 'colorpicker' as const,
+						label: 'Colour at zero',
+						id: 'colorZero' as const,
+						tooltip: 'The arc blends from this out to the colour at each end of the range',
+						default: defaultColor,
+						returnType: 'number' as const,
+					},
+					{
+						type: 'colorpicker' as const,
 						label: 'Colour below zero',
 						id: 'colorBelow' as const,
-						tooltip: 'Set this to the same colour as above zero to draw the whole arc in one',
+						tooltip: 'Set all three the same to draw the whole arc in one colour',
 						default: defaultColor,
 						returnType: 'number' as const,
 					},
@@ -273,32 +326,44 @@ function dialGauge(mode: DialMode): ButtonGraphicsGaugeElement {
 		max: { isExpression: true, value: MAX },
 		value: { isExpression: true, value: '$(options:level)' },
 		fillEnabled: true,
-		// One colour over the whole fill, taken from the last stop at or below the value
-		// (`GaugeColorModel.ts:120`), rather than a scale blended across the arc
-		multiColour: false,
-		// A centred dial has a second stop at zero, so a fill that sits below it takes the other
-		// colour and one above it takes the first. Anywhere else a single stop is all it needs
+		// A centred dial blends across its stops, so the arc shades away from zero; anywhere else the
+		// fill is one colour, taken from the last stop at or below the value (`GaugeColorModel.ts:120`)
+		multiColour: mode === 'centred' ? true : mode === 'minimum' ? { isExpression: true, value: IS_SPECTRUM } : false,
+		// Three stops for a centred dial: the colour at zero blending out to each end of the range.
+		// The renderer runs a gradient between consecutive stops, and the last has nothing to blend into
 		stops:
 			mode === 'centred'
 				? [
 						{
 							value: { isExpression: true, value: MIN },
 							color: { isExpression: true, value: COLOR_BELOW },
-							gradient: false,
+							gradient: true,
 						},
 						{
 							value: { isExpression: true, value: ZERO_ORIGIN },
+							color: { isExpression: true, value: COLOR_ZERO },
+							gradient: true,
+						},
+						{
+							value: { isExpression: true, value: MAX },
 							color: { isExpression: true, value: COLOR },
 							gradient: false,
 						},
 					]
-				: [
-						{
-							value: { isExpression: true, value: MIN },
-							color: { isExpression: true, value: COLOR },
-							gradient: false,
-						},
-					],
+				: mode === 'minimum'
+					? SPECTRUM_STOPS.map((stop) => ({
+							value: { isExpression: true as const, value: stopValue(stop.at) },
+							color: { isExpression: true as const, value: `${IS_SPECTRUM} ? ${stop.color} : ${COLOR}` },
+							// Blended on a spectrum; on a single colour every stop is the same, so it stays flat
+							gradient: true,
+						}))
+					: [
+							{
+								value: { isExpression: true, value: MIN },
+								color: { isExpression: true, value: COLOR },
+								gradient: false,
+							},
+						],
 		// The untravelled part of the arc stays faintly visible, so the dial reads as a dial
 		trackStyle: 'dimmed',
 		trackAmount: DIAL_TRACK_AMOUNT,
@@ -308,10 +373,14 @@ function dialGauge(mode: DialMode): ButtonGraphicsGaugeElement {
 					origin: { isExpression: true, value: mode === 'width' ? MIDPOINT : ZERO_ORIGIN },
 					...(mode === 'width' ? { symmetric: true } : {}),
 					markerEnabled: true,
-					// The dot follows the side the value is on, so it matches the fill it caps
+					// The dot takes the colour of the end it is heading for, and the zero colour when it
+					// sits on zero with no fill either side of it
 					markerColor: {
 						isExpression: true,
-						value: mode === 'centred' ? `$(options:level) < ${ZERO_ORIGIN} ? ${COLOR_BELOW} : ${COLOR}` : COLOR,
+						value:
+							mode === 'centred'
+								? `$(options:level) < ${ZERO_ORIGIN} ? ${COLOR_BELOW} : ($(options:level) > ${ZERO_ORIGIN} ? ${COLOR} : ${COLOR_ZERO})`
+								: COLOR,
 					},
 					markerWidth: DIAL_MARKER_WIDTH,
 				}),
