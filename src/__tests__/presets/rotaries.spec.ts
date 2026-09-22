@@ -72,7 +72,7 @@ describe('rotary presets', () => {
 					text: {
 						isExpression: true,
 						value:
-							"`MIC/GAIN\\n (Rotary)\\n${isNumber($(local:range).values[0]) ? `${round($(local:range).values[0] * 1000) / 1000} dB` : ''}`",
+							"`MIC/GAIN\\n (Rotary)\\n${isNumber($(local:range).values[0]) ? `${round($(local:range).values[0] * 10) / 10} dB` : ''}`",
 					},
 					fontsize: 22,
 					color: 0xffffff,

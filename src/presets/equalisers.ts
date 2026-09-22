@@ -66,6 +66,8 @@ export type EqProperty =
 			readonly scheme?: DialScheme
 			/** A larger unit the label switches to once the value is big enough, such as Hz to kHz. */
 			readonly unitStep?: UnitStep
+			/** Decimal places on the label, where the property wants fewer than VALUE_DECIMAL_PLACES. */
+			readonly decimalPlaces?: number
 	  }
 
 export interface EqClass {
@@ -139,6 +141,8 @@ export const EQ_CLASSES: readonly EqClass[] = [
 				color: DIAL_COLORS.gain,
 				colorBelow: DIAL_COLORS.cut,
 				colorZero: DIAL_COLORS.unity,
+				// A tenth of a dB is as fine as a gain is ever read
+				decimalPlaces: 1,
 				...DEFAULT_STEPS,
 			},
 			{ property: 'ShapeParameter', kind: 'dial', dial: 'value', ...DEFAULT_STEPS },
@@ -271,7 +275,11 @@ function eqDialPreset(
 	const [value, min, max] = [0, 1, 2].map((index) => `$(local:${EQ_VALUE_VARIABLE}).values[${index}]`)
 	const elements = labelElements({
 		isExpression: true,
-		value: eqLabel(rolePath, property, numberWithUnit(value, VALUE_DECIMAL_PLACES, unit, entry.unitStep)),
+		value: eqLabel(
+			rolePath,
+			property,
+			numberWithUnit(value, entry.decimalPlaces ?? VALUE_DECIMAL_PLACES, unit, entry.unitStep),
+		),
 	})
 	elements.splice(
 		1,

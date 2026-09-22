@@ -84,6 +84,8 @@ export interface RotaryClass {
 	readonly dialScheme?: DialScheme
 	/** A larger unit the label switches to once the value is big enough, such as Hz to kHz. */
 	readonly unitStep?: UnitStep
+	/** Decimal places on the label, where the property wants fewer than VALUE_DECIMAL_PLACES. */
+	readonly decimalPlaces?: number
 	/**
 	 * The unit shown after the value on the button, where the class has one its objects always report in.
 	 * Left out where the value is bare, such as a switch position, or where the device chooses the unit.
@@ -105,6 +107,8 @@ export const ROTARY_CLASSES: readonly RotaryClass[] = [
 		dialColorBelow: DIAL_COLORS.cut,
 		dialColorZero: DIAL_COLORS.unity,
 		unit: 'dB',
+		// A tenth of a dB is as fine as a gain is ever read
+		decimalPlaces: 1,
 	},
 	{
 		className: OCA_CLASS_NAMES.OcaPanBalance,
@@ -152,8 +156,15 @@ export const ROTARY_CLASSES: readonly RotaryClass[] = [
  * known. Companion's renderer turns the two characters `\n` into a line break, which is how a
  * raw template literal gets one.
  */
-function rotaryLabel(rolePath: string, value: string, names?: string, unit?: string, step?: UnitStep): string {
-	const number = numberWithUnit(value, VALUE_DECIMAL_PLACES, unit, step)
+function rotaryLabel(
+	rolePath: string,
+	value: string,
+	names?: string,
+	unit?: string,
+	step?: UnitStep,
+	places = VALUE_DECIMAL_PLACES,
+): string {
+	const number = numberWithUnit(value, places, unit, step)
 	// Only an array holding that name: a variable not known yet can read as the string $NA, which indexing picks apart
 	const shown = names ? `arrayIncludes(${names}, ${names}[${value}]) ? ${names}[${value}] : ${number}` : number
 	return '`' + templateText(rolePath) + '\\n (Rotary)\\n${' + shown + '}`'
@@ -194,7 +205,7 @@ function rotaryPreset(
 	})
 	const elements = labelElements({
 		isExpression: true,
-		value: rotaryLabel(rolePath, value, names, rotary.unit, rotary.unitStep),
+		value: rotaryLabel(rolePath, value, names, rotary.unit, rotary.unitStep, rotary.decimalPlaces),
 	})
 	// Between the background and the label, so the arc is drawn behind the text
 	if (rotary.dial) {
