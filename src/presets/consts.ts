@@ -67,12 +67,20 @@ export const DIAL_COLORS = {
 const LABEL_FONT_SIZE = 22
 
 /**
+ * Smaller, for a button naming a property as well as its value. A property name runs long — "Dynamic
+ * Gain Floor" — and at the usual size the two lines crowd each other.
+ */
+export const PROPERTY_LABEL_FONT_SIZE = 18
+
+/**
  * White `text` on black. The text fills the button unless `textHeight` is given, which keeps it clear of
- * whatever is below, such as a meter along the bottom edge.
+ * whatever is below, such as a meter along the bottom edge, and takes the usual size unless a button
+ * has more to say than most.
  */
 export function labelElements(
 	text: CompanionGraphicsElementValue<string>,
 	textHeight?: number,
+	fontsize: number = LABEL_FONT_SIZE,
 ): SomeButtonGraphicsElement<CompositeElementSchema>[] {
 	return [
 		{ type: 'box', id: BACKGROUND_ID, name: 'Background', color: combineRgb(0, 0, 0) },
@@ -82,7 +90,7 @@ export function labelElements(
 			name: 'Label',
 			text,
 			...(textHeight === undefined ? {} : { height: textHeight }),
-			fontsize: LABEL_FONT_SIZE,
+			fontsize,
 			color: combineRgb(255, 255, 255),
 		},
 	]

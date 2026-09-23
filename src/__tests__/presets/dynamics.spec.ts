@@ -56,7 +56,7 @@ describe('dynamics presets', () => {
 		if (preset?.type !== 'layered') throw new Error('No layered Function preset')
 
 		expect(labelOf(preset)).toMatchObject({
-			text: { isExpression: true, value: '`COMP/1\\nFunction\\n${$(local:label)}`' },
+			text: { isExpression: true, value: '`Function\\n${$(local:label)}`' },
 		})
 		// OcaDynamicsFunction runs None(0) to Gate(4), and an enum always steps one at a time
 		const turns = [preset.steps[0]?.rotate_left?.[0], preset.steps[0]?.rotate_right?.[0]] as PresetEntry[]
@@ -80,7 +80,7 @@ describe('dynamics presets', () => {
 			text: {
 				isExpression: true,
 				value:
-					"`COMP/1\\nDynamic Gain Floor\\n${isNumber($(local:value).values[0]) ? `${round($(local:value).values[0] * 10) / 10} dB` : ''}`",
+					"`Dynamic Gain Floor\\n${isNumber($(local:value).values[0]) ? `${round($(local:value).values[0] * 10) / 10} dB` : ''}`",
 			},
 		})
 	})
@@ -187,7 +187,7 @@ describe('dynamics presets', () => {
 			text: {
 				isExpression: true,
 				value:
-					"`COMP/1\\nSlope\\n${isNumber($(local:value).values[0]) ? ($(local:value).values[0] >= 1 ? 'Limit' : `${round(1 / (1 - $(local:value).values[0]) * 10) / 10}:1`) : ''}`",
+					"`Slope\\n${isNumber($(local:value).values[0]) ? ($(local:value).values[0] >= 1 ? 'Limit' : `${round(1 / (1 - $(local:value).values[0]) * 10) / 10}:1`) : ''}`",
 			},
 		})
 		// A bounded fraction, so it steps a flat part of its range rather than by proportion, and the

@@ -17,6 +17,7 @@ import {
 	labelElements,
 	logger,
 	numberWithUnit,
+	PROPERTY_LABEL_FONT_SIZE,
 	stepVariables,
 	steppedValue,
 	templateText,
@@ -90,13 +91,13 @@ const VALUE_VARIABLE = 'value'
 const LABEL_VARIABLE = 'label'
 
 /**
- * An expression for a filter button's label: the object, the property, then its value once known.
- * One button covers one property, so the object is repeated on each rather than left to the group name,
- * which is lost as soon as the button is on a page.
+ * An expression for the button's label: the property as the dropdowns name it, then its value once
+ * known. The object is left off — a whole group of these belongs to one object, and repeating its
+ * role path on every button crowded them without saying anything the group didn't.
  */
-function objectLabel(rolePath: string, property: string, value?: string): string {
-	const lines = '`' + templateText(rolePath) + '\\n' + templateText(ocaClassNameToLabel(property))
-	return value === undefined ? lines + '`' : lines + '\\n${' + value + '}`'
+function objectLabel(property: string, value?: string): string {
+	const label = '`' + templateText(ocaClassNameToLabel(property))
+	return value === undefined ? label + '`' : label + '\\n${' + value + '}`'
 }
 
 /** Sets `property` on the object at `rolePath` to whatever `expression` works out to. */
@@ -123,7 +124,7 @@ function togglePreset(
 	return {
 		type: 'layered',
 		name: `${rolePath} - ${ocaClassNameToLabel(property)}`,
-		elements: labelElements({ isExpression: true, value: objectLabel(rolePath, property) }),
+		elements: labelElements({ isExpression: true, value: objectLabel(property) }, undefined, PROPERTY_LABEL_FONT_SIZE),
 		// Before the state is known a press turns the filter off, the safer way round
 		steps: [{ down: [setTo(className, rolePath, property, `${current} == false ? true : false`)], up: [] }],
 		feedbacks: [
@@ -160,10 +161,11 @@ function enumPreset(
 	const ids = Object.values(values)
 	const [first, last] = [Math.min(...ids), Math.max(...ids)]
 	const current = `$(local:${VALUE_VARIABLE})`
-	const elements = labelElements({
-		isExpression: true,
-		value: objectLabel(rolePath, property, `$(local:${LABEL_VARIABLE})`),
-	})
+	const elements = labelElements(
+		{ isExpression: true, value: objectLabel(property, `$(local:${LABEL_VARIABLE})`) },
+		undefined,
+		PROPERTY_LABEL_FONT_SIZE,
+	)
 	elements.splice(1, 0, dialElement('value', DIAL_COLORS.plain, current, String(first), String(last)))
 	const propertyOption = { objectId: rolePath, property, sync: true }
 	return {
@@ -208,15 +210,18 @@ function dialPreset(
 ): CompanionLayeredButtonPresetDefinition<OcaModuleTypes> {
 	const { property, dial, unit, color, colorBelow, colorZero, scheme } = entry
 	const [value, min, max] = [0, 1, 2].map((index) => `$(local:${VALUE_VARIABLE}).values[${index}]`)
-	const elements = labelElements({
-		isExpression: true,
-		value: objectLabel(
-			rolePath,
-			property,
-			entry.displayAs?.(value) ??
-				numberWithUnit(value, entry.decimalPlaces ?? VALUE_DECIMAL_PLACES, unit, entry.unitStep),
-		),
-	})
+	const elements = labelElements(
+		{
+			isExpression: true,
+			value: objectLabel(
+				property,
+				entry.displayAs?.(value) ??
+					numberWithUnit(value, entry.decimalPlaces ?? VALUE_DECIMAL_PLACES, unit, entry.unitStep),
+			),
+		},
+		undefined,
+		PROPERTY_LABEL_FONT_SIZE,
+	)
 	elements.splice(
 		1,
 		0,

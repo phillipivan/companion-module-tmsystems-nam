@@ -47,10 +47,10 @@ describe('equaliser presets', () => {
 			},
 			expect.objectContaining({ id: 'eq_OcaFilterParametric_MIC/BQ1', name: 'MIC/BQ1' }),
 		])
-		// Each button names its object and its property, since the group name is lost once it is on a page
+		// Each button names only its property: the whole group belongs to one object
 		const enabled = presets['eq_OcaFilterParametric_MIC/BQ0_Enabled']
 		if (enabled?.type !== 'layered') throw new Error('No layered Enabled preset')
-		expect(labelOf(enabled)).toMatchObject({ text: { isExpression: true, value: '`MIC/BQ0\\nEnabled`' } })
+		expect(labelOf(enabled)).toMatchObject({ text: { isExpression: true, value: '`Enabled`' } })
 		// Green while the filter is in circuit, and a press turns it off first when the state isn't known
 		expect(enabled.feedbacks).toEqual([
 			{
@@ -67,6 +67,16 @@ describe('equaliser presets', () => {
 		})
 	})
 
+	// A property name and its value need more room than the toggles and rotaries, which keep 22
+	it('sets a smaller text size on every property button', async () => {
+		const { presets } = await define([['MIC/BQ0', makeNamFilterParametric(1)]])
+
+		for (const [id, preset] of Object.entries(presets)) {
+			if (preset?.type !== 'layered') throw new Error(`No layered preset for ${id}`)
+			expect(labelOf(preset), id).toMatchObject({ fontsize: 18 })
+		}
+	})
+
 	it('steps a filter shape through its enum, showing the name and how far along it is', async () => {
 		const { presets } = await define([['MIC/BQ0', makeNamFilterParametric(1)]])
 		const preset = presets['eq_OcaFilterParametric_MIC/BQ0_Shape']
@@ -74,7 +84,7 @@ describe('equaliser presets', () => {
 
 		// The name, from the second variable, rather than the raw number the steps work on
 		expect(labelOf(preset)).toMatchObject({
-			text: { isExpression: true, value: '`MIC/BQ0\\nShape\\n${$(local:label)}`' },
+			text: { isExpression: true, value: '`Shape\\n${$(local:label)}`' },
 		})
 		expect(preset.localVariables).toEqual([
 			{
@@ -156,7 +166,7 @@ describe('equaliser presets', () => {
 			text: {
 				isExpression: true,
 				value:
-					"`MIC/BQ0\\nFrequency\\n${isNumber($(local:value).values[0]) ? ($(local:value).values[0] >= 1000 ? `${round($(local:value).values[0] / 1000 * 100) / 100} kHz` : `${round($(local:value).values[0] * 1000) / 1000} Hz`) : ''}`",
+					"`Frequency\\n${isNumber($(local:value).values[0]) ? ($(local:value).values[0] >= 1000 ? `${round($(local:value).values[0] / 1000 * 100) / 100} kHz` : `${round($(local:value).values[0] * 1000) / 1000} Hz`) : ''}`",
 			},
 		})
 		// A third of an octave per detent, a twenty-fourth while the dial is held, both tunable per button
