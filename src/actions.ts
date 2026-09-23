@@ -17,7 +17,7 @@ import {
 } from './utils.js'
 import { type OcaClassName, OCA_CLASS_NAMES } from './consts/aes70-constants.js'
 import { enumChoices, enumExpressionDescription, isAes70Enum } from './enums.js'
-import { settablePropertiesOf, type SettableProperty } from './aes70Properties.js'
+import { methodPairFor, settablePropertiesOf, structFieldFor, type SettableProperty } from './aes70Properties.js'
 
 type SetPropertyActionKey = `set_property_${OcaClassName}`
 
@@ -47,6 +47,21 @@ function toLearnedValue(value: unknown): boolean | string | number | undefined {
 	if (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number') return value
 	if (isAes70Enum(value)) return value.valueOf()
 	return undefined
+}
+
+/**
+ * The struct an object last reported for `property`, as a plain object. Spreading it drops the aes70
+ * class, which the encoder doesn't need: it reads the fields by name and checks each one encodes.
+ */
+function currentStructValue(
+	entry: { properties?: { forEach: (cb: (value: unknown, name: string) => void) => void } },
+	property: string,
+): Record<string, unknown> | undefined {
+	let current: Record<string, unknown> | undefined
+	entry.properties?.forEach((value, name) => {
+		if (name === property && typeof value === 'object' && value !== null) current = { ...value }
+	})
+	return current
 }
 
 /** The value input for a settable property, visible only while that property is selected. */
@@ -198,13 +213,39 @@ export async function UpdateActions(self: ModuleInstance): Promise<void> {
 				if (!entry) {
 					throw new Error(`No entry found for objectId ${objectId}. Aborting action ${action.id}`)
 				}
-				const setterName = accessorName(entry.obj, 'Set', property)
+				// A few booleans are changed by calling one of a pair of methods rather than a setter,
+				// so which one to call depends on the value being set
+				const methods = methodPairFor(entry.obj, property)
+				// A struct property takes its whole value, so the field being set is put back into the
+				// current one and everything else the device reported is carried through untouched
+				const structField = structFieldFor(entry.obj, property)
+				const setterName = methods
+					? value === true
+						? methods.on
+						: methods.off
+					: accessorName(entry.obj, 'Set', property)
 				const setter = setterName && (entry.obj as unknown as Record<string, unknown>)[setterName]
 				if (typeof setter !== 'function') {
 					throw new Error(`No setter for '${property}' found on object at '${objectId}'. Aborting action ${action.id}`)
 				}
 				try {
-					await (setter as (v: boolean | string | number) => Promise<void>).call(entry.obj, value)
+					// A method-backed property carries its value in which method was picked, so it takes none
+					if (methods) {
+						await (setter as () => Promise<void>).call(entry.obj)
+					} else if (structField) {
+						const current = currentStructValue(entry, property)
+						if (!current) {
+							throw new Error(
+								`'${objectId}' has not reported '${property}', so the rest of it can't be carried through. Aborting action ${action.id}`,
+							)
+						}
+						await (setter as (v: Record<string, unknown>) => Promise<void>).call(entry.obj, {
+							...current,
+							[structField.field]: value,
+						})
+					} else {
+						await (setter as (v: boolean | string | number) => Promise<void>).call(entry.obj, value)
+					}
 				} catch (err) {
 					if (isNotImplemented(err)) {
 						// The only way to learn this: a device can serve a property's value and still refuse

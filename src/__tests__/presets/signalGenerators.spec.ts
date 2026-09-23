@@ -16,7 +16,7 @@ const generator = (ono: number): OcaRoot =>
 		['SweepType', OcaSweepType.Logarithmic],
 		['SweepTime', 0.5],
 		['SweepRepeat', false],
-		// Reports whether it is running, and cannot be set
+		// Read-only in AES70, but Start() and Stop() set it
 		['Generating', true],
 	])
 
@@ -32,7 +32,6 @@ describe('signal generator presets', () => {
 	it('gives a generator its own group, with a button per property it can set', async () => {
 		const { structure } = await define([['GEN/1', generator(1)]])
 
-		// Generating is absent: the action has no way to set it
 		expect(structure.find((section) => section.id === 'signalGenerators')?.definitions).toEqual([
 			{
 				id: 'gen_OcaSignalGenerator_GEN/1',
@@ -40,6 +39,7 @@ describe('signal generator presets', () => {
 				name: 'GEN/1',
 				presets: [
 					'gen_OcaSignalGenerator_GEN/1_Enabled',
+					'gen_OcaSignalGenerator_GEN/1_Generating',
 					'gen_OcaSignalGenerator_GEN/1_Waveform',
 					'gen_OcaSignalGenerator_GEN/1_Level',
 					'gen_OcaSignalGenerator_GEN/1_Frequency1',
@@ -135,7 +135,7 @@ describe('signal generator presets', () => {
 	it('flips both of its booleans, turning green when on', async () => {
 		const { presets } = await define([['GEN/1', generator(1)]])
 
-		for (const property of ['Enabled', 'SweepRepeat']) {
+		for (const property of ['Enabled', 'SweepRepeat', 'Generating']) {
 			const preset = presets[`gen_OcaSignalGenerator_GEN/1_${property}`]
 			if (preset?.type !== 'layered') throw new Error(`No layered ${property} preset`)
 			expect(preset.feedbacks, property).toEqual([
@@ -150,10 +150,11 @@ describe('signal generator presets', () => {
 		}
 	})
 
-	// Pinned because the set was chosen deliberately; Generating is read-only
+	// Pinned because the set was chosen deliberately
 	it('covers the settable properties of a signal generator', () => {
 		expect(SIGNAL_GENERATOR_CLASSES[0]?.properties.map((property) => property.property)).toEqual([
 			'Enabled',
+			'Generating',
 			'Waveform',
 			'Level',
 			'Frequency1',

@@ -201,29 +201,35 @@ describe('dynamics presets', () => {
 		expect(right).toMatchObject({ value: expect.not.stringContaining('1 - ') })
 	})
 
-	// Threshold is an OcaDBr struct, a value and its reference, which the action has no input for
-	it('offers no button for a property the Set Property action cannot set', async () => {
-		const { presets } = await define([
-			[
-				'COMP/1',
-				makeObject(OcaDynamics, 1, [
-					['Enabled', true],
-					['Threshold', { Value: -20, Ref: 0 }],
-					['Ratio', 4],
-				]),
-			],
-		])
+	// An OcaDBr: a level and the reference it is measured from. The button reads and sets the level
+	it('reads a threshold out of the struct the device reports it in', async () => {
+		const { presets } = await define([['COMP/1', makeObject(OcaDynamics, 1, [['Threshold', { Value: -20, Ref: 4 }]])]])
+		const preset = presets['dyn_OcaDynamics_COMP/1_Threshold']
+		if (preset?.type !== 'layered') throw new Error('No layered Threshold preset')
+		const dial = preset.elements.find((element) => element.id === 'dial')
+		if (dial?.type !== 'composite') throw new Error('No dial on Threshold')
 
-		expect(Object.keys(presets)).toEqual(['dyn_OcaDynamics_COMP/1_Enabled', 'dyn_OcaDynamics_COMP/1_Ratio'])
+		// The level comes out of the struct; the limits sit beside it as plain numbers
+		expect(dial.options).toMatchObject({
+			level: { isExpression: true, value: '$(local:value).values[0].Value' },
+			min: { isExpression: true, value: '$(local:value).values[1]' },
+			max: { isExpression: true, value: '$(local:value).values[2]' },
+		})
+		// Read against 0 dB to a tenth, like the other levels
+		expect(dial.elementId).toBe('centred_dial')
+		expect((labelOf(preset) as { text: { value: string } }).text.value).toContain(
+			'$(local:value).values[0].Value * 10) / 10} dB`',
+		)
 	})
 
-	// Pinned because the set was chosen deliberately; Threshold is absent for the reason above
+	// Pinned because the set was chosen deliberately
 	it('covers the settable properties of a dynamics processor', () => {
 		expect(DYNAMICS_CLASSES[0]?.properties.map((property) => property.property)).toEqual([
 			'Enabled',
 			'Function',
 			'DetectorLaw',
 			'ThresholdPresentationUnits',
+			'Threshold',
 			'Ratio',
 			'AttackTime',
 			'ReleaseTime',

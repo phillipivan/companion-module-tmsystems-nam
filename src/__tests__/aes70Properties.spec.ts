@@ -1,13 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import {
+	OcaDynamics,
 	OcaFilterParametric,
 	OcaGain,
 	OcaInt64Actuator,
 	OcaMute,
+	OcaSignalGenerator,
 	OcaStringActuator,
 	OcaSwitch,
 } from 'aes70/src/controller/ControlClasses.js'
-import { settablePropertiesOf, type SettableProperty } from '../aes70Properties.js'
+import { methodPairFor, settablePropertiesOf, structFieldFor, type SettableProperty } from '../aes70Properties.js'
 
 /**
  * Built against real aes70 classes. Input types come from aes70's encoders, an
@@ -73,5 +75,42 @@ describe('settablePropertiesOf', () => {
 		const filter = kindsByName(settablePropertiesOf(new OcaFilterParametric(1, inertDevice)))
 
 		expect(filter).toMatchObject({ InBandGain: 'number' })
+	})
+})
+
+describe('methodPairFor', () => {
+	const make = <T>(Cls: new (ono: number, dev: unknown) => T): T => new Cls(1, inertDevice)
+
+	// AES70 calls Generating read-only; Start() and Stop() are how a device is told to run
+	it('names the pair of methods a generator starts and stops with', () => {
+		const generator = make(OcaSignalGenerator)
+
+		expect(generator).not.toHaveProperty('SetGenerating')
+		expect(methodPairFor(generator, 'Generating')).toEqual({ on: 'Start', off: 'Stop' })
+		// So the action offers it a checkbox like any other boolean
+		expect(kindsByName(settablePropertiesOf(generator))).toMatchObject({ Generating: 'boolean' })
+	})
+
+	it('claims nothing for a property with a real setter, or a class without the methods', () => {
+		expect(methodPairFor(make(OcaSignalGenerator), 'Level')).toBeUndefined()
+		expect(methodPairFor(make(OcaFilterParametric), 'Generating')).toBeUndefined()
+	})
+})
+
+describe('structFieldFor', () => {
+	const make = <T>(Cls: new (ono: number, dev: unknown) => T): T => new Cls(1, inertDevice)
+
+	// A dynamics threshold is an OcaDBr: the level is what a button sets, the reference is the device's
+	it('names the field of a struct property a button sets', () => {
+		const dynamics = make(OcaDynamics)
+
+		expect(structFieldFor(dynamics, 'Threshold')).toEqual({ field: 'Value', kind: 'number' })
+		// So the action offers it a number input rather than leaving it out as an unsupported type
+		expect(kindsByName(settablePropertiesOf(dynamics))).toMatchObject({ Threshold: 'number' })
+	})
+
+	it('claims nothing for a plain property or a struct it has no entry for', () => {
+		expect(structFieldFor(make(OcaDynamics), 'Ratio')).toBeUndefined()
+		expect(structFieldFor(make(OcaFilterParametric), 'Threshold')).toBeUndefined()
 	})
 })

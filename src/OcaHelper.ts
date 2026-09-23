@@ -106,6 +106,7 @@ import { createModuleLogger, type DropdownChoice } from '@companion-module/base'
 import EventEmitter from 'events'
 import { enumValuesOf, isAes70Enum, type EnumValues } from './enums.js'
 import { abortable, accessorName } from './utils.js'
+import { methodPairFor } from './aes70Properties.js'
 
 // ---------------------------------------------------------------------------
 // Event map
@@ -1134,7 +1135,9 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 					name,
 					type: valueType,
 					read: true, //accessorName(objWithMethods, 'Get', name) !== undefined,
-					write: accessorName(objWithMethods, 'Set', name) !== undefined,
+					// A handful of properties are set through a pair of methods rather than a setter
+					write:
+						accessorName(objWithMethods, 'Set', name) !== undefined || methodPairFor(entry.obj, name) !== undefined,
 					level: entry.obj.get_properties().find_property(name)?.level ?? 0,
 					...(isAes70Enum(value) ? { enumValues: enumValuesOf(value) } : {}),
 				})

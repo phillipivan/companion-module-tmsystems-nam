@@ -65,21 +65,88 @@ function enumValuesOfEncoder(encoder: object): EnumValues | undefined {
 }
 
 /**
+ * Boolean properties a device changes through a pair of methods instead of a setter, keyed by class
+ * and property. AES70 calls these read-only, and strictly they are: the value is a report, and the
+ * thing the operator wants is the pair of methods behind it.
+ *
+ * This is deliberately a short explicit list rather than anything inferred. Most of aes70's methods
+ * take arguments or destroy something — DeleteMember, ChangePreSharedKey, ApplyPatch — so a general
+ * "call a method" action would be far more dangerous than useful. A pair of parameterless methods
+ * that between them set one boolean is the rare case worth carrying, and a signal generator's
+ * Start and Stop are the clearest example of it: whether the tone is running is the whole point of
+ * the object.
+ */
+const METHOD_BACKED_PROPERTIES: Readonly<Record<string, Readonly<Record<string, MethodPair>>>> = {
+	OcaSignalGenerator: { Generating: { on: 'Start', off: 'Stop' } },
+}
+
+/** The methods that turn a method-backed property on and off. */
+export interface MethodPair {
+	readonly on: string
+	readonly off: string
+}
+
+/**
+ * The pair of methods `property` is set through, where it has one and `obj` really carries them.
+ * Checking the object keeps a class that only declares them in its typings from being offered.
+ */
+export function methodPairFor(obj: OcaRoot, property: string): MethodPair | undefined {
+	const className = (obj as unknown as { ClassName?: string }).ClassName
+	const pair = className === undefined ? undefined : METHOD_BACKED_PROPERTIES[className]?.[property]
+	if (!pair) return undefined
+
+	const methods = obj as unknown as Record<string, unknown>
+	return typeof methods[pair.on] === 'function' && typeof methods[pair.off] === 'function' ? pair : undefined
+}
+
+/**
+ * Properties held as a struct where one field is the thing an operator sets, keyed by class and
+ * property. A dynamics threshold is an OcaDBr: a level in dB and the reference it is measured from.
+ * The level is what a button changes; the reference is the device's own and is carried through
+ * untouched, so setting one never quietly redefines the other.
+ *
+ * Also an explicit list. Most structs are lists or coordinates where no single field stands for the
+ * whole, and guessing which one to expose would be worse than leaving them to the Set Property action.
+ */
+const STRUCT_FIELD_PROPERTIES: Readonly<Record<string, Readonly<Record<string, StructField>>>> = {
+	OcaDynamics: { Threshold: { field: 'Value', kind: 'number' } },
+}
+
+/** The one field of a struct property a button sets, and the input it takes. */
+export interface StructField {
+	readonly field: string
+	readonly kind: 'number'
+}
+
+/** The field `property` is set through, where it is a struct with one and `obj` has a setter for it. */
+export function structFieldFor(obj: OcaRoot, property: string): StructField | undefined {
+	const className = (obj as unknown as { ClassName?: string }).ClassName
+	const field = className === undefined ? undefined : STRUCT_FIELD_PROPERTIES[className]?.[property]
+	return field && accessorName(obj, 'Set', property) !== undefined ? field : undefined
+}
+
+/**
  * Every property of `obj`'s class that aes70 can set and an action can offer an input
  * for, in aes70's declaration order, inherited ones first. Properties without a setter,
- * 64-bit integers and structured types are left out.
+ * 64-bit integers and structured types are left out, bar the method-backed ones above.
  */
 export function settablePropertiesOf(obj: OcaRoot): SettableProperty[] {
 	const settable: SettableProperty[] = []
 	obj.get_properties().forEach((property) => {
 		// Not `Set${name}`: a few of aes70's setters are named after one of the property's aliases
-		if (accessorName(obj, 'Set', property.name) === undefined) return
+		if (accessorName(obj, 'Set', property.name) === undefined && !methodPairFor(obj, property.name)) return
 		const encoder = property.type?.[0]
 		if (typeof encoder !== 'object' || encoder === null) return
 
 		const primitive = PRIMITIVE_KINDS.get(encoder)
 		if (primitive) {
 			settable.push({ name: property.name, kind: primitive })
+			return
+		}
+		// A struct the action sets one field of, the rest carried through from the current value
+		const structField = structFieldFor(obj, property.name)
+		if (structField) {
+			settable.push({ name: property.name, kind: structField.kind })
 			return
 		}
 		const enumValues = enumValuesOfEncoder(encoder)

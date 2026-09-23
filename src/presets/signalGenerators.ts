@@ -33,7 +33,9 @@ export const SIGNAL_GENERATOR_CLASSES: readonly ObjectClass<SignalGeneratorClass
 		className: OCA_CLASS_NAMES.OcaSignalGenerator,
 		properties: [
 			{ property: 'Enabled', kind: 'toggle', ...TOGGLE_COLORS },
-			// Generating has no button: it reports whether the generator is running and cannot be set
+			// AES70 calls this read-only, but Start() and Stop() set it, which aes70Properties declares
+			// so it reaches the action, the feedback and this button like any other boolean
+			{ property: 'Generating', kind: 'toggle', ...TOGGLE_COLORS },
 			{ property: 'Waveform', kind: 'enum' },
 			// The output level, so it reads against 0 dB like any other gain
 			{

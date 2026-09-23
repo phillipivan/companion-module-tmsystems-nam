@@ -81,6 +81,12 @@ export type ObjectProperty =
 			 * changes the label — the dial and the action still work in the property's own units.
 			 */
 			readonly displayAs?: (value: string) => string
+			/**
+			 * The field of a struct property the button reads, where the getter returns a struct rather
+			 * than a bare number: a dynamics threshold arrives as a level and the reference it is
+			 * measured from. The limits still come back as plain numbers beside it.
+			 */
+			readonly field?: string
 	  }
 
 export interface ObjectClass<TName extends ObjectClassName = ObjectClassName> {
@@ -210,7 +216,8 @@ function dialPreset(
 	entry: Extract<ObjectProperty, { kind: 'dial' }>,
 ): CompanionLayeredButtonPresetDefinition<OcaModuleTypes> {
 	const { property, dial, unit, color, colorBelow, colorZero, scheme } = entry
-	const [value, min, max] = [0, 1, 2].map((index) => `$(local:${VALUE_VARIABLE}).values[${index}]`)
+	const [reading, min, max] = [0, 1, 2].map((index) => `$(local:${VALUE_VARIABLE}).values[${index}]`)
+	const value = entry.field === undefined ? reading : `${reading}.${entry.field}`
 	const elements = labelElements(
 		{
 			isExpression: true,

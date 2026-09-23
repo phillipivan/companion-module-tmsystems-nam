@@ -51,8 +51,20 @@ export const DYNAMICS_CLASSES: readonly ObjectClass<DynamicsClassName>[] = [
 			{ property: 'Function', kind: 'enum' },
 			{ property: 'DetectorLaw', kind: 'enum' },
 			{ property: 'ThresholdPresentationUnits', kind: 'enum' },
-			// Threshold itself has no button: aes70 types it as an OcaDBr struct, a value and its
-			// reference, which the Set Property action has no input for
+			// An OcaDBr: a level and the reference it is measured from. The button reads and sets the
+			// level, and aes70Properties carries the reference through untouched
+			{
+				property: 'Threshold',
+				kind: 'dial',
+				dial: 'centred',
+				field: 'Value',
+				unit: 'dB',
+				decimalPlaces: GAIN_DECIMALS,
+				color: DIAL_COLORS.gain,
+				colorZero: DIAL_COLORS.unity,
+				colorBelow: DIAL_COLORS.cut,
+				...DEFAULT_STEPS,
+			},
 			// Deprecated in AES70 in favour of Slope, but still implemented by devices, and shown the
 			// same way so the two read alike where a device has both
 			{
