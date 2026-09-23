@@ -8,6 +8,7 @@ import { getRotaryGroups } from './presets/rotaries.js'
 import { getMeterGroups } from './presets/meters.js'
 import { getEqualiserGroups } from './presets/equalisers.js'
 import { getDynamicsGroups } from './presets/dynamics.js'
+import { getSignalGeneratorGroups } from './presets/signalGenerators.js'
 
 /**
  * Define a section of presets per category, each building its own groups and adding its buttons to the
@@ -24,6 +25,11 @@ export async function UpdatePresets(self: ModuleInstance): Promise<void> {
 		{ id: 'meters', name: 'Meters', definitions: await getMeterGroups(self, presets) },
 		{ id: 'equalisers', name: 'Equalisers', definitions: await getEqualiserGroups(self, presets) },
 		{ id: 'dynamics', name: 'Dynamics', definitions: await getDynamicsGroups(self, presets) },
+		{
+			id: 'signalGenerators',
+			name: 'Signal Generators',
+			definitions: await getSignalGeneratorGroups(self, presets),
+		},
 	]
 
 	const presetCount = Object.keys(presets).length

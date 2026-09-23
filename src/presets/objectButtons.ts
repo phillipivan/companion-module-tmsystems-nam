@@ -45,6 +45,7 @@ export type ObjectClassName =
 	| typeof OCA_CLASS_NAMES.OcaFilterClassical
 	| typeof OCA_CLASS_NAMES.OcaFilterParametric
 	| typeof OCA_CLASS_NAMES.OcaDynamics
+	| typeof OCA_CLASS_NAMES.OcaSignalGenerator
 
 export type ObjectProperty =
 	| { readonly property: string; readonly kind: 'toggle'; readonly activeColors: ActiveColors }
