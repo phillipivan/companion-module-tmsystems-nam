@@ -15,8 +15,8 @@ import {
 	dialScale,
 	DEFAULT_STEPS,
 	DIAL_COLORS,
+	HERTZ,
 	INTEGER_STEPS,
-	KILOHERTZ,
 	RATIO_STEPS,
 	labelElements,
 	numberWithUnit,
@@ -82,8 +82,8 @@ export interface RotaryClass {
 	readonly dialColorZero?: number
 	/** A value dial's colour scheme. The spectrum ignores `dialColor`. */
 	readonly dialScheme?: DialScheme
-	/** A larger unit the label switches to once the value is big enough, such as Hz to kHz. */
-	readonly unitStep?: UnitStep
+	/** Other units the label switches to past a threshold, such as Hz to kHz, checked in order. */
+	readonly unitSteps?: readonly UnitStep[]
 	/** Decimal places on the label, where the property wants fewer than VALUE_DECIMAL_PLACES. */
 	readonly decimalPlaces?: number
 	/**
@@ -129,8 +129,7 @@ export const ROTARY_CLASSES: readonly RotaryClass[] = [
 		// Red low to violet high, like the spectrum a frequency is named for
 		dialScheme: 'spectrum',
 		dialColor: DIAL_COLORS.frequency,
-		unit: 'Hz',
-		unitStep: KILOHERTZ,
+		...HERTZ,
 	},
 	// Positions are whole numbers, one step apart
 	{
@@ -161,10 +160,10 @@ function rotaryLabel(
 	value: string,
 	names?: string,
 	unit?: string,
-	step?: UnitStep,
+	steps?: readonly UnitStep[],
 	places = VALUE_DECIMAL_PLACES,
 ): string {
-	const number = numberWithUnit(value, places, unit, step)
+	const number = numberWithUnit(value, places, unit, steps)
 	// Only an array holding that name: a variable not known yet can read as the string $NA, which indexing picks apart
 	const shown = names ? `arrayIncludes(${names}, ${names}[${value}]) ? ${names}[${value}] : ${number}` : number
 	return '`' + templateText(rolePath) + '\\n (Rotary)\\n${' + shown + '}`'
@@ -205,7 +204,7 @@ function rotaryPreset(
 	})
 	const elements = labelElements({
 		isExpression: true,
-		value: rotaryLabel(rolePath, value, names, rotary.unit, rotary.unitStep, rotary.decimalPlaces),
+		value: rotaryLabel(rolePath, value, names, rotary.unit, rotary.unitSteps, rotary.decimalPlaces),
 	})
 	// Between the background and the label, so the arc is drawn behind the text
 	if (rotary.dial) {

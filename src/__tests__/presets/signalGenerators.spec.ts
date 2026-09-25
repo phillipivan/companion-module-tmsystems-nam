@@ -73,8 +73,13 @@ describe('signal generator presets', () => {
 				{ variableType: 'simple', variableName: 'step_divisions', startupValue: 3 },
 				{ variableType: 'simple', variableName: 'step_divisions_fine', startupValue: 24 },
 			])
-			// Hertz up to a thousand, kilohertz above it
-			expect((labelOf(preset) as { text: { value: string } }).text.value, property).toContain('} kHz`')
+			// A tenth of a hertz below a hundred, whole hertz up to a thousand, kilohertz above it
+			const text = (labelOf(preset) as { text: { value: string } }).text.value
+			expect(text, property).toContain(
+				'$(local:value).values[0] < 100 ? `${round($(local:value).values[0] * 10) / 10} Hz`',
+			)
+			expect(text, property).toContain('`${round($(local:value).values[0])} Hz`')
+			expect(text, property).toContain('} kHz`')
 		}
 	})
 

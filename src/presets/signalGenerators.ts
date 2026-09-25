@@ -2,7 +2,7 @@ import { combineRgb, type CompanionPresetDefinitions, type CompanionPresetGroup 
 import type ModuleInstance from '../main.js'
 import type { OcaModuleTypes } from '../types.js'
 import { OCA_CLASS_NAMES } from '../consts/aes70-constants.js'
-import { DEFAULT_STEPS, DIAL_COLORS, KILOHERTZ, MILLISECONDS, RATIO_STEPS } from './consts.js'
+import { DEFAULT_STEPS, DIAL_COLORS, HERTZ, MILLISECONDS, RATIO_STEPS } from './consts.js'
 import { objectGroups, type ObjectClass, type ObjectProperty } from './objectButtons.js'
 
 /** The generator classes with a preset group each. */
@@ -21,8 +21,7 @@ const TOGGLE_COLORS = { activeColors: { background: combineRgb(0, 153, 0) } } as
 const FREQUENCY = {
 	kind: 'dial',
 	dial: 'value',
-	unit: 'Hz',
-	unitStep: KILOHERTZ,
+	...HERTZ,
 	color: DIAL_COLORS.frequency,
 	scheme: 'spectrum',
 	...RATIO_STEPS,
@@ -59,7 +58,7 @@ export const SIGNAL_GENERATOR_CLASSES: readonly ObjectClass<SignalGeneratorClass
 				kind: 'dial',
 				dial: 'value',
 				unit: 's',
-				unitStep: MILLISECONDS,
+				unitSteps: [MILLISECONDS],
 				color: DIAL_COLORS.time,
 				...RATIO_STEPS,
 			},

@@ -70,8 +70,8 @@ export type ObjectProperty =
 			readonly colorZero?: number
 			/** A value dial's colour scheme. The spectrum ignores `color`. */
 			readonly scheme?: DialScheme
-			/** A larger unit the label switches to once the value is big enough, such as Hz to kHz. */
-			readonly unitStep?: UnitStep
+			/** Other units the label switches to past a threshold, such as Hz to kHz, checked in order. */
+			readonly unitSteps?: readonly UnitStep[]
 			/** Decimal places on the label, where the property wants fewer than VALUE_DECIMAL_PLACES. */
 			readonly decimalPlaces?: number
 			/**
@@ -224,7 +224,7 @@ function dialPreset(
 			value: objectLabel(
 				property,
 				entry.displayAs?.(value) ??
-					numberWithUnit(value, entry.decimalPlaces ?? VALUE_DECIMAL_PLACES, unit, entry.unitStep),
+					numberWithUnit(value, entry.decimalPlaces ?? VALUE_DECIMAL_PLACES, unit, entry.unitSteps),
 			),
 		},
 		undefined,

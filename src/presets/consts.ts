@@ -277,6 +277,7 @@ export function dialElement(
 
 /** An expression rounding `value` to `places` decimal places. Callers guard it with `isNumber`. */
 export function rounded(value: string, places: number): string {
+	if (places === 0) return `round(${value})`
 	const scale = 10 ** places
 	return `round(${value} * ${scale}) / ${scale}`
 }
@@ -284,15 +285,16 @@ export function rounded(value: string, places: number): string {
 /**
  * Another unit a value switches to on one side of a threshold, so a reading stays legible across a
  * range that spans decades: a frequency reads 583 Hz down low and 1.83 kHz rather than 1830 Hz
- * further up, and a time reads 5 ms rather than 0.005 s.
+ * further up, and a time reads 5 ms rather than 0.005 s. Or the same unit to more places, where a
+ * step at the bottom of the range is smaller than the last place shown.
  */
 export interface UnitStep {
 	/** The value at which the other unit takes over. */
 	readonly at: number
 	/** Whether it takes over below that value rather than at or above it. */
 	readonly whenBelow?: boolean
-	/** What the value is divided by, so a smaller unit divides by a fraction. */
-	readonly divisor: number
+	/** What the value is divided by, so a smaller unit divides by a fraction. Left out where the unit is the same. */
+	readonly divisor?: number
 	readonly unit: string
 	/** Decimal places for this unit, which rarely wants as many as the one it replaces. */
 	readonly places: number
@@ -302,6 +304,19 @@ export interface UnitStep {
 export const KILOHERTZ: UnitStep = { at: 1000, divisor: 1000, unit: 'kHz', places: 2 }
 
 /**
+ * Hertz keep a decimal place below a hundred. A fine detent is a 24th of an octave, about 3%, which
+ * down there is less than a hertz: in whole hertz, successive detents would read the same.
+ */
+export const LOW_HERTZ: UnitStep = { at: 100, whenBelow: true, unit: 'Hz', places: 1 }
+
+/**
+ * How a frequency reads: whole hertz from a hundred to a thousand, a tenth of one below that, and
+ * kilohertz above. Any finer is float32 noise or a ratio step's leftover, not anything a listener
+ * would set or hear.
+ */
+export const HERTZ = { unit: 'Hz', unitSteps: [KILOHERTZ, LOW_HERTZ], decimalPlaces: 0 } as const
+
+/**
  * Seconds become milliseconds below one. Dynamics time constants live almost entirely down there, and
  * 5 ms reads better than 0.005 s.
  */
@@ -309,23 +324,27 @@ export const MILLISECONDS: UnitStep = { at: 1, whenBelow: true, divisor: 0.001, 
 
 /**
  * An expression showing `value` to `places` decimal places, followed by `unit` where there is one, and
- * showing nothing at all until the value is a number. With a `step`, it switches to that other unit
- * on the far side of its threshold.
+ * showing nothing at all until the value is a number. Each of `steps` switches to its own unit and
+ * places on the far side of its threshold, checked in order, so the first that applies wins.
  *
  * The unit is joined on in a nested template literal, since Companion's `+` adds numbers rather than
  * joining strings. Keeping it inside the guard means an unread value leaves the line empty rather than
  * showing a bare unit or "$NA dB".
  */
-export function numberWithUnit(value: string, places: number, unit?: string, step?: UnitStep): string {
+export function numberWithUnit(value: string, places: number, unit?: string, steps: readonly UnitStep[] = []): string {
 	const shown = (places: number, unit?: string, scaled = value): string =>
 		unit === undefined ? rounded(scaled, places) : '`${' + rounded(scaled, places) + '} ' + unit + '`'
 
-	const small = shown(places, unit)
-	if (step === undefined) return `isNumber(${value}) ? ${small} : ''`
-
-	const scaled = shown(step.places, step.unit, `${value} / ${step.divisor}`)
-	const applies = `${value} ${step.whenBelow ? '<' : '>='} ${step.at}`
-	return `isNumber(${value}) ? (${applies} ? ${scaled} : ${small}) : ''`
+	// Built from the last step back, so each one's otherwise branch holds the steps after it
+	const labelled = steps.reduceRight(
+		(otherwise, step) => {
+			const scaled = step.divisor === undefined ? value : `${value} / ${step.divisor}`
+			const applies = `${value} ${step.whenBelow ? '<' : '>='} ${step.at}`
+			return `(${applies} ? ${shown(step.places, step.unit, scaled)} : ${otherwise})`
+		},
+		shown(places, unit),
+	)
+	return `isNumber(${value}) ? ${labelled} : ''`
 }
 
 /**

@@ -161,12 +161,13 @@ describe('equaliser presets', () => {
 		const preset = presets['eq_OcaFilterParametric_MIC/BQ0_Frequency']
 		if (preset?.type !== 'layered') throw new Error('No layered Frequency preset')
 
-		// Hertz up to a thousand, kilohertz to two places above it, so the label stays legible either way
+		// A tenth of a hertz below a hundred, whole hertz up to a thousand, kilohertz to two places above it,
+		// so the label stays legible across the range and a fine detent still changes it
 		expect(labelOf(preset)).toMatchObject({
 			text: {
 				isExpression: true,
 				value:
-					"`Frequency\\n${isNumber($(local:value).values[0]) ? ($(local:value).values[0] >= 1000 ? `${round($(local:value).values[0] / 1000 * 100) / 100} kHz` : `${round($(local:value).values[0] * 1000) / 1000} Hz`) : ''}`",
+					"`Frequency\\n${isNumber($(local:value).values[0]) ? ($(local:value).values[0] >= 1000 ? `${round($(local:value).values[0] / 1000 * 100) / 100} kHz` : ($(local:value).values[0] < 100 ? `${round($(local:value).values[0] * 10) / 10} Hz` : `${round($(local:value).values[0])} Hz`)) : ''}`",
 			},
 		})
 		// A third of an octave per detent, a twenty-fourth while the dial is held, both tunable per button

@@ -161,12 +161,35 @@ describe('rotary presets', () => {
 			if (rotary.unit === undefined) expect(text, rotary.className).not.toContain('} ')
 			else expect(text, rotary.className).toContain(`} ${rotary.unit}\``)
 			// A class with a larger unit shows that one instead once the value reaches it
-			if (rotary.unitStep) expect(text, rotary.className).toContain(`} ${rotary.unitStep.unit}\``)
+			for (const step of rotary.unitSteps ?? []) expect(text, rotary.className).toContain(`} ${step.unit}\``)
 		}
 		expect(ROTARY_CLASSES.filter((rotary) => rotary.unit !== undefined).map((rotary) => rotary.className)).toEqual([
 			'OcaGain',
 			'OcaFrequencyActuator',
 		])
+	})
+
+	// A fraction of a hertz is noise from float32 or a ratio step, except below a hundred, where a fine detent is less than one
+	it('labels a frequency to a tenth of a hertz below 100 Hz, in whole hertz to 1 kHz, and to two places in kHz above', async () => {
+		const { presets } = await define([
+			[
+				'OcaFrequencyActuator/1',
+				makeObject(ControlClasses.OcaFrequencyActuator, 1, [
+					['Enabled', true],
+					['Frequency', 1000],
+				]),
+			],
+		])
+		const preset = presets['rotary_OcaFrequencyActuator_OcaFrequencyActuator/1']
+		if (preset?.type !== 'layered') throw new Error('No layered frequency preset')
+
+		expect(labelOf(preset)).toMatchObject({
+			text: {
+				isExpression: true,
+				value:
+					"`OcaFrequencyActuator/1\\n (Rotary)\\n${isNumber($(local:range).values[0]) ? ($(local:range).values[0] >= 1000 ? `${round($(local:range).values[0] / 1000 * 100) / 100} kHz` : ($(local:range).values[0] < 100 ? `${round($(local:range).values[0] * 10) / 10} Hz` : `${round($(local:range).values[0])} Hz`)) : ''}`",
+			},
+		})
 	})
 
 	// Companion reads template literal text raw, so these would otherwise end the literal or interpolate

@@ -2,7 +2,7 @@ import { combineRgb, type CompanionPresetDefinitions, type CompanionPresetGroup 
 import type ModuleInstance from '../main.js'
 import type { OcaModuleTypes } from '../types.js'
 import { OCA_CLASS_NAMES } from '../consts/aes70-constants.js'
-import { DEFAULT_STEPS, DIAL_COLORS, KILOHERTZ, RATIO_STEPS } from './consts.js'
+import { DEFAULT_STEPS, DIAL_COLORS, HERTZ, RATIO_STEPS } from './consts.js'
 import { objectGroups, type ObjectClass, type ObjectProperty } from './objectButtons.js'
 
 /** The filter classes with a preset group each. The curve classes are left out: FIR, polynomial and
@@ -30,11 +30,10 @@ export const EQ_CLASSES: readonly ObjectClass<EqClassName>[] = [
 				property: 'Frequency',
 				kind: 'dial',
 				dial: 'value',
-				unit: 'Hz',
+				...HERTZ,
 				color: DIAL_COLORS.frequency,
 				// Red low to violet high, like the spectrum a frequency is named for
 				scheme: 'spectrum',
-				unitStep: KILOHERTZ,
 				...RATIO_STEPS,
 			},
 			{ property: 'Passband', kind: 'enum' },
@@ -52,11 +51,10 @@ export const EQ_CLASSES: readonly ObjectClass<EqClassName>[] = [
 				property: 'Frequency',
 				kind: 'dial',
 				dial: 'value',
-				unit: 'Hz',
+				...HERTZ,
 				color: DIAL_COLORS.frequency,
 				// Red low to violet high, like the spectrum a frequency is named for
 				scheme: 'spectrum',
-				unitStep: KILOHERTZ,
 				...RATIO_STEPS,
 			},
 			{ property: 'Shape', kind: 'enum' },
