@@ -59,10 +59,11 @@ describe('dynamics presets', () => {
 			text: { isExpression: true, value: '`Function\\n${$(local:label)}`' },
 		})
 		// OcaDynamicsFunction runs None(0) to Gate(4), and an enum always steps one at a time
+		expect(preset.localVariables?.[0]).toEqual({ variableType: 'simple', variableName: 'max_value', startupValue: 4 })
 		const turns = [preset.steps[0]?.rotate_left?.[0], preset.steps[0]?.rotate_right?.[0]] as PresetEntry[]
 		expect(turns.map((action) => action.options.value_Function)).toEqual([
 			{ isExpression: true, value: 'max(0, $(local:value) - 1)' },
-			{ isExpression: true, value: 'min(4, $(local:value) + 1)' },
+			{ isExpression: true, value: 'min($(local:max_value), $(local:value) + 1)' },
 		])
 	})
 
@@ -141,7 +142,8 @@ describe('dynamics presets', () => {
 		const attack = DYNAMICS_CLASSES[0]?.properties.find((property) => property.property === 'AttackTime')
 		if (attack?.kind !== 'dial') throw new Error('No AttackTime dial')
 		const evaluate = (direction: 'up' | 'down', value: number): number => {
-			const expression = steppedValue(attack, String(value), direction)
+			// The limits only size a range step, so a ratio one ignores them
+			const expression = steppedValue(attack, String(value), direction, 'min', 'max')
 			// The same arithmetic Companion does, with the dial left on its coarse step
 			const factor = Math.pow(2, 1 / 3)
 			const [grow, shrink] = direction === 'up' ? [factor, 1 / factor] : [1 / factor, factor]

@@ -126,13 +126,18 @@ describe('signal generator presets', () => {
 					value: `\`${property === 'Waveform' ? 'Waveform' : 'Sweep Type'}\\n\${$(local:label)}\``,
 				},
 			})
+			expect(preset.localVariables?.[0], property).toEqual({
+				variableType: 'simple',
+				variableName: 'max_value',
+				startupValue: last,
+			})
 			const turns = [preset.steps[0]?.rotate_left?.[0], preset.steps[0]?.rotate_right?.[0]] as PresetEntry[]
 			expect(
 				turns.map((action) => action.options[`value_${property}`]),
 				property,
 			).toEqual([
 				{ isExpression: true, value: 'max(0, $(local:value) - 1)' },
-				{ isExpression: true, value: `min(${last}, $(local:value) + 1)` },
+				{ isExpression: true, value: 'min($(local:max_value), $(local:value) + 1)' },
 			])
 		}
 	})

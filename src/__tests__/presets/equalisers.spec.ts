@@ -86,7 +86,10 @@ describe('equaliser presets', () => {
 		expect(labelOf(preset)).toMatchObject({
 			text: { isExpression: true, value: '`Shape\\n${$(local:label)}`' },
 		})
+		// OcaParametricEQShape runs 0 to 12, and the getter returns no limits, so the top comes from the enum.
+		// It is a local variable to lower on the button, since the NAM's filters stop at HighPass (5)
 		expect(preset.localVariables).toEqual([
+			{ variableType: 'simple', variableName: 'max_value', startupValue: 12 },
 			{
 				variableType: 'feedback',
 				variableName: 'value',
@@ -100,11 +103,11 @@ describe('equaliser presets', () => {
 				options: { objectId: 'MIC/BQ0', property: 'Shape', sync: true, enum_Shape: true },
 			},
 		])
-		// OcaParametricEQShape runs 0 to 12, and the getter returns no limits, so the ends come from the enum
+		// Both the step and the arc stop at that variable
 		const turns = [preset.steps[0]?.rotate_left?.[0], preset.steps[0]?.rotate_right?.[0]] as PresetEntry[]
 		expect(turns.map((action) => action.options.value_Shape)).toEqual([
 			{ isExpression: true, value: 'max(0, $(local:value) - 1)' },
-			{ isExpression: true, value: 'min(12, $(local:value) + 1)' },
+			{ isExpression: true, value: 'min($(local:max_value), $(local:value) + 1)' },
 		])
 		// A plain grey arc, only there to show where in the list the value sits
 		const dial = preset.elements.find((element) => element.id === 'dial')
@@ -113,7 +116,7 @@ describe('equaliser presets', () => {
 		expect(dial.options).toMatchObject({
 			level: { isExpression: true, value: '$(local:value)' },
 			min: { isExpression: true, value: '0' },
-			max: { isExpression: true, value: '12' },
+			max: { isExpression: true, value: '$(local:max_value)' },
 			color: 0xb6b6b6,
 		})
 	})
@@ -137,14 +140,6 @@ describe('equaliser presets', () => {
 		expect(dialOf('InBandGain').options.colorZero).toBe(0xcccc00)
 		// Amber, distinct from the pan dial's yellow
 		expect(dialOf('WidthParameter').options.color).toBe(0xcc9900)
-		// A quarter per detent, a fortieth while held
-		const width = presets['eq_OcaFilterParametric_MIC/BQ0_WidthParameter']
-		if (width?.type !== 'layered') throw new Error('No layered WidthParameter preset')
-		expect(width.localVariables?.[0]).toEqual({
-			variableType: 'simple',
-			variableName: 'step_size',
-			startupValue: 0.25,
-		})
 		expect(dialOf('WidthParameter').elementId).toBe('width_dial')
 		// Frequency is a plain level, filling from the bottom of the device's range
 		expect(dialOf('Frequency').elementId).toBe('dial')
@@ -187,6 +182,61 @@ describe('equaliser presets', () => {
 				isExpression: true,
 				value:
 					'min($(local:value).values[2], $(local:value).values[0] >= 0.001 ? $(local:value).values[0] * pow(2, 1 / ($(this:active) ? $(local:step_divisions_fine) : $(local:step_divisions))) : ($(local:value).values[0] <= -0.001 ? $(local:value).values[0] / pow(2, 1 / ($(this:active) ? $(local:step_divisions_fine) : $(local:step_divisions))) : 0.001))',
+			},
+		])
+	})
+
+	// The buttons are small, and the group already says they belong to a filter
+	it('heads the width and in-band gain buttons with their short names', async () => {
+		const { presets } = await define([['MIC/BQ0', makeNamFilterParametric(1)]])
+		const heading = (property: string): string => {
+			const preset = presets[`eq_OcaFilterParametric_MIC/BQ0_${property}`]
+			if (preset?.type !== 'layered') throw new Error(`No layered ${property} preset`)
+			return (labelOf(preset) as { text: { value: string } }).text.value.split('\\n')[0] ?? ''
+		}
+
+		expect(heading('WidthParameter')).toBe('`Width')
+		expect(heading('InBandGain')).toBe('`Gain')
+		// Without a label of its own, a button is headed with the property as the dropdowns name it
+		expect(heading('Frequency')).toBe('`Frequency')
+		// The preset's name still spells the property out, as the Set Property action does
+		expect(presets['eq_OcaFilterParametric_MIC/BQ0_WidthParameter']?.name).toBe('MIC/BQ0 - Width Parameter')
+	})
+
+	// Width is Q on some devices and octaves on others, with limits to match, so a fixed step suits none of
+	// them. The NAM on 2026-09-25 reported every parametric band's width as 1, within 0.1 to 16: a detent
+	// there is 15.9 / 25, about 0.64, and 0.064 while held
+	it('steps a filter width by a 25th of the range the device reports, a 250th while held', async () => {
+		const { presets } = await define([['MIC/BQ0', makeNamFilterParametric(1)]])
+		const preset = presets['eq_OcaFilterParametric_MIC/BQ0_WidthParameter']
+		if (preset?.type !== 'layered') throw new Error('No layered WidthParameter preset')
+
+		// Two places, then one from 10 up, where the second is finer than anyone reads a width
+		expect(labelOf(preset)).toMatchObject({
+			text: {
+				isExpression: true,
+				value:
+					"`Width\\n${isNumber($(local:value).values[0]) ? ($(local:value).values[0] >= 10 ? round($(local:value).values[0] * 10) / 10 : round($(local:value).values[0] * 100) / 100) : ''}`",
+			},
+		})
+		// The divisions, tunable per button
+		expect(preset.localVariables?.[0]).toEqual({
+			variableType: 'simple',
+			variableName: 'range_divisions',
+			startupValue: 25,
+		})
+		// Worked out from the limits read with the value on every turn, then clamped to them
+		const turns = [preset.steps[0]?.rotate_left?.[0], preset.steps[0]?.rotate_right?.[0]] as PresetEntry[]
+		expect(turns.map((action) => action.options.value_WidthParameter)).toEqual([
+			{
+				isExpression: true,
+				value:
+					'max($(local:value).values[1], $(local:value).values[0] - ($(local:value).values[2] - $(local:value).values[1]) / ($(this:active) ? $(local:range_divisions) * 10 : $(local:range_divisions)))',
+			},
+			{
+				isExpression: true,
+				value:
+					'min($(local:value).values[2], $(local:value).values[0] + ($(local:value).values[2] - $(local:value).values[1]) / ($(this:active) ? $(local:range_divisions) * 10 : $(local:range_divisions)))',
 			},
 		])
 	})

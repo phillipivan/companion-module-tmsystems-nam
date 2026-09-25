@@ -121,21 +121,30 @@ export const DEFAULT_STEPS = { stepSize: 1, fine: true } as const
 export const INTEGER_STEPS = { stepSize: FINE_STEP_DIVISOR, fine: true } as const
 
 /**
- * How a turn moves the value: by a fixed amount, or by a ratio of it, which multiplies instead of
- * adding. Anything read on a scale rather than a count wants the latter, so a detent is the same
- * proportional change wherever it lands. A fixed step is a leap at the bottom of such a range and
- * imperceptible at the top: 1 ms on a 0.5 ms attack against 1 ms on a 500 ms one.
+ * How a turn moves the value: by a fixed amount, by a ratio of it, which multiplies instead of
+ * adding, or by a share of the range the device reports. Anything read on a scale rather than a count
+ * wants a ratio, so a detent is the same proportional change wherever it lands. A fixed step is a leap
+ * at the bottom of such a range and imperceptible at the top: 1 ms on a 0.5 ms attack against 1 ms on
+ * a 500 ms one.
  *
  * A ratio step is sized in divisions of a doubling, so 3 is a factor of 2^(1/3), about 1.26. On a
  * frequency that is the familiar third of an octave; on a time it lands on the 1, 1.25, 1.6, 2, 2.5
  * series that time constants are usually marked in.
+ *
+ * A range step is sized in divisions of the span between the limits, for a property whose units and
+ * limits vary from one device to the next, so no fixed step suits them all. A filter's width is Q on
+ * one and octaves on another, and a step fine enough for one is a crawl or a leap on the other.
  */
-export type StepMode = 'linear' | 'ratio'
+export type StepMode = 'linear' | 'ratio' | 'range'
 
-/** A dial's tuning variables: a step size, or the divisions of a doubling a ratio step takes. */
+/**
+ * A dial's tuning variables: a step size, the divisions of a doubling a ratio step takes, or the
+ * divisions of the device's range a range step takes.
+ */
 const STEP_SIZE_VARIABLE = 'step_size'
 const DIVISIONS_VARIABLE = 'step_divisions'
 const DIVISIONS_FINE_VARIABLE = 'step_divisions_fine'
+const RANGE_DIVISIONS_VARIABLE = 'range_divisions'
 
 /**
  * Where a ratio step starts from when the value is too near zero to multiply: zero times anything is
@@ -146,13 +155,22 @@ const RATIO_FLOOR = 0.001
 /** A third of a doubling per detent, a twenty-fourth while the dial is held. */
 export const RATIO_STEPS = { stepMode: 'ratio', stepSize: 3, fineStepSize: 24, fine: true } as const
 
+/** A 25th of the device's range per detent, a 250th while the dial is held. */
+export const RANGE_STEPS = { stepMode: 'range', stepSize: 25, fine: true } as const
+
 /** What a dial's table entry says about its steps. */
 export interface StepSettings {
 	/** Linear unless it says otherwise. */
 	readonly stepMode?: StepMode
-	/** The step, or for a ratio dial the divisions of a doubling each detent takes. */
+	/**
+	 * The step, or the divisions of a doubling each detent takes on a ratio dial, or the divisions of
+	 * the device's range on a range dial.
+	 */
 	readonly stepSize: number
-	/** The divisions while the dial is held; a linear dial divides its step by FINE_STEP_DIVISOR. */
+	/**
+	 * A ratio dial's divisions while held. A linear dial divides its step by FINE_STEP_DIVISOR, and a
+	 * range dial multiplies its divisions by it.
+	 */
 	readonly fineStepSize?: number
 	/** Whether holding the dial takes a smaller step. */
 	readonly fine: boolean
@@ -170,15 +188,26 @@ export function stepVariables(steps: StepSettings): CompanionPresetLocalVariable
 			},
 		]
 	}
+	if (steps.stepMode === 'range') {
+		return [{ variableType: 'simple', variableName: RANGE_DIVISIONS_VARIABLE, startupValue: steps.stepSize }]
+	}
 	return [{ variableType: 'simple', variableName: STEP_SIZE_VARIABLE, startupValue: steps.stepSize }]
 }
 
 /**
  * An expression moving `value` one detent `direction`, before the caller clamps it to the property's
- * limits. An octave dial multiplies by `2 ^ (±1/divisions)`, which is exact both ways: stepping up and
- * back down again returns the value it started from, where a rounded ratio would drift.
+ * limits, `min` and `max`. An octave dial multiplies by `2 ^ (±1/divisions)`, which is exact both
+ * ways: stepping up and back down again returns the value it started from, where a rounded ratio
+ * would drift. A range dial adds or takes away `(max - min) / divisions`, worked out afresh on every
+ * turn from the limits read alongside the value.
  */
-export function steppedValue(steps: StepSettings, value: string, direction: 'up' | 'down'): string {
+export function steppedValue(
+	steps: StepSettings,
+	value: string,
+	direction: 'up' | 'down',
+	min: string,
+	max: string,
+): string {
 	if (steps.stepMode === 'ratio') {
 		const divisions = steps.fine
 			? `($(this:active) ? $(local:${DIVISIONS_FINE_VARIABLE}) : $(local:${DIVISIONS_VARIABLE}))`
@@ -193,6 +222,12 @@ export function steppedValue(steps: StepSettings, value: string, direction: 'up'
 			`${value} >= ${RATIO_FLOOR} ? ${value} ${grow} : ` +
 			`(${value} <= ${-RATIO_FLOOR} ? ${value} ${shrink} : ${escape})`
 		)
+	}
+	if (steps.stepMode === 'range') {
+		const divisions = steps.fine
+			? `($(this:active) ? $(local:${RANGE_DIVISIONS_VARIABLE}) * ${FINE_STEP_DIVISOR} : $(local:${RANGE_DIVISIONS_VARIABLE}))`
+			: `$(local:${RANGE_DIVISIONS_VARIABLE})`
+		return `${value} ${direction === 'up' ? '+' : '-'} (${max} - ${min}) / ${divisions}`
 	}
 	const size = steps.fine
 		? `($(this:active) ? $(local:${STEP_SIZE_VARIABLE}) / ${FINE_STEP_DIVISOR} : $(local:${STEP_SIZE_VARIABLE}))`
@@ -295,7 +330,8 @@ export interface UnitStep {
 	readonly whenBelow?: boolean
 	/** What the value is divided by, so a smaller unit divides by a fraction. Left out where the unit is the same. */
 	readonly divisor?: number
-	readonly unit: string
+	/** Left out where only the places change, keeping the value's own unit, or its lack of one. */
+	readonly unit?: string
 	/** Decimal places for this unit, which rarely wants as many as the one it replaces. */
 	readonly places: number
 }
@@ -307,7 +343,7 @@ export const KILOHERTZ: UnitStep = { at: 1000, divisor: 1000, unit: 'kHz', place
  * Hertz keep a decimal place below a hundred. A fine detent is a 24th of an octave, about 3%, which
  * down there is less than a hertz: in whole hertz, successive detents would read the same.
  */
-export const LOW_HERTZ: UnitStep = { at: 100, whenBelow: true, unit: 'Hz', places: 1 }
+export const LOW_HERTZ: UnitStep = { at: 100, whenBelow: true, places: 1 }
 
 /**
  * How a frequency reads: whole hertz from a hundred to a thousand, a tenth of one below that, and
@@ -340,7 +376,7 @@ export function numberWithUnit(value: string, places: number, unit?: string, ste
 		(otherwise, step) => {
 			const scaled = step.divisor === undefined ? value : `${value} / ${step.divisor}`
 			const applies = `${value} ${step.whenBelow ? '<' : '>='} ${step.at}`
-			return `(${applies} ? ${shown(step.places, step.unit, scaled)} : ${otherwise})`
+			return `(${applies} ? ${shown(step.places, step.unit ?? unit, scaled)} : ${otherwise})`
 		},
 		shown(places, unit),
 	)

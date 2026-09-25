@@ -161,7 +161,8 @@ describe('rotary presets', () => {
 			if (rotary.unit === undefined) expect(text, rotary.className).not.toContain('} ')
 			else expect(text, rotary.className).toContain(`} ${rotary.unit}\``)
 			// A class with a larger unit shows that one instead once the value reaches it
-			for (const step of rotary.unitSteps ?? []) expect(text, rotary.className).toContain(`} ${step.unit}\``)
+			for (const step of rotary.unitSteps ?? [])
+				expect(text, rotary.className).toContain(`} ${step.unit ?? rotary.unit}\``)
 		}
 		expect(ROTARY_CLASSES.filter((rotary) => rotary.unit !== undefined).map((rotary) => rotary.className)).toEqual([
 			'OcaGain',

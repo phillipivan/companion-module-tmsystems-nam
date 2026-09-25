@@ -47,11 +47,17 @@ export type ObjectClassName =
 	| typeof OCA_CLASS_NAMES.OcaDynamics
 	| typeof OCA_CLASS_NAMES.OcaSignalGenerator
 
+/** What every property's entry says, whatever kind of button it gets. */
+interface PropertyEntry {
+	readonly property: string
+	/** The button's heading, where the property as the dropdowns name it runs longer than it needs to. */
+	readonly label?: string
+}
+
 export type ObjectProperty =
-	| { readonly property: string; readonly kind: 'toggle'; readonly activeColors: ActiveColors }
-	| { readonly property: string; readonly kind: 'enum' }
-	| {
-			readonly property: string
+	| (PropertyEntry & { readonly kind: 'toggle'; readonly activeColors: ActiveColors })
+	| (PropertyEntry & { readonly kind: 'enum' })
+	| (PropertyEntry & {
 			readonly kind: 'dial'
 			readonly dial: DialKind
 			/** Linear unless it says otherwise; a frequency steps by a fraction of an octave. */
@@ -87,7 +93,7 @@ export type ObjectProperty =
 			 * measured from. The limits still come back as plain numbers beside it.
 			 */
 			readonly field?: string
-	  }
+	  })
 
 export interface ObjectClass<TName extends ObjectClassName = ObjectClassName> {
 	readonly className: TName
@@ -96,14 +102,17 @@ export interface ObjectClass<TName extends ObjectClassName = ObjectClassName> {
 
 const VALUE_VARIABLE = 'value'
 const LABEL_VARIABLE = 'label'
+/** An enum button's top value, which the button can lower where a device supports fewer than the enum. */
+const MAX_VARIABLE = 'max_value'
 
 /**
- * An expression for the button's label: the property as the dropdowns name it, then its value once
- * known. The object is left off — a whole group of these belongs to one object, and repeating its
- * role path on every button crowded them without saying anything the group didn't.
+ * An expression for the button's label: the entry's heading, or the property as the dropdowns name
+ * it, then its value once known. The object is left off — a whole group of these belongs to one
+ * object, and repeating its role path on every button crowded them without saying anything the group
+ * didn't.
  */
-function objectLabel(property: string, value?: string): string {
-	const label = '`' + templateText(ocaClassNameToLabel(property))
+function objectLabel(entry: PropertyEntry, value?: string): string {
+	const label = '`' + templateText(entry.label ?? ocaClassNameToLabel(entry.property))
 	return value === undefined ? label + '`' : label + '\\n${' + value + '}`'
 }
 
@@ -131,7 +140,7 @@ function togglePreset(
 	return {
 		type: 'layered',
 		name: `${rolePath} - ${ocaClassNameToLabel(property)}`,
-		elements: labelElements({ isExpression: true, value: objectLabel(property) }, undefined, PROPERTY_LABEL_FONT_SIZE),
+		elements: labelElements({ isExpression: true, value: objectLabel(entry) }, undefined, PROPERTY_LABEL_FONT_SIZE),
 		// Before the state is known a press turns the filter off, the safer way round
 		steps: [{ down: [setTo(className, rolePath, property, `${current} == false ? true : false`)], up: [] }],
 		feedbacks: [
@@ -156,24 +165,28 @@ function togglePreset(
  * A button that steps an object's enum property one named value at a time, showing the name.
  *
  * The getter returns the value alone, with no limits after it, so the ends come from the enum aes70
- * defines rather than from the device. Two variables read the same property: one raw, to step from, and
- * one as its name, to show. The arc is only there to say where in the list the value sits.
+ * defines rather than from the device. The top end starts as a local variable, so it can be lowered on
+ * the button for a device that supports fewer: the NAM's filters stop at HighPass (5) of the 13 shapes.
+ * Two variables read the same property: one raw, to step from, and one as its name, to show. The arc
+ * is only there to say where in the list the value sits.
  */
 function enumPreset(
 	className: ObjectClassName,
 	rolePath: string,
-	property: string,
+	entry: Extract<ObjectProperty, { kind: 'enum' }>,
 	values: EnumValues,
 ): CompanionLayeredButtonPresetDefinition<OcaModuleTypes> {
+	const { property } = entry
 	const ids = Object.values(values)
 	const [first, last] = [Math.min(...ids), Math.max(...ids)]
 	const current = `$(local:${VALUE_VARIABLE})`
+	const top = `$(local:${MAX_VARIABLE})`
 	const elements = labelElements(
-		{ isExpression: true, value: objectLabel(property, `$(local:${LABEL_VARIABLE})`) },
+		{ isExpression: true, value: objectLabel(entry, `$(local:${LABEL_VARIABLE})`) },
 		undefined,
 		PROPERTY_LABEL_FONT_SIZE,
 	)
-	elements.splice(1, 0, dialElement('value', DIAL_COLORS.plain, current, String(first), String(last)))
+	elements.splice(1, 0, dialElement('value', DIAL_COLORS.plain, current, String(first), top))
 	const propertyOption = { objectId: rolePath, property, sync: true }
 	return {
 		type: 'layered',
@@ -184,11 +197,12 @@ function enumPreset(
 				down: [],
 				up: [],
 				rotate_left: [setTo(className, rolePath, property, `max(${first}, ${current} - 1)`)],
-				rotate_right: [setTo(className, rolePath, property, `min(${last}, ${current} + 1)`)],
+				rotate_right: [setTo(className, rolePath, property, `min(${top}, ${current} + 1)`)],
 			},
 		],
 		feedbacks: [],
 		localVariables: [
+			{ variableType: 'simple', variableName: MAX_VARIABLE, startupValue: last },
 			{
 				variableType: 'feedback',
 				variableName: VALUE_VARIABLE,
@@ -222,7 +236,7 @@ function dialPreset(
 		{
 			isExpression: true,
 			value: objectLabel(
-				property,
+				entry,
 				entry.displayAs?.(value) ??
 					numberWithUnit(value, entry.decimalPlaces ?? VALUE_DECIMAL_PLACES, unit, entry.unitSteps),
 			),
@@ -252,8 +266,12 @@ function dialPreset(
 			{
 				down: [],
 				up: [],
-				rotate_left: [setTo(className, rolePath, property, `max(${min}, ${steppedValue(entry, value, 'down')})`)],
-				rotate_right: [setTo(className, rolePath, property, `min(${max}, ${steppedValue(entry, value, 'up')})`)],
+				rotate_left: [
+					setTo(className, rolePath, property, `max(${min}, ${steppedValue(entry, value, 'down', min, max)})`),
+				],
+				rotate_right: [
+					setTo(className, rolePath, property, `min(${max}, ${steppedValue(entry, value, 'up', min, max)})`),
+				],
 			},
 		],
 		feedbacks: [],
@@ -302,7 +320,7 @@ export async function objectGroups<TName extends ObjectClassName>(
 					property.kind === 'toggle'
 						? togglePreset(entry.className, rolePath, property)
 						: property.kind === 'enum'
-							? enumPreset(entry.className, rolePath, property.property, described.enumValues ?? {})
+							? enumPreset(entry.className, rolePath, property, described.enumValues ?? {})
 							: dialPreset(entry.className, rolePath, property)
 				ids.push(id)
 			}

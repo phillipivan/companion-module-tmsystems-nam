@@ -231,9 +231,11 @@ function rotaryPreset(
 			{
 				down: [],
 				up: [],
-				rotate_left: [setTo(`max(${min}, ${steppedValue(rotary, value, 'down')})`)],
+				rotate_left: [setTo(`max(${min}, ${steppedValue(rotary, value, 'down', min, cappedMax)})`)],
 				// Both limits where there are names, so a device reporting more names than positions still clamps
-				rotate_right: [setTo(`min(${names ? `${max}, ${cappedMax}` : max}, ${steppedValue(rotary, value, 'up')})`)],
+				rotate_right: [
+					setTo(`min(${names ? `${max}, ${cappedMax}` : max}, ${steppedValue(rotary, value, 'up', min, cappedMax)})`),
+				],
 			},
 		],
 		feedbacks: [],

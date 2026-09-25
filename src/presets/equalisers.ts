@@ -2,7 +2,7 @@ import { combineRgb, type CompanionPresetDefinitions, type CompanionPresetGroup 
 import type ModuleInstance from '../main.js'
 import type { OcaModuleTypes } from '../types.js'
 import { OCA_CLASS_NAMES } from '../consts/aes70-constants.js'
-import { DEFAULT_STEPS, DIAL_COLORS, HERTZ, RATIO_STEPS } from './consts.js'
+import { DEFAULT_STEPS, DIAL_COLORS, HERTZ, RANGE_STEPS, RATIO_STEPS } from './consts.js'
 import { objectGroups, type ObjectClass, type ObjectProperty } from './objectButtons.js'
 
 /** The filter classes with a preset group each. The curve classes are left out: FIR, polynomial and
@@ -58,20 +58,24 @@ export const EQ_CLASSES: readonly ObjectClass<EqClassName>[] = [
 				...RATIO_STEPS,
 			},
 			{ property: 'Shape', kind: 'enum' },
-			// Narrowest at the minimum, opening out symmetrically as it widens. A quarter per detent,
-			// since a whole one covers most of a filter's usable width range in a few turns
+			// Narrowest at the minimum, opening out symmetrically as it widens. Stepped by a share of the
+			// device's range, since width is Q on some devices and octaves on others, with limits to match
 			{
 				property: 'WidthParameter',
+				label: 'Width',
 				kind: 'dial',
 				dial: 'width',
 				color: DIAL_COLORS.width,
-				stepSize: 0.25,
-				fine: true,
+				...RANGE_STEPS,
+				// Two places, where a fine detent on the NAM is 0.064, then one from 10 up
+				decimalPlaces: 2,
+				unitSteps: [{ at: 10, places: 1 }],
 			},
 			// A gain, so it gets the same green as the Gain rotaries rather than the plain grey, and the
 			// same grey below unity so a cut reads differently from a boost
 			{
 				property: 'InBandGain',
+				label: 'Gain',
 				kind: 'dial',
 				dial: 'centred',
 				unit: 'dB',
