@@ -96,7 +96,7 @@ describe('signal generator presets', () => {
 		expect((labelOf(preset) as { text: { value: string } }).text.value).toContain('* 10) / 10} dB`')
 	})
 
-	it('times a sweep in milliseconds below a second, stepped by ratio', async () => {
+	it('times a sweep to three digits in seconds or milliseconds, stepped by ratio', async () => {
 		const { presets } = await define([['GEN/1', generator(1)]])
 		const preset = presets['gen_OcaSignalGenerator_GEN/1_SweepTime']
 		if (preset?.type !== 'layered') throw new Error('No layered SweepTime preset')
@@ -105,7 +105,11 @@ describe('signal generator presets', () => {
 
 		// The same blue as a dynamics time constant
 		expect(dial.options.color).toBe(0x66b2ff)
-		expect((labelOf(preset) as { text: { value: string } }).text.value).toContain('} ms`')
+		// Three digits, as the delays and dynamics times read
+		const v = '$(local:value).values[0]'
+		const label = (labelOf(preset) as { text: { value: string } }).text.value
+		expect(label).toContain(`${v} >= 10 ? \`\${round(${v} * 10) / 10} s\``)
+		expect(label).toContain(`${v} < 0.1 ? \`\${round(${v} / 0.001 * 10) / 10} ms\``)
 		const right = (preset.steps[0]?.rotate_right?.[0] as PresetEntry | undefined)?.options.value_SweepTime
 		expect(right).toMatchObject({ value: expect.stringContaining('pow(2, 1 /') })
 	})

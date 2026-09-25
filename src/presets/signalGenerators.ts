@@ -2,7 +2,7 @@ import { combineRgb, type CompanionPresetDefinitions, type CompanionPresetGroup 
 import type ModuleInstance from '../main.js'
 import type { OcaModuleTypes } from '../types.js'
 import { OCA_CLASS_NAMES } from '../consts/aes70-constants.js'
-import { DEFAULT_STEPS, DIAL_COLORS, HERTZ, MILLISECONDS, RATIO_STEPS } from './consts.js'
+import { DEFAULT_STEPS, DIAL_COLORS, HERTZ, RATIO_STEPS, SECONDS } from './consts.js'
 import { objectGroups, type ObjectClass, type ObjectProperty } from './objectButtons.js'
 
 /** The generator classes with a preset group each. */
@@ -52,13 +52,12 @@ export const SIGNAL_GENERATOR_CLASSES: readonly ObjectClass<SignalGeneratorClass
 			{ property: 'Frequency1', ...FREQUENCY },
 			{ property: 'Frequency2', ...FREQUENCY },
 			{ property: 'SweepType', kind: 'enum' },
-			// A sweep is timed like a dynamics stage: milliseconds up to a second, and stepped by ratio
+			// A sweep is timed like a dynamics stage: read to three digits in seconds or milliseconds, and stepped by ratio
 			{
 				property: 'SweepTime',
 				kind: 'dial',
 				dial: 'value',
-				unit: 's',
-				unitSteps: [MILLISECONDS],
+				...SECONDS,
 				color: DIAL_COLORS.time,
 				...RATIO_STEPS,
 			},

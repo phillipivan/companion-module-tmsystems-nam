@@ -3,6 +3,7 @@ import { OcaMute } from 'aes70/src/controller/ControlClasses.js'
 import { UpdateCompositeElements } from '../../composites.js'
 import {
 	booleanActuator,
+	booleanSensor,
 	expectOptionsOffered,
 	gain,
 	identification,
@@ -40,6 +41,7 @@ describe('preset structure', () => {
 			['SDCARD/PLAY', switchObject(7)],
 			['CHLEVELS/INS0', levelSensor(8)],
 			['GENERAL/PASSWORD', stringActuator(9)],
+			['AMP/CH0/ERROC', booleanSensor(10)],
 		])
 
 		expect(structure).toEqual([
@@ -93,6 +95,18 @@ describe('preset structure', () => {
 					},
 				],
 			},
+			{
+				id: 'status',
+				name: 'Status',
+				definitions: [
+					{
+						id: 'status_OcaBooleanSensor',
+						type: 'simple',
+						name: 'Boolean Sensor',
+						presets: ['status_OcaBooleanSensor_AMP/CH0/ERROC'],
+					},
+				],
+			},
 		])
 		expect(Object.keys(presets)).toEqual([
 			'toggle_OcaMute_AMP/CH1/MUTE',
@@ -103,6 +117,7 @@ describe('preset structure', () => {
 			'rotary_OcaGain_MIC/GAIN',
 			'rotary_OcaSwitch_SDCARD/PLAY',
 			'meter_OcaLevelSensor_CHLEVELS/INS0',
+			'status_OcaBooleanSensor_AMP/CH0/ERROC',
 		])
 	})
 
@@ -116,8 +131,9 @@ describe('preset structure', () => {
 			['MIC/GAIN', gain(5)],
 			['SDCARD/PLAY', namedSwitch(6)],
 			['CHLEVELS/INS0', levelSensor(7)],
+			['AMP/CH0/ERROC', booleanSensor(8)],
 		])
-		expect(Object.keys(presets)).toHaveLength(7)
+		expect(Object.keys(presets)).toHaveLength(8)
 		const actions = ctx.setActionDefinitions.mock.lastCall?.[0] as unknown as Record<string, DefinitionShape>
 		const feedbacks = ctx.setFeedbackDefinitions.mock.lastCall?.[0] as unknown as Record<string, DefinitionShape>
 		// An element's options are checked the same way, against the composite the module offers

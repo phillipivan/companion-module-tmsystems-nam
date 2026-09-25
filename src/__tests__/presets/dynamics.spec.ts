@@ -120,17 +120,32 @@ describe('dynamics presets', () => {
 		expect(colourOf('Ratio')).toBe(0xcccc00)
 	})
 
-	// A dynamics time constant lives in milliseconds, so seconds only take over at a whole one
-	it('reads the time constants in milliseconds below a second, and seconds above', async () => {
-		const { presets } = await define([['COMP/1', dynamics(1)]])
+	// A dynamics time constant lives mostly in milliseconds. All three read to three digits, like a delay
+	it('reads the time constants to three digits, in milliseconds below a second and seconds above', async () => {
+		// A processor with a hold stage as well, which the shared fixture leaves out
+		const { presets } = await define([
+			[
+				'COMP/1',
+				makeObject(OcaDynamics, 1, [
+					['Enabled', true],
+					['AttackTime', 0.005],
+					['ReleaseTime', 0.25],
+					['HoldTime', 0.05],
+				]),
+			],
+		])
+		const v = '$(local:value).values[0]'
+		for (const property of ['AttackTime', 'ReleaseTime', 'HoldTime']) {
+			const time = presets[`dyn_OcaDynamics_COMP/1_${property}`]
+			if (time?.type !== 'layered') throw new Error(`No layered ${property} preset`)
+			const label = (labelOf(time) as { text: { value: string } }).text.value
+			// Whole seconds from 100, two places below 10 ms, whole milliseconds from 100 ms up to a second
+			expect(label, property).toContain(`${v} >= 100 ? \`\${round(${v})} s\``)
+			expect(label, property).toContain(`${v} < 0.01 ? \`\${round(${v} / 0.001 * 100) / 100} ms\``)
+			expect(label, property).toContain(`${v} < 1 ? \`\${round(${v} / 0.001)} ms\``)
+		}
 		const preset = presets['dyn_OcaDynamics_COMP/1_AttackTime']
 		if (preset?.type !== 'layered') throw new Error('No layered AttackTime preset')
-		const text = (labelOf(preset) as { text: { value: string } }).text.value
-
-		// Below a second it divides by a thousandth, which is the same as multiplying by a thousand
-		expect(text).toContain('$(local:value).values[0] < 1 ?')
-		expect(text).toContain('/ 0.001 * 100) / 100} ms`')
-		expect(text).toContain('} s`')
 		// Only the label is scaled; the device is still set in seconds, so no divisor reaches the action
 		const right = (preset.steps[0]?.rotate_right?.[0] as PresetEntry | undefined)?.options.value_AttackTime
 		expect(right).toMatchObject({ value: expect.not.stringContaining('/ 0.001') })

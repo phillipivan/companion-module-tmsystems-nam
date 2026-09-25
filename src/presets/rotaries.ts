@@ -18,6 +18,7 @@ import {
 	HERTZ,
 	INTEGER_STEPS,
 	RANGE_STEPS,
+	SECONDS,
 	RATIO_STEPS,
 	labelElements,
 	numberWithUnit,
@@ -102,7 +103,13 @@ const VALUE_DIAL = { dial: 'value' } as const
  * amplifier delays run 0-2.5 s and its AES VOX timers 2-20 ms, so a step of 1 was 40% of the one and
  * went straight to the end of the other.
  */
-const DELAY = { property: 'DelayTime', ...RANGE_STEPS, ...VALUE_DIAL, dialColor: DIAL_COLORS.delay } as const
+const DELAY = {
+	property: 'DelayTime',
+	...RANGE_STEPS,
+	...VALUE_DIAL,
+	dialColor: DIAL_COLORS.delay,
+	...SECONDS,
+} as const
 
 export const ROTARY_CLASSES: readonly RotaryClass[] = [
 	{

@@ -166,6 +166,8 @@ describe('rotary presets', () => {
 		}
 		expect(ROTARY_CLASSES.filter((rotary) => rotary.unit !== undefined).map((rotary) => rotary.className)).toEqual([
 			'OcaGain',
+			'OcaDelay',
+			'OcaDelayExtended',
 			'OcaFrequencyActuator',
 		])
 	})
@@ -229,6 +231,39 @@ describe('rotary presets', () => {
 		const dial = preset.elements.find((element) => element.id === 'dial')
 		if (dial?.type !== 'composite') throw new Error('No dial on the delay preset')
 		expect(dial.options.color).toBe(0xffc0ff)
+	})
+
+	// Three digits whatever the size, so 2.72 ms on the NAM's VOX timers reads apart from 2.7 ms, and 2.4 s
+	// on its amplifier delays doesn't carry a millisecond's worth of noise
+	it('labels a delay to three digits, in seconds from 1 s up and in milliseconds below', async () => {
+		const { presets } = await define([
+			[
+				'AMP/CH0/DLY',
+				makeObject(ControlClasses.OcaDelay, 1, [
+					['Enabled', true],
+					['DelayTime', 0],
+				]),
+			],
+		])
+		const preset = presets['rotary_OcaDelay_AMP/CH0/DLY']
+		if (preset?.type !== 'layered') throw new Error('No layered delay preset')
+
+		const v = '$(local:range).values[0]'
+		expect(labelOf(preset)).toMatchObject({
+			text: {
+				isExpression: true,
+				value:
+					'`AMP/CH0/DLY\\n (Rotary)\\n${' +
+					`isNumber(${v}) ? (` +
+					`${v} >= 100 ? \`\${round(${v})} s\` : (` +
+					`${v} >= 10 ? \`\${round(${v} * 10) / 10} s\` : (` +
+					`${v} < 0.01 ? \`\${round(${v} / 0.001 * 100) / 100} ms\` : (` +
+					`${v} < 0.1 ? \`\${round(${v} / 0.001 * 10) / 10} ms\` : (` +
+					`${v} < 1 ? \`\${round(${v} / 0.001)} ms\` : ` +
+					`\`\${round(${v} * 100) / 100} s\`))))) : ''` +
+					'}`',
+			},
+		})
 	})
 
 	// Companion reads template literal text raw, so these would otherwise end the literal or interpolate

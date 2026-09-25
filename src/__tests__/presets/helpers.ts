@@ -8,6 +8,7 @@ import type {
 import {
 	OcaAudioLevelSensor,
 	OcaBooleanActuator,
+	OcaBooleanSensor,
 	OcaGain,
 	OcaIdentificationActuator,
 	OcaLevelSensor,
@@ -92,6 +93,12 @@ export const audioLevelSensor = (ono: number): OcaRoot =>
 	makeObject(OcaAudioLevelSensor, ono, [
 		['Enabled', true],
 		['Reading', -12.5],
+	])
+/** Like the NAM's AMP/CH0/ERROC on 2026-09-25, one of its 41 OcaBooleanSensors: a fault flag, reading false. */
+export const booleanSensor = (ono: number): OcaRoot =>
+	makeObject(OcaBooleanSensor, ono, [
+		['Enabled', true],
+		['Reading', false],
 	])
 /** A class no preset section covers, for checking that one on its own produces nothing. */
 export const stringActuator = (ono: number): OcaRoot =>

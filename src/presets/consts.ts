@@ -354,11 +354,32 @@ export const LOW_HERTZ: UnitStep = { at: 100, whenBelow: true, places: 1 }
  */
 export const HERTZ = { unit: 'Hz', unitSteps: [KILOHERTZ, LOW_HERTZ], decimalPlaces: 0 } as const
 
+/** Milliseconds, to however many places keep the reading to three digits. */
+const threeDigitMilliseconds = (below: number, places: number): UnitStep => ({
+	at: below,
+	whenBelow: true,
+	divisor: 0.001,
+	unit: 'ms',
+	places,
+})
+
 /**
- * Seconds become milliseconds below one. Dynamics time constants live almost entirely down there, and
- * 5 ms reads better than 0.005 s.
+ * How a time reads: to three significant digits, in seconds from one up and milliseconds below it, so
+ * 2.45 s, 12.3 s and 123 s, then 123 ms, 15.2 ms and 2.72 ms. Dynamics time constants live almost
+ * entirely below a second, where 5 ms reads better than 0.005 s. The steps are checked in order, so the
+ * thresholds above run from the top down and those below from the bottom up.
  */
-export const MILLISECONDS: UnitStep = { at: 1, whenBelow: true, divisor: 0.001, unit: 'ms', places: 2 }
+export const SECONDS = {
+	unit: 's',
+	unitSteps: [
+		{ at: 100, places: 0 },
+		{ at: 10, places: 1 },
+		threeDigitMilliseconds(0.01, 2),
+		threeDigitMilliseconds(0.1, 1),
+		threeDigitMilliseconds(1, 0),
+	],
+	decimalPlaces: 2,
+} as const satisfies { unit: string; unitSteps: readonly UnitStep[]; decimalPlaces: number }
 
 /**
  * An expression showing `value` to `places` decimal places, followed by `unit` where there is one, and

@@ -6,6 +6,7 @@ import { logger } from './presets/consts.js'
 import { getToggleGroups } from './presets/toggles.js'
 import { getRotaryGroups } from './presets/rotaries.js'
 import { getMeterGroups } from './presets/meters.js'
+import { getStatusGroups } from './presets/status.js'
 import { getEqualiserGroups } from './presets/equalisers.js'
 import { getDynamicsGroups } from './presets/dynamics.js'
 import { getSignalGeneratorGroups } from './presets/signalGenerators.js'
@@ -23,6 +24,7 @@ export async function UpdatePresets(self: ModuleInstance): Promise<void> {
 		{ id: 'toggles', name: 'Toggles', definitions: await getToggleGroups(self, presets) },
 		{ id: 'rotaries', name: 'Rotaries', definitions: await getRotaryGroups(self, presets) },
 		{ id: 'meters', name: 'Meters', definitions: await getMeterGroups(self, presets) },
+		{ id: 'status', name: 'Status', definitions: await getStatusGroups(self, presets) },
 		{ id: 'equalisers', name: 'Equalisers', definitions: await getEqualiserGroups(self, presets) },
 		{ id: 'dynamics', name: 'Dynamics', definitions: await getDynamicsGroups(self, presets) },
 		{

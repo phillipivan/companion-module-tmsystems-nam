@@ -2,7 +2,7 @@ import { combineRgb, type CompanionPresetDefinitions, type CompanionPresetGroup 
 import type ModuleInstance from '../main.js'
 import type { OcaModuleTypes } from '../types.js'
 import { OCA_CLASS_NAMES } from '../consts/aes70-constants.js'
-import { DEFAULT_STEPS, DIAL_COLORS, MILLISECONDS, RATIO_STEPS, rounded } from './consts.js'
+import { DEFAULT_STEPS, DIAL_COLORS, RATIO_STEPS, SECONDS, rounded } from './consts.js'
 import { objectGroups, type ObjectClass, type ObjectProperty } from './objectButtons.js'
 
 /**
@@ -79,8 +79,7 @@ export const DYNAMICS_CLASSES: readonly ObjectClass<DynamicsClassName>[] = [
 				property: 'AttackTime',
 				kind: 'dial',
 				dial: 'value',
-				unit: 's',
-				unitSteps: [MILLISECONDS],
+				...SECONDS,
 				color: DIAL_COLORS.time,
 				...SCALED_STEPS,
 			},
@@ -88,8 +87,7 @@ export const DYNAMICS_CLASSES: readonly ObjectClass<DynamicsClassName>[] = [
 				property: 'ReleaseTime',
 				kind: 'dial',
 				dial: 'value',
-				unit: 's',
-				unitSteps: [MILLISECONDS],
+				...SECONDS,
 				color: DIAL_COLORS.time,
 				...SCALED_STEPS,
 			},
@@ -97,8 +95,7 @@ export const DYNAMICS_CLASSES: readonly ObjectClass<DynamicsClassName>[] = [
 				property: 'HoldTime',
 				kind: 'dial',
 				dial: 'value',
-				unit: 's',
-				unitSteps: [MILLISECONDS],
+				...SECONDS,
 				color: DIAL_COLORS.time,
 				...SCALED_STEPS,
 			},
