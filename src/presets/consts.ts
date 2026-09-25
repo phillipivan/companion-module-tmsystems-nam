@@ -44,7 +44,7 @@ const DIAL_ELEMENTS = {
 const DIAL_BLUE = combineRgb(102, 178, 255)
 const DIAL_YELLOW = combineRgb(204, 204, 0)
 
-/** Dial arc colours, all darker than the elements' own defaults so they sit behind white text. */
+/** Dial arc colours, mostly darker than the elements' own defaults so they sit behind white text. */
 export const DIAL_COLORS = {
 	/** For a class that doesn't pick its own, where the property has no conventional colour. */
 	plain: combineRgb(182, 182, 182),
@@ -61,6 +61,8 @@ export const DIAL_COLORS = {
 	frequency: DIAL_BLUE,
 	/** A dynamics time constant, sharing the frequency dial's blue. */
 	time: DIAL_BLUE,
+	/** A delay time, pale pink so it reads apart from the dynamics times' blue. */
+	delay: combineRgb(255, 192, 255),
 } as const
 
 /** In Companion's text element units, used as given. A simple preset's `size` is in older units and gets scaled. */

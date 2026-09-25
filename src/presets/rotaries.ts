@@ -17,6 +17,7 @@ import {
 	DIAL_COLORS,
 	HERTZ,
 	INTEGER_STEPS,
+	RANGE_STEPS,
 	RATIO_STEPS,
 	labelElements,
 	numberWithUnit,
@@ -96,6 +97,13 @@ export interface RotaryClass {
 /** Every rotary shows a dial; only a few have a colour their property is conventionally drawn in. */
 const VALUE_DIAL = { dial: 'value' } as const
 
+/**
+ * A delay time, stepped by a share of the device's range: no fixed step suits them all. The NAM's
+ * amplifier delays run 0-2.5 s and its AES VOX timers 2-20 ms, so a step of 1 was 40% of the one and
+ * went straight to the end of the other.
+ */
+const DELAY = { property: 'DelayTime', ...RANGE_STEPS, ...VALUE_DIAL, dialColor: DIAL_COLORS.delay } as const
+
 export const ROTARY_CLASSES: readonly RotaryClass[] = [
 	{
 		className: OCA_CLASS_NAMES.OcaGain,
@@ -117,9 +125,9 @@ export const ROTARY_CLASSES: readonly RotaryClass[] = [
 		dial: 'centred',
 		dialColor: DIAL_COLORS.pan,
 	},
-	{ className: OCA_CLASS_NAMES.OcaDelay, property: 'DelayTime', ...DEFAULT_STEPS, ...VALUE_DIAL },
+	{ className: OCA_CLASS_NAMES.OcaDelay, ...DELAY },
 	// Its own DelayValue is a value and unit, which actions can't set; DelayTime is inherited from OcaDelay
-	{ className: OCA_CLASS_NAMES.OcaDelayExtended, property: 'DelayTime', ...DEFAULT_STEPS, ...VALUE_DIAL },
+	{ className: OCA_CLASS_NAMES.OcaDelayExtended, ...DELAY },
 	// A frequency steps by a fraction of an octave rather than a fixed number of hertz
 	{
 		className: OCA_CLASS_NAMES.OcaFrequencyActuator,

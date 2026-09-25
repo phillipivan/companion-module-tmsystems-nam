@@ -40,25 +40,40 @@ export interface MeterClass {
 	/** The unit shown after the reading, where the class is defined in one. */
 	readonly unit?: string
 	/**
-	 * The single colour the bar is drawn in. Left out by the signal level classes, which keep the audio
-	 * metering scale: green through to red is about headroom, and says nothing useful about a voltage.
+	 * The single colour the bar is drawn in. Left out by the classes that keep the audio metering scale:
+	 * green through to red is headroom on a signal level and cool to hot on a temperature, but says
+	 * nothing useful about a voltage.
 	 */
 	readonly color?: number
+	/**
+	 * The bottom of the bar, as a local variable the button can change, for a reading whose device range
+	 * runs further down than is worth metering. The device's own minimum wins where it is higher. Left out
+	 * where the bar runs across the device's whole range.
+	 */
+	readonly floor?: number
 }
 
 /** A reading that isn't a signal level is drawn plainly, in the same grey as a rotary's dial. */
 const METER_PLAIN = { color: DIAL_COLORS.plain } as const
 
+/**
+ * A signal level, metered in dB down to -60. The NAM's level sensors report -126..0, and since the colour
+ * stops are fractions of the bar, across that whole range a nominal -18 dBFS would already read amber.
+ */
+const METER_LEVEL = { unit: 'dB', floor: -60 } as const
+
 export const METER_CLASSES: readonly MeterClass[] = [
-	{ className: OCA_CLASS_NAMES.OcaLevelSensor, property: 'Reading', unit: 'dB' },
+	{ className: OCA_CLASS_NAMES.OcaLevelSensor, property: 'Reading', ...METER_LEVEL },
 	// Reading is inherited from OcaLevelSensor. Its own Law is which averaging algorithm produced the
 	// reading, not a level, so it isn't what the meter shows
-	{ className: OCA_CLASS_NAMES.OcaAudioLevelSensor, property: 'Reading', unit: 'dB' },
+	{ className: OCA_CLASS_NAMES.OcaAudioLevelSensor, property: 'Reading', ...METER_LEVEL },
 	// Units follow AES70's SI convention for each class. Only the temperature one is stated outright in
 	// aes70's own typings ("Units of measure are Celsius"); the rest are the unit the class is named for
 	{ className: OCA_CLASS_NAMES.OcaTimeIntervalSensor, property: 'Reading', unit: 's', ...METER_PLAIN },
 	{ className: OCA_CLASS_NAMES.OcaFrequencySensor, property: 'Reading', unit: 'Hz', ...METER_PLAIN },
-	{ className: OCA_CLASS_NAMES.OcaTemperatureSensor, property: 'Reading', unit: '°C', ...METER_PLAIN },
+	// Metered like a level, green when cool through to red when hot. On the NAM's 0-150 °C range the
+	// colour turns yellow at 100 °C and red at 135 °C
+	{ className: OCA_CLASS_NAMES.OcaTemperatureSensor, property: 'Reading', unit: '°C' },
 	{ className: OCA_CLASS_NAMES.OcaVoltageSensor, property: 'Reading', unit: 'V', ...METER_PLAIN },
 	{ className: OCA_CLASS_NAMES.OcaCurrentSensor, property: 'Reading', unit: 'A', ...METER_PLAIN },
 	// aes70 describes the reading as a magnitude and a phase, but only the magnitude comes back as Reading
@@ -88,6 +103,8 @@ const METER_DECIMAL_PLACES = 1
 
 /** The button's local variable, holding the getter's reading and limits together. */
 const METER_LEVEL_VARIABLE = 'level'
+/** The bottom of the bar, for a class with a floor. */
+const METER_MIN_VARIABLE = 'meter_min'
 
 /** An expression for a meter's label: the object's role path, then its reading below, once it is known. */
 function meterLabel(rolePath: string, value: string, unit?: string): string {
@@ -100,14 +117,18 @@ function meterLabel(rolePath: string, value: string, unit?: string): string {
  *
  * The bar runs between the sensor's own limits, which the getter returns alongside the reading, so all
  * three come from one read and the colour stops follow whatever range the device reports. Until that read
- * arrives none of them is a number, and the bar has nothing to draw.
+ * arrives none of them is a number, and the bar has nothing to draw. A class with a floor starts the bar
+ * at whichever is higher, the floor or the device's minimum; a reading below it leaves the bar empty,
+ * while the label still shows it.
  *
- * A class that names a colour is drawn in it; the signal level classes name none and keep the metering scale.
+ * A class that names a colour is drawn in it; the signal level and temperature classes name none and keep
+ * the metering scale.
  */
 function meterPreset(meter: MeterClass, rolePath: string): CompanionLayeredButtonPresetDefinition<OcaModuleTypes> {
 	const { className, property, color } = meter
 	// Without sync the getter's result arrives whole, as { values: [reading, min, max] }
-	const [level, min, max] = [0, 1, 2].map((index) => `$(local:${METER_LEVEL_VARIABLE}).values[${index}]`)
+	const [level, reported, max] = [0, 1, 2].map((index) => `$(local:${METER_LEVEL_VARIABLE}).values[${index}]`)
+	const min = meter.floor === undefined ? reported : `max($(local:${METER_MIN_VARIABLE}), ${reported})`
 	return {
 		type: 'layered',
 		name: `${ocaClassNameToLabel(className)} - ${rolePath}`,
@@ -136,6 +157,9 @@ function meterPreset(meter: MeterClass, rolePath: string): CompanionLayeredButto
 		steps: [{ down: [], up: [] }],
 		feedbacks: [],
 		localVariables: [
+			...(meter.floor === undefined
+				? []
+				: [{ variableType: 'simple' as const, variableName: METER_MIN_VARIABLE, startupValue: meter.floor }]),
 			{
 				variableType: 'feedback',
 				variableName: METER_LEVEL_VARIABLE,

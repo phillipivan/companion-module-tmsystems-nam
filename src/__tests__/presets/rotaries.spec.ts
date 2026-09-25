@@ -139,7 +139,7 @@ describe('rotary presets', () => {
 		}
 		// Only those whose property has a conventional colour choose one
 		expect(ROTARY_CLASSES.filter((rotary) => rotary.dialColor !== undefined).map((rotary) => rotary.className)).toEqual(
-			['OcaGain', 'OcaPanBalance', 'OcaFrequencyActuator'],
+			['OcaGain', 'OcaPanBalance', 'OcaDelay', 'OcaDelayExtended', 'OcaFrequencyActuator'],
 		)
 	})
 
@@ -191,6 +191,44 @@ describe('rotary presets', () => {
 					"`OcaFrequencyActuator/1\\n (Rotary)\\n${isNumber($(local:range).values[0]) ? ($(local:range).values[0] >= 1000 ? `${round($(local:range).values[0] / 1000 * 100) / 100} kHz` : ($(local:range).values[0] < 100 ? `${round($(local:range).values[0] * 10) / 10} Hz` : `${round($(local:range).values[0])} Hz`)) : ''}`",
 			},
 		})
+	})
+
+	// The NAM on 2026-09-25: AMP/CH0/DLY reported 0-2.5 s and AES/CH0/VOXT 0.002-0.02 s, so a fixed step of 1
+	// was 40% of the one and the whole of the other. A 25th is 0.1 s and 0.72 ms
+	it('steps a delay by a 25th of the range the device reports, a 250th while held, on a pink dial', async () => {
+		const { presets } = await define([
+			[
+				'AMP/CH0/DLY',
+				makeObject(ControlClasses.OcaDelay, 1, [
+					['Enabled', true],
+					['DelayTime', 0],
+				]),
+			],
+		])
+		const preset = presets['rotary_OcaDelay_AMP/CH0/DLY']
+		if (preset?.type !== 'layered') throw new Error('No layered delay preset')
+
+		expect(preset.localVariables?.[0]).toEqual({
+			variableType: 'simple',
+			variableName: 'range_divisions',
+			startupValue: 25,
+		})
+		const turns = [preset.steps[0]?.rotate_left?.[0], preset.steps[0]?.rotate_right?.[0]] as PresetEntry[]
+		expect(turns.map((action) => action.options.value_DelayTime)).toEqual([
+			{
+				isExpression: true,
+				value:
+					'max($(local:range).values[1], $(local:range).values[0] - ($(local:range).values[2] - $(local:range).values[1]) / ($(this:active) ? $(local:range_divisions) * 10 : $(local:range_divisions)))',
+			},
+			{
+				isExpression: true,
+				value:
+					'min($(local:range).values[2], $(local:range).values[0] + ($(local:range).values[2] - $(local:range).values[1]) / ($(this:active) ? $(local:range_divisions) * 10 : $(local:range_divisions)))',
+			},
+		])
+		const dial = preset.elements.find((element) => element.id === 'dial')
+		if (dial?.type !== 'composite') throw new Error('No dial on the delay preset')
+		expect(dial.options.color).toBe(0xffc0ff)
 	})
 
 	// Companion reads template literal text raw, so these would otherwise end the literal or interpolate

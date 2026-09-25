@@ -55,10 +55,11 @@ describe('meter presets', () => {
 					id: 'meter',
 					name: 'Signal Meter',
 					elementId: 'meter',
-					// Reading, then the sensor's own limits, all from the one read
+					// Reading, then the sensor's own limits, all from the one read. The bottom is the higher of the
+					// button's floor and the device's minimum
 					options: {
 						level: { isExpression: true, value: '$(local:level).values[0]' },
-						min: { isExpression: true, value: '$(local:level).values[1]' },
+						min: { isExpression: true, value: 'max($(local:meter_min), $(local:level).values[1])' },
 						max: { isExpression: true, value: '$(local:level).values[2]' },
 						position: 'bottom',
 						padding: 2,
@@ -72,6 +73,9 @@ describe('meter presets', () => {
 			steps: [{ down: [], up: [] }],
 			feedbacks: [],
 			localVariables: [
+				// The NAM's level sensors report -126..0, and a level is metered in its top 60 dB. Editable on
+				// the button, for a device or a use that wants more or less of it
+				{ variableType: 'simple', variableName: 'meter_min', startupValue: -60 },
 				{
 					variableType: 'feedback',
 					variableName: 'level',
@@ -83,8 +87,8 @@ describe('meter presets', () => {
 	})
 
 	// The label and the bar both index into this shape. aes70 declares GetReading as
-	// Arguments<[number, number, number]>, so it decodes like the actuators' getters; what a real sensor
-	// puts in those three slots is still unconfirmed, the NAM being away until the week of 2026-09-22
+	// Arguments<[number, number, number]>, so it decodes like the actuators' getters. The reading is the
+	// NAM's CHLEVELS/OUTS4 on 2026-09-25, with no signal playing: noise just above its -126 dB floor
 	it("gets a sensor's reading and limits from the Get Property feedback without sync, as { values: [reading, min, max] }", async () => {
 		const { presets } = await define([['CHLEVELS/INS0', levelSensor(1)]])
 		const preset = presets['meter_OcaLevelSensor_CHLEVELS/INS0']
@@ -92,7 +96,7 @@ describe('meter presets', () => {
 		const level = preset.localVariables?.find((variable) => variable.variableName === 'level') as PresetEntry
 		;(ctx.helper.getObject('CHLEVELS/INS0') as unknown as { GetReading: unknown }).GetReading = vi
 			.fn()
-			.mockResolvedValue(new Arguments([-42.123456, -200, 20]))
+			.mockResolvedValue(new Arguments([-97.5, -126, 0]))
 
 		const feedback = ctx.setFeedbackDefinitions.mock.lastCall?.[0].get_property_OcaLevelSensor as unknown as {
 			callback: (event: unknown, context: unknown) => Promise<unknown>
@@ -102,7 +106,7 @@ describe('meter presets', () => {
 			{ type: 'feedback', signal: new AbortController().signal },
 		)
 
-		expect(result).toEqual({ values: [-42.123456, -200, 20] })
+		expect(result).toEqual({ values: [-97.5, -126, 0] })
 	})
 
 	// Reading has a getter and no setter, so requiring a writable property would leave both classes out
@@ -174,12 +178,31 @@ describe('meter presets', () => {
 			// Only the signal level classes keep the green-to-red scale; the rest name a flat colour
 			expect(bar.options.scheme, meter.className).toBe(meter.color === undefined ? 'meter' : 'custom')
 			if (meter.color !== undefined) expect(bar.options.color, meter.className).toBe(meter.color)
+			// Only a class with a floor carries the variable, and only there does the bar stop short of the device's minimum
+			const floor = preset.localVariables?.find((variable) => variable.variableName === 'meter_min')
+			expect(floor, meter.className).toEqual(
+				meter.floor === undefined
+					? undefined
+					: { variableType: 'simple', variableName: 'meter_min', startupValue: meter.floor },
+			)
+			expect(bar.options.min, meter.className).toEqual({
+				isExpression: true,
+				value:
+					meter.floor === undefined ? '$(local:level).values[1]' : 'max($(local:meter_min), $(local:level).values[1])',
+			})
 			for (const variable of (preset.localVariables ?? []) as PresetEntry[]) {
 				if (variable.feedbackId) expectOptionsOffered(feedbacks[variable.feedbackId], variable.options)
 			}
 		}
-		// The level classes are the only ones metered on the audio scale
+		// The level and temperature classes are the only ones metered on the audio scale: headroom on the one,
+		// cool to hot on the other
 		expect(METER_CLASSES.filter((meter) => meter.color === undefined).map((meter) => meter.className)).toEqual([
+			'OcaLevelSensor',
+			'OcaAudioLevelSensor',
+			'OcaTemperatureSensor',
+		])
+		// Only the levels get a floor; a temperature's bar runs across the device's whole range
+		expect(METER_CLASSES.filter((meter) => meter.floor !== undefined).map((meter) => meter.className)).toEqual([
 			'OcaLevelSensor',
 			'OcaAudioLevelSensor',
 		])
