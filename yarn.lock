@@ -892,12 +892,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aes70@npm:^2.0.20":
-  version: 2.0.20
-  resolution: "aes70@npm:2.0.20"
+"aes70@npm:^2.0.21":
+  version: 2.0.21
+  resolution: "aes70@npm:2.0.21"
   bin:
     printDevice: bin/printDevice.js
-  checksum: 10c0/99eae1fe1fd9ab2f0106b8a6d9b7fd69392a402d10d7318f7bf8813a98f3a74213f2648f62049a2303b4057ef11342f97b61a62173d69721b4d1e18c491292ad
+  checksum: 10c0/94a0043c0b193b06e4e32562e069457b943582c50504b123503e49a49d4648715b9cce90569bc16f0c563607cec016001c06bba81ff322411f000db04d83a31d
   languageName: node
   linkType: hard
 
@@ -1484,7 +1484,7 @@ __metadata:
     "@types/node": "npm:^26.6.2"
     "@types/ws": "npm:^8.18.1"
     "@vitest/coverage-v8": "npm:5.0.2"
-    aes70: "npm:^2.0.20"
+    aes70: "npm:^2.0.21"
     es-toolkit: "npm:^1.52.0"
     eslint: "npm:^10.11.0"
     husky: "npm:^9.1.7"
