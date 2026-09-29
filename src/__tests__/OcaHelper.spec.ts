@@ -24,6 +24,7 @@ import {
 	OcaRoot,
 } from 'aes70/src/controller/ControlClasses.js'
 import { ObjectBase } from 'aes70/src/controller/object_base.js'
+import { CloseError } from 'aes70'
 import { OcaSensorReadingState } from 'aes70/src/types/OcaSensorReadingState.js'
 import { OcaLevelMeterLaw } from 'aes70/src/types/OcaLevelMeterLaw.js'
 import { captureLogs, type CapturedLogs } from './captureLogs.js'
@@ -1043,9 +1044,9 @@ describe('getClassProperties', () => {
 // ---------------------------------------------------------------------------
 
 describe('connection closing mid-sync', () => {
-	// aes70's PropertySync.sync() never settles once the connection closes part way through:
-	// the reads left pending fail with a CloseError, which it ignores
-	const neverSettling = async (): Promise<void> => new Promise<void>(() => undefined)
+	// From aes70 2.0.21, PropertySync.sync() rejects with the CloseError its pending reads fail with when
+	// the connection closes part way through. Before that it never settled, and the module had to give up
+	// on it itself
 
 	/** True if `promise` settles within `ms`, false if it is still pending. */
 	async function settlesWithin(promise: Promise<unknown>, ms: number): Promise<boolean> {
@@ -1058,32 +1059,27 @@ describe('connection closing mid-sync', () => {
 		])
 	}
 
-	it('finishes a registration waiting on a sync once the connection closes, leaving it without properties', async () => {
+	it('finishes a registration whose sync the connection closing cut short, leaving it without properties', async () => {
 		const helper = new OcaHelper()
 		const gain = makeObj(OcaGain, 1)
 		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
 		const { propertySync } = rigOf(gain)
-		propertySync.sync.mockReturnValueOnce(neverSettling())
+		propertySync.sync.mockRejectedValueOnce(new CloseError())
 
-		const registering = helper.addFeedbackId('Faders/1', 'f1')
-		helper.connectionClosed()
-
-		expect(await settlesWithin(registering, 200)).toBe(true)
+		await expect(helper.addFeedbackId('Faders/1', 'f1')).resolves.toBeUndefined()
 		expect(helper.getEntry('Faders/1')?.properties).toBeUndefined()
 		expect(propertySync.Dispose).toHaveBeenCalled()
 	})
 
-	it('rejects a class probe waiting on a sync once the connection closes, so the next call probes again', async () => {
+	it('rejects a class probe whose sync the connection closing cut short, so the next call probes again', async () => {
 		const helper = new OcaHelper()
 		const gain = makeObj(OcaGain, 1)
 		await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
-		rigOf(gain).propertySync.sync.mockReturnValueOnce(neverSettling())
+		rigOf(gain).propertySync.sync.mockRejectedValueOnce(new CloseError())
 
-		const probing = helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
-		helper.connectionClosed()
-
-		expect(await settlesWithin(probing, 200)).toBe(true)
-		await expect(probing).rejects.toMatchObject({ name: 'aes70.CloseError' })
+		await expect(helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)).rejects.toMatchObject({
+			name: 'aes70.CloseError',
+		})
 		await expect(helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)).resolves.toEqual([])
 		expect(rigOf(gain).getPropertySync).toHaveBeenCalledTimes(2)
 	})
@@ -1094,14 +1090,11 @@ describe('connection closing mid-sync', () => {
 		const roleMap = new Map<string, unknown>([['Faders/1', gain]])
 		await helper.loadRoleMap(roleMap)
 		await helper.addFeedbackId('Faders/1', 'f1')
-		rigOf(gain).propertySync.sync.mockReturnValueOnce(neverSettling())
+		rigOf(gain).propertySync.sync.mockRejectedValueOnce(new CloseError())
 		const loaded = vi.fn()
 		helper.on('map:loaded', loaded)
 
-		const reloading = helper.loadRoleMap(roleMap)
-		helper.connectionClosed()
-
-		expect(await settlesWithin(reloading, 200)).toBe(true)
+		await expect(helper.loadRoleMap(roleMap)).resolves.toBeUndefined()
 		expect(loaded).toHaveBeenCalledTimes(1)
 	})
 

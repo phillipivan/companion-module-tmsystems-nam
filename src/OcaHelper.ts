@@ -441,34 +441,12 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 	 */
 	private _propertyChecks: Map<string, string> = new Map()
 
-	/**
-	 * Aborted by `connectionClosed()` and replaced straight away, so work started
-	 * afterwards waits on the next connection's instead. Held as a plain controller:
-	 * property syncs race against its signal with an abort listener.
-	 */
-	private _connectionController = new AbortController()
-
 	// -------------------------------------------------------------------------
 	// Constructor
 	// -------------------------------------------------------------------------
 
 	constructor() {
 		super()
-	}
-
-	/**
-	 * Stop waiting on property syncs for the connection the loaded objects belong to.
-	 * Call when that connection closes.
-	 *
-	 * aes70's `PropertySync.sync()` never settles if the connection closes part way
-	 * through: it only finishes a property on a value or a `RemoteError`, and the
-	 * reads left pending fail with a `CloseError` instead. Without this, whatever
-	 * awaits such a sync waits forever. Registrations waiting on one now finish
-	 * without properties, and a pending class probe rejects, so it isn't cached.
-	 */
-	public connectionClosed(): void {
-		this._connectionController.abort(new CloseError())
-		this._connectionController = new AbortController()
 	}
 
 	// -------------------------------------------------------------------------
@@ -1087,7 +1065,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		// instance each call, so disposing this one never unsubscribes the entry's own.
 		const propSync = entry.obj.GetPropertySync()
 		try {
-			await abortable(propSync.sync(), this._connectionController.signal)
+			await propSync.sync()
 			const props = this._describeProperties(entry, propSync)
 			this._recordProperties(entry, props)
 			return props
@@ -1110,7 +1088,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		// every role map reload, and kept the device sending changes after the last ID was removed.
 		const propSync = entry.obj.GetPropertySync()
 		try {
-			await abortable(propSync.sync(), this._connectionController.signal)
+			await propSync.sync()
 			this._recordProperties(entry, this._describeProperties(entry, propSync))
 		} finally {
 			propSync.Dispose()
@@ -1537,8 +1515,8 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 		if (entry.properties !== undefined) return
 		const properties = entry.obj.GetPropertySync()
 		try {
-			// Never settles by itself if the connection closes mid-sync; see connectionClosed()
-			await abortable(properties.sync(), this._connectionController.signal)
+			// Rejects with a CloseError if the connection closes part way through
+			await properties.sync()
 		} catch (err) {
 			properties.Dispose()
 			if (err instanceof CloseError) {

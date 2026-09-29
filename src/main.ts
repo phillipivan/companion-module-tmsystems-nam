@@ -190,7 +190,6 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 		this.roleMapRefreshRetry.reset()
 		if (this.client) this.client.removeAllEventListeners()
 		if (this.connection) this.connection.close()
-		this.ocaHelper.connectionClosed()
 	}
 
 	/**
@@ -332,7 +331,6 @@ export default class ModuleInstance extends InstanceBase<OcaModuleTypes> {
 
 		// aes70 emits 'close' without an argument
 		client.on('close', () => {
-			this.ocaHelper.connectionClosed()
 			this.log('warn', 'Connection closed')
 			this.updateStatus(InstanceStatus.Disconnected, 'Connection closed')
 

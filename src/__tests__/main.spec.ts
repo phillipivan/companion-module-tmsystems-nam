@@ -332,17 +332,12 @@ describe('ModuleInstance connection lifecycle (fake local device)', () => {
 		instance = inst
 		await waitForOk(inst)
 
-		const connectionClosed = vi.spyOn(inst.ocaHelper, 'connectionClosed')
-
 		device.silent = true
 		await vi.waitFor(() => expect(statusesOf(inst)).toContain(InstanceStatus.Disconnected), {
 			timeout: 8000,
 			interval: 20,
 		})
 		device.silent = false
-
-		// So property syncs cut short by the close stop being waited on
-		expect(connectionClosed).toHaveBeenCalled()
 
 		const messages = logOf(inst).mock.calls.map(([, message]) => message)
 		expect(messages).toContain('Connection closed')

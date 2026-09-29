@@ -148,7 +148,7 @@ describe('Get Property feedback check abort', () => {
 		const setFeedbackDefinitions: Mock<(definitions: CompanionFeedbackDefinitions<FeedbackSchema>) => void> = vi.fn()
 		const self = { ocaHelper: helper, setFeedbackDefinitions } as unknown as ModuleInstance
 		const gain = makeGain(1)
-		// The class probe's sync finishes; the registration's never does, as after the connection closes mid-sync
+		// The class probe's sync finishes; the registration's is still waiting on the device when the check is aborted
 		let syncs = 0
 		;(gain as unknown as { GetPropertySync: unknown }).GetPropertySync = () => {
 			syncs++
