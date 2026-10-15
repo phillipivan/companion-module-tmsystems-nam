@@ -195,6 +195,25 @@ export async function makeSafeJsonValue(data: unknown, options: MakeSafeJsonOpti
 
 		// Map
 		if (value instanceof Map) {
+			// A struct key, such as a PortClockMap's OcaPortID, stringifies to "[object Object]" like any
+			// other struct, so a Map keyed by one is written as its entries rather than as an object
+			if ([...value.keys()].some((key) => typeof key === 'object' && key !== null)) {
+				const out: JsonValue[] = []
+
+				let index = 0
+
+				for (const [key, mapValue] of value) {
+					const convertedKey = await visit(key, [...path, index, 0], 'array')
+					const convertedValue = await visit(mapValue, [...path, index, 1], 'array')
+
+					out.push([convertedKey === OMIT ? null : convertedKey, convertedValue === OMIT ? null : convertedValue])
+
+					index++
+				}
+
+				return out
+			}
+
 			const out: JsonObject = {}
 
 			for (const [key, mapValue] of value) {
@@ -260,6 +279,10 @@ export async function makeSafeJsonValue(data: unknown, options: MakeSafeJsonOpti
 					out[key] = converted
 				}
 			}
+
+			// Only an object still being visited makes a cycle. aes70 enum members are singletons, so the
+			// same one turns up again in sibling structs, such as the Direction of every input port
+			seen.delete(value)
 
 			return out
 		}

@@ -144,6 +144,25 @@ describe('makeSafeJsonValue', () => {
 		).toEqual({ '1': 'one', two: 2 })
 	})
 
+	// Every struct key stringifies to "[object Object]", so as an object each entry overwrote the
+	// last and a PortClockMap came back as its final entry alone
+	it('turns a Map keyed by struct, such as a PortClockMap, into its entries', async () => {
+		const portClockMap = new Map([
+			[new OcaPortID(OcaIODirection.Input, 1), new OcaPortClockMapEntry(4, OcaSamplingRateConverterType.None)],
+			[new OcaPortID(OcaIODirection.Output, 1), new OcaPortClockMapEntry(5, OcaSamplingRateConverterType.None)],
+		])
+		expect(await makeSafeJsonValue(portClockMap)).toEqual([
+			[
+				{ Direction: { value: 1 }, Index: 1 },
+				{ ClockONo: 4, SRCType: { value: 0 } },
+			],
+			[
+				{ Direction: { value: 2 }, Index: 1 },
+				{ ClockONo: 5, SRCType: { value: 0 } },
+			],
+		])
+	})
+
 	it('serialises aes70 values as the feedback reads them: getter results, structs and enums', async () => {
 		expect(await makeSafeJsonValue(new Arguments([-6, -70, 20]))).toEqual({ values: [-6, -70, 20] })
 		expect(await makeSafeJsonValue(new OcaModelDescription('T&M Media', 'NAM', '3'))).toEqual({
@@ -171,6 +190,20 @@ describe('makeSafeJsonValue', () => {
 		node.self = node
 
 		expect(await makeSafeJsonValue(node)).toEqual({ name: 'root', self: null })
+	})
+
+	// aes70 enum members are singletons, so every input port shares one OcaIODirection.Input. Treated
+	// as a cycle, it was written as null for every port after the first
+	it('writes an object referenced more than once, outside a cycle, every time', async () => {
+		const ports = [
+			new OcaPort(10001, new OcaPortID(OcaIODirection.Input, 1), 'In 1'),
+			new OcaPort(10001, new OcaPortID(OcaIODirection.Input, 2), 'In 2'),
+		]
+
+		expect(await makeSafeJsonValue(ports)).toEqual([
+			{ Owner: 10001, ID: { Direction: { value: 1 }, Index: 1 }, Role: 'In 1' },
+			{ Owner: 10001, ID: { Direction: { value: 1 }, Index: 2 }, Role: 'In 2' },
+		])
 	})
 
 	describe('visitor', () => {
