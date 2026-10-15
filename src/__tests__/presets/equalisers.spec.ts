@@ -200,7 +200,9 @@ describe('equaliser presets', () => {
 		// Without a label of its own, a button is headed with the property as the dropdowns name it
 		expect(heading('Frequency')).toBe('`Frequency')
 		// The preset's name still spells the property out, as the Set Property action does
-		expect(presets['eq_OcaFilterParametric_MIC/BQ0_WidthParameter']?.name).toBe('MIC/BQ0 - Width Parameter')
+		expect(presets['eq_OcaFilterParametric_MIC/BQ0_WidthParameter']).toMatchObject({
+			name: 'MIC/BQ0 - Width Parameter',
+		})
 	})
 
 	// Width is Q on some devices and octaves on others, with limits to match, so a fixed step suits none of
@@ -250,8 +252,9 @@ describe('equaliser presets', () => {
 		])
 		const groups = structure.find((section) => section.id === 'equalisers')?.definitions
 		const presetsOf = (name: string): string[] => {
-			const group = groups?.find((candidate) => candidate.name === name)
-			if (!group || group.type !== 'simple') throw new Error(`No group for ${name}`)
+			// A section holds either groups or bare preset ids
+			const group = groups?.find((candidate) => typeof candidate !== 'string' && candidate.name === name)
+			if (!group || typeof group === 'string' || group.type !== 'simple') throw new Error(`No group for ${name}`)
 			return group.presets.map((id) => id.split('_').at(-1) ?? '')
 		}
 

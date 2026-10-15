@@ -423,8 +423,8 @@ describe('accessorName', () => {
 		send_command: (): undefined => undefined,
 		add_subscription: (): undefined => undefined,
 		remove_subscription: (): undefined => undefined,
-	}
-	const make = <T>(Cls: new (ono: number, dev: unknown) => T): T => new Cls(1, device)
+	} as unknown as ConstructorParameters<typeof OcaFilterParametric>[1]
+	const make = <T>(Cls: new (ono: number, dev: typeof device) => T): T => new Cls(1, device)
 
 	it('names the getter and setter after the property', () => {
 		const filter = make(OcaFilterParametric)

@@ -3,6 +3,7 @@ import * as ControlClasses from 'aes70/src/controller/ControlClasses.js'
 import { type OcaRoot } from 'aes70/src/controller/ControlClasses.js'
 import { Arguments } from 'aes70/src/controller/arguments.js'
 import { METER_CLASSES } from '../../presets/meters.js'
+import { CompositeElementId } from '../../composites.js'
 import {
 	audioLevelSensor,
 	expectOptionsOffered,
@@ -174,7 +175,7 @@ describe('meter presets', () => {
 			else expect(text, meter.className).toContain(`} ${meter.unit}\``)
 
 			const bar = preset.elements.find((element) => element.id === 'meter')
-			if (bar?.type !== 'composite') throw new Error(`No meter on ${id}`)
+			if (bar?.type !== 'composite' || bar.elementId !== CompositeElementId.Meter) throw new Error(`No meter on ${id}`)
 			// Only the signal level classes keep the green-to-red scale; the rest name a flat colour
 			expect(bar.options.scheme, meter.className).toBe(meter.color === undefined ? 'meter' : 'custom')
 			if (meter.color !== undefined) expect(bar.options.color, meter.className).toBe(meter.color)

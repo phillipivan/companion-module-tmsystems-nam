@@ -3,6 +3,7 @@ import { OcaSignalGenerator, type OcaRoot } from 'aes70/src/controller/ControlCl
 import { OcaWaveformType } from 'aes70/src/types/OcaWaveformType.js'
 import { OcaSweepType } from 'aes70/src/types/OcaSweepType.js'
 import { SIGNAL_GENERATOR_CLASSES } from '../../presets/signalGenerators.js'
+import { CompositeElementId } from '../../composites.js'
 import { labelOf, makeHarness, makeObject, type PresetEntry, type PresetHarness, type RoleMap } from './helpers.js'
 
 /** A generator reporting everything its class can set. */
@@ -60,9 +61,10 @@ describe('signal generator presets', () => {
 			const preset = presets[`gen_OcaSignalGenerator_GEN/1_${property}`]
 			if (preset?.type !== 'layered') throw new Error(`No layered ${property} preset`)
 			const dial = preset.elements.find((element) => element.id === 'dial')
-			if (dial?.type !== 'composite') throw new Error(`No dial on ${property}`)
+			if (dial?.type !== 'composite' || dial.elementId !== CompositeElementId.Dial) {
+				throw new Error(`No value dial on ${property}`)
+			}
 
-			expect(dial.elementId, property).toBe('dial')
 			expect(dial.options.scheme, property).toBe('spectrum')
 			// Logged, so every octave takes the same length of arc
 			expect(dial.options.level, property).toEqual({

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, type Mock } from 'vitest'
-import type { CompanionGraphicsCompositeElementDefinitions } from '@companion-module/base'
+import type { ButtonGraphicsGaugeElement, CompanionGraphicsCompositeElementDefinitions } from '@companion-module/base'
 import {
 	CompositeElementId,
 	METER_DEFAULT_MAX,
@@ -12,26 +12,32 @@ import {
 import type ModuleInstance from '../main.js'
 
 type Definitions = CompanionGraphicsCompositeElementDefinitions<CompositeElementSchema>
+/** A composite as defined. Base also allows `false` or `undefined`, for one the module does not offer. */
+type Definition<K extends CompositeElementId> = Exclude<Definitions[K], false | undefined>
 
-function defineElements(): { definitions: Definitions; meter: NonNullable<Definitions[CompositeElementId.Meter]> } {
+function definitionOf<K extends CompositeElementId>(definitions: Definitions, id: K): Definition<K> {
+	const definition = definitions[id]
+	if (!definition) throw new Error(`No ${id} element was defined`)
+	return definition as Definition<K>
+}
+
+function defineElements(): { definitions: Definitions; meter: Definition<CompositeElementId.Meter> } {
 	const setCompositeElementDefinitions: Mock<(definitions: Definitions) => void> = vi.fn()
 	UpdateCompositeElements({ setCompositeElementDefinitions } as unknown as ModuleInstance)
 	const definitions = setCompositeElementDefinitions.mock.lastCall?.[0]
 	if (!definitions) throw new Error('No composite elements were defined')
-	const meter = definitions[CompositeElementId.Meter]
-	if (!meter) throw new Error('No meter element was defined')
-	return { definitions, meter }
+	return { definitions, meter: definitionOf(definitions, CompositeElementId.Meter) }
 }
 
 /** The gauge one of the composites is made of. */
-function gaugeOf(id: CompositeElementId): Record<string, unknown> {
+function gaugeOf(id: CompositeElementId): ButtonGraphicsGaugeElement {
 	const { definitions } = defineElements()
-	const gauge = definitions[id]?.elements.find((element) => element.type === 'gauge')
+	const gauge = definitionOf(definitions, id).elements.find((element) => element.type === 'gauge')
 	if (!gauge) throw new Error(`${id} has no gauge`)
 	return gauge
 }
 
-const meterGauge = (): Record<string, unknown> => gaugeOf(CompositeElementId.Meter)
+const meterGauge = (): ButtonGraphicsGaugeElement => gaugeOf(CompositeElementId.Meter)
 
 /**
  * Where a point on a ring gauge's arc sits on a clock face, by Companion's maths
@@ -247,7 +253,7 @@ describe('composite elements', () => {
 	it('leaves the width dial with a single colour', () => {
 		const { definitions } = defineElements()
 
-		expect(definitions[CompositeElementId.WidthDial]?.options.map((option) => option.id)).toEqual([
+		expect(definitionOf(definitions, CompositeElementId.WidthDial).options.map((option) => option.id)).toEqual([
 			'level',
 			'min',
 			'max',
@@ -269,7 +275,7 @@ describe('composite elements', () => {
 
 		for (const id of [CompositeElementId.CentredDial, CompositeElementId.WidthDial]) {
 			const other = gaugeOf(id)
-			for (const key of ['x', 'y', 'width', 'height', 'orientation', 'startAngle', 'endAngle', 'ringWidth']) {
+			for (const key of ['x', 'y', 'width', 'height', 'orientation', 'startAngle', 'endAngle', 'ringWidth'] as const) {
 				expect(other[key], `${id} ${key}`).toEqual(dial[key])
 			}
 		}
@@ -277,8 +283,11 @@ describe('composite elements', () => {
 
 	// The renderer centres a ring and takes its radius from the shorter side, so a centred square keeps it round
 	it('insets the dial from every edge, so it scales with the button without touching its sides', () => {
-		const gauge = gaugeOf(CompositeElementId.Dial)
-		const { x, y, width, height } = gauge as Record<string, number>
+		const { x, y, width, height } = gaugeOf(CompositeElementId.Dial)
+		// Fixed numbers rather than expressions, so the sums below are what the renderer is given
+		if (typeof x !== 'number' || typeof y !== 'number' || typeof width !== 'number' || typeof height !== 'number') {
+			throw new Error('The dial is not placed by fixed numbers')
+		}
 
 		// Square, so the ring is a circle rather than sitting inside an ellipse
 		expect(width).toBe(height)

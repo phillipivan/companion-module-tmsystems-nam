@@ -79,7 +79,7 @@ describe('settablePropertiesOf', () => {
 })
 
 describe('methodPairFor', () => {
-	const make = <T>(Cls: new (ono: number, dev: unknown) => T): T => new Cls(1, inertDevice)
+	const make = <T>(Cls: new (ono: number, dev: typeof inertDevice) => T): T => new Cls(1, inertDevice)
 
 	// AES70 calls Generating read-only; Start() and Stop() are how a device is told to run
 	it('names the pair of methods a generator starts and stops with', () => {
@@ -98,7 +98,7 @@ describe('methodPairFor', () => {
 })
 
 describe('structFieldFor', () => {
-	const make = <T>(Cls: new (ono: number, dev: unknown) => T): T => new Cls(1, inertDevice)
+	const make = <T>(Cls: new (ono: number, dev: typeof inertDevice) => T): T => new Cls(1, inertDevice)
 
 	// A dynamics threshold is an OcaDBr: the level is what a button sets, the reference is the device's
 	it('names the field of a struct property a button sets', () => {

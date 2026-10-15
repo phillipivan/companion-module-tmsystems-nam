@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { OcaMute } from 'aes70/src/controller/ControlClasses.js'
 import { UpdateCompositeElements } from '../../composites.js'
+import type ModuleInstance from '../../main.js'
 import {
 	booleanActuator,
 	booleanSensor,
