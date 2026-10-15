@@ -27,7 +27,7 @@
 		"yarn": "^4"
 	},
 	"dependencies": {
-		"@companion-module/base": "~2.1.3",
+		"@companion-module/base": "~2.2.1",
 		"aes70": "^2.0.21",
 		"es-toolkit": "^1.52.0",
 		"ws": "^8.22.0"

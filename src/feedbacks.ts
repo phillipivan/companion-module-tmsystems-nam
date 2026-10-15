@@ -3,6 +3,7 @@ import {
 	type CompanionFeedbackDefinitions,
 	createModuleLogger,
 	type DropdownChoice,
+	type JsonValue,
 	SomeCompanionFeedbackInputField,
 } from '@companion-module/base'
 import type ModuleInstance from './main.js'
@@ -32,6 +33,7 @@ type GetPropertyOptions = {
 type GetPropertyFeedback = {
 	type: 'value'
 	options: GetPropertyOptions
+	result: JsonValue | null
 }
 
 export type FeedbackSchema = {
