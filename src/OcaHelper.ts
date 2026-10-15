@@ -1104,8 +1104,10 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 
 		sync.forEach((value, name) => {
 			const valueType = typeof value
+			// ClassID is binary, one character per level, so log it dotted rather than as control characters
+			const shown = name === 'ClassID' && typeof value === 'string' ? OcaHelper.classIdToDotted(value) : value
 			this.logger.debug(
-				`Inspecting property "${name}" of class "${entry.className}" with value: ${value} of type: ${valueType}`,
+				`Inspecting property "${name}" of class "${entry.className}" with value: ${shown} of type: ${valueType}`,
 			)
 
 			if (name !== 'ClassID' && valueType !== 'undefined') {

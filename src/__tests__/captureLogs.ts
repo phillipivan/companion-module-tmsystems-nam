@@ -5,6 +5,8 @@ type LoggingSink = NonNullable<typeof globalThis.COMPANION_LOGGER>
 export interface CapturedLogs {
 	/** Every message logged at `warn` since capture started, in order. */
 	warnings(): string[]
+	/** Every message logged at `debug` since capture started, in order. */
+	debugs(): string[]
 	/** Put back whatever sink was installed before. */
 	restore(): void
 }
@@ -19,6 +21,7 @@ export function captureLogs(): CapturedLogs {
 	globalThis.COMPANION_LOGGER = sink
 	return {
 		warnings: () => sink.mock.calls.filter(([, level]) => level === 'warn').map(([, , message]) => message),
+		debugs: () => sink.mock.calls.filter(([, level]) => level === 'debug').map(([, , message]) => message),
 		restore: () => {
 			globalThis.COMPANION_LOGGER = previous
 		},

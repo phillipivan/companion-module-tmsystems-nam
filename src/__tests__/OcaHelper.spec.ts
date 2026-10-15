@@ -824,6 +824,28 @@ describe('getClassProperties', () => {
 		])
 	})
 
+	// The device sends ClassID as one character per level. OcaFloat32Sensor's 1.1.2.1.10 ends in a
+	// newline, which split the line in an exported log; the others logged as invisible control characters.
+	it('logs an inspected ClassID in dotted notation', async () => {
+		const logs = captureLogs()
+		try {
+			const helper = new OcaHelper()
+			const gain = makeObj(OcaGain, 1)
+			await helper.loadRoleMap(new Map<string, unknown>([['Faders/1', gain]]))
+			rigOf(gain).propertySync.forEach.mockImplementation((cb: (value: unknown, name: string) => void) => {
+				cb(OcaHelper.classIdToBinary('1.1.2.1.10'), 'ClassID')
+			})
+
+			await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
+
+			expect(logs.debugs()).toContain(
+				'Inspecting property "ClassID" of class "OcaGain" with value: 1.1.2.1.10 of type: string',
+			)
+		} finally {
+			logs.restore()
+		}
+	})
+
 	// Objects of one class can implement different optional properties, so the representative
 	// alone can miss some. A registered object's property sync reads everything it implements.
 	it('grows with the properties of an object registered later, reporting the discovery once', async () => {
