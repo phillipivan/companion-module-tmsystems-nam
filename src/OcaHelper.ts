@@ -105,7 +105,7 @@ import { OCA_CLASS_NAMES, type OcaClassName } from './consts/aes70-constants.js'
 import { createModuleLogger, type DropdownChoice } from '@companion-module/base'
 import EventEmitter from 'events'
 import { enumValuesOf, isAes70Enum, type EnumValues } from './enums.js'
-import { abortable, accessorName } from './utils.js'
+import { abortable, accessorName, formatLogValue } from './utils.js'
 import { methodPairFor } from './aes70Properties.js'
 
 // ---------------------------------------------------------------------------
@@ -1107,7 +1107,7 @@ export class OcaHelper extends EventEmitter<DetermineOcaClassEvents & OcaHelperI
 			// ClassID is binary, one character per level, so log it dotted rather than as control characters
 			const shown = name === 'ClassID' && typeof value === 'string' ? OcaHelper.classIdToDotted(value) : value
 			this.logger.debug(
-				`Inspecting property "${name}" of class "${entry.className}" with value: ${shown} of type: ${valueType}`,
+				`Inspecting property "${name}" of class "${entry.className}" with value: ${formatLogValue(shown)} of type: ${valueType}`,
 			)
 
 			if (name !== 'ClassID' && valueType !== 'undefined') {

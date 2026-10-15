@@ -839,7 +839,7 @@ describe('getClassProperties', () => {
 			await helper.getClassProperties(OCA_CLASS_NAMES.OcaGain)
 
 			expect(logs.debugs()).toContain(
-				'Inspecting property "ClassID" of class "OcaGain" with value: 1.1.2.1.10 of type: string',
+				'Inspecting property "ClassID" of class "OcaGain" with value: "1.1.2.1.10" of type: string',
 			)
 		} finally {
 			logs.restore()

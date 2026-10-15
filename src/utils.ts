@@ -2,6 +2,8 @@ import { DEFAULT_PORT, ModuleConfig } from './config.js'
 import { createModuleLogger } from '@companion-module/base'
 import type { DropdownChoice, JsonValue, JsonObject } from '@companion-module/base'
 import type { PropertyDescription } from './OcaHelper.js'
+import { isAes70Enum } from './enums.js'
+import { inspect } from 'node:util'
 import { RemoteError } from 'aes70/src/controller/remote_error.js'
 import { OcaStatus } from 'aes70/src/types/OcaStatus.js'
 
@@ -290,6 +292,56 @@ export function unwrapValue(obj: JsonValue): JsonValue {
 		return (obj as { values: JsonValue }).values
 	}
 	return obj
+}
+
+/** Longest a value is logged at. A block's member or signal path lists can run long. */
+const LOG_VALUE_MAX_LENGTH = 1000
+
+/**
+ * `value` as one line for a log message. aes70 hands back structs, Maps and enums, which a
+ * template string prints as `[object Object]` and `[object Map]`, so those are written as JSON
+ * with each nested enum as its member name. Strings are quoted, so an empty one still shows and
+ * a control character is escaped instead of breaking the line. Other primitives print as usual.
+ */
+export function formatLogValue(value: unknown): string {
+	let text: string
+	if (typeof value === 'string') {
+		text = JSON.stringify(value)
+	} else if (typeof value !== 'object' || value === null) {
+		text = String(value)
+	} else if (isAes70Enum(value)) {
+		text = value.name ?? String(value.valueOf())
+	} else {
+		try {
+			text = JSON.stringify(value, logValueReplacer) ?? inspect(value, { breakLength: Infinity })
+		} catch {
+			// A cycle, or a getter that throws
+			text = inspect(value, { breakLength: Infinity })
+		}
+	}
+	return text.length > LOG_VALUE_MAX_LENGTH
+		? `${text.slice(0, LOG_VALUE_MAX_LENGTH)}… (${text.length} characters)`
+		: text
+}
+
+function logValueReplacer(_key: string, value: unknown): unknown {
+	if (typeof value === 'bigint') return value.toString()
+	// JSON has no Infinity or NaN and would write null, which reads as a missing value
+	if (typeof value === 'number' && !Number.isFinite(value)) return String(value)
+	if (isAes70Enum(value)) return value.name ?? value.valueOf()
+	if (value instanceof Map) {
+		const entries = [...value] as [unknown, unknown][]
+		// A Map keyed by struct, such as a PortClockMap keyed by OcaPortID, has no object key to use
+		return entries.every(([key]) => typeof key === 'string' || typeof key === 'number')
+			? Object.fromEntries(entries as [PropertyKey, unknown][])
+			: entries
+	}
+	if (value instanceof Set) return [...value]
+	// Blobs decode to a Uint8Array, which JSON would write as an object keyed by index
+	if (ArrayBuffer.isView(value) && !(value instanceof DataView)) {
+		return Array.from(value as unknown as ArrayLike<number | bigint>)
+	}
+	return value
 }
 
 export function excitementEmoji(level: number): string {

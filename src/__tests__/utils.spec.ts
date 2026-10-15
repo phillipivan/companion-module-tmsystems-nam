@@ -2,6 +2,12 @@ import { describe, it, expect } from 'vitest'
 import { Arguments } from 'aes70/src/controller/arguments.js'
 import { OcaModelDescription } from 'aes70/src/types/OcaModelDescription.js'
 import { OcaMuteState } from 'aes70/src/types/OcaMuteState.js'
+import { OcaPort } from 'aes70/src/types/OcaPort.js'
+import { OcaPortID } from 'aes70/src/types/OcaPortID.js'
+import { OcaIODirection } from 'aes70/src/types/OcaIODirection.js'
+import { OcaMediaClockRate } from 'aes70/src/types/OcaMediaClockRate.js'
+import { OcaPortClockMapEntry } from 'aes70/src/types/OcaPortClockMapEntry.js'
+import { OcaSamplingRateConverterType } from 'aes70/src/types/OcaSamplingRateConverterType.js'
 import { OcaStatus } from 'aes70/src/types/OcaStatus.js'
 import { RemoteError } from 'aes70/src/controller/remote_error.js'
 import { OcaFilterParametric, OcaLevelSensor } from 'aes70/src/controller/ControlClasses.js'
@@ -12,6 +18,7 @@ import {
 	accessorName,
 	defaultPropertyName,
 	excitementEmoji,
+	formatLogValue,
 	handleBonjourHost,
 	isNotImplemented,
 	makePropChoices,
@@ -201,6 +208,66 @@ describe('makeSafeJsonValue', () => {
 			])
 			expect(await makeSafeJsonValue('anything', { visitor: omitWhere(() => true) })).toBeNull()
 		})
+	})
+})
+
+describe('formatLogValue', () => {
+	it('quotes strings, so an empty one shows and control characters are escaped', () => {
+		expect(formatLogValue('System')).toBe('"System"')
+		expect(formatLogValue('')).toBe('""')
+		expect(formatLogValue('\x01\x01\x02\x01\n')).toBe('"\\u0001\\u0001\\u0002\\u0001\\n"')
+	})
+
+	it('prints other primitives as a template string would', () => {
+		expect(formatLogValue(-6.5)).toBe('-6.5')
+		expect(formatLogValue(-Infinity)).toBe('-Infinity')
+		expect(formatLogValue(true)).toBe('true')
+		expect(formatLogValue(undefined)).toBe('undefined')
+		expect(formatLogValue(null)).toBe('null')
+		expect(formatLogValue(9007199254740993n)).toBe('9007199254740993')
+	})
+
+	it('prints an enum as its member name, or its number when outside the enum', () => {
+		expect(formatLogValue(OcaMuteState.Muted)).toBe('Muted')
+		expect(formatLogValue(new (OcaMuteState as unknown as new (value: number) => unknown)(99))).toBe('99')
+	})
+
+	it('writes a struct as JSON, with nested enums by name', () => {
+		const port = new OcaPort(10001, new OcaPortID(OcaIODirection.Input, 1), 'In 1')
+		expect(formatLogValue(port)).toBe('{"Owner":10001,"ID":{"Direction":"Input","Index":1},"Role":"In 1"}')
+		expect(formatLogValue([port])).toBe('[{"Owner":10001,"ID":{"Direction":"Input","Index":1},"Role":"In 1"}]')
+		expect(formatLogValue(new OcaMediaClockRate(48000, 0, 0, 0))).toBe(
+			'{"NominalRate":48000,"PullRange":0,"Accuracy":0,"JitterMax":0}',
+		)
+	})
+
+	it('writes a Map keyed by number as an object, and one keyed by struct as its entries', () => {
+		expect(formatLogValue(new Map([[1, 'a']]))).toBe('{"1":"a"}')
+		const portClockMap = new Map([
+			[new OcaPortID(OcaIODirection.Input, 1), new OcaPortClockMapEntry(4, OcaSamplingRateConverterType.None)],
+			[new OcaPortID(OcaIODirection.Output, 1), new OcaPortClockMapEntry(4, OcaSamplingRateConverterType.None)],
+		])
+		expect(formatLogValue(portClockMap)).toBe(
+			'[[{"Direction":"Input","Index":1},{"ClockONo":4,"SRCType":"None"}],' +
+				'[{"Direction":"Output","Index":1},{"ClockONo":4,"SRCType":"None"}]]',
+		)
+	})
+
+	it('writes a blob as its bytes, and a Set as an array', () => {
+		expect(formatLogValue(new Uint8Array([0xf0, 0x5e]))).toBe('[240,94]')
+		expect(formatLogValue(new Set([1, 2]))).toBe('[1,2]')
+	})
+
+	it('cuts a long value short, saying how long it was', () => {
+		const text = formatLogValue(Array.from({ length: 500 }, (_, i) => i))
+		expect(text).toMatch(/^\[0,1,2,.*… \(1891 characters\)$/)
+		expect(text.indexOf('…')).toBe(1000)
+	})
+
+	it('falls back to util.inspect for a value JSON cannot write', () => {
+		const cyclic: Record<string, unknown> = {}
+		cyclic.self = cyclic
+		expect(formatLogValue(cyclic)).toBe('<ref *1> { self: [Circular *1] }')
 	})
 })
 
